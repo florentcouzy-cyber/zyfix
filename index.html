@@ -1,0 +1,2350 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- PWA Android -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ZyFix">
+<meta name="theme-color" content="#00d4ff">
+<meta name="description" content="ZyFix — Gestion tickets, clients, devis, factures et stock pour technicien informatique.">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon-192.svg">
+<link rel="apple-touch-icon" href="icon-192.svg">
+<title>ZyFix — Gestion Réparations IT</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #080b10;
+  --s1:       #0d1117;
+  --s2:       #131920;
+  --s3:       #1a2230;
+  --border:   #1e2d3d;
+  --border2:  #243040;
+  --cyan:     #00d4ff;
+  --cyan-dim: rgba(0,212,255,.12);
+  --amber:    #ffb300;
+  --green:    #00e676;
+  --red:      #ff4d4d;
+  --purple:   #b388ff;
+  --t1:       #e8f0f8;
+  --t2:       #8899aa;
+  --t3:       #445566;
+  --font:     'Syne', sans-serif;
+  --mono:     'DM Mono', monospace;
+  --r:        10px;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--bg);
+  color:var(--t1);
+  font-family:var(--font);
+  min-height:100vh;
+  overflow-x:hidden;
+}
+/* scanlines subtiles */
+body::after{
+  content:'';
+  position:fixed;inset:0;
+  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.04) 2px,rgba(0,0,0,.04) 4px);
+  pointer-events:none;z-index:9999;
+}
+
+/* ─── SIDEBAR ─── */
+#sidebar{
+  position:fixed;left:0;top:0;bottom:0;width:230px;
+  background:var(--s1);
+  border-right:1px solid var(--border);
+  display:flex;flex-direction:column;
+  z-index:100;
+  transition:transform .25s;
+}
+.logo-zone{
+  padding:22px 20px 18px;
+  border-bottom:1px solid var(--border);
+}
+.logo-name{
+  font-size:26px;font-weight:900;letter-spacing:-1px;
+  color:var(--cyan);
+  text-shadow:0 0 24px rgba(0,212,255,.5);
+  display:flex;align-items:center;gap:8px;
+}
+.logo-sub{
+  font-family:var(--mono);font-size:10px;
+  color:var(--t3);letter-spacing:2px;text-transform:uppercase;
+  margin-top:3px;
+}
+.nav{padding:14px 10px;flex:1;display:flex;flex-direction:column;gap:2px;overflow-y:auto;}
+.nav-sec{
+  font-family:var(--mono);font-size:9px;color:var(--t3);
+  letter-spacing:2.5px;text-transform:uppercase;
+  padding:10px 10px 4px;
+}
+.nav-item{
+  display:flex;align-items:center;gap:10px;
+  padding:9px 12px;border-radius:8px;cursor:pointer;
+  font-size:13px;font-weight:700;color:var(--t2);
+  transition:all .15s;border:1px solid transparent;
+  position:relative;
+}
+.nav-item:hover{background:var(--s2);color:var(--t1);}
+.nav-item.active{
+  background:var(--cyan-dim);color:var(--cyan);
+  border-color:rgba(0,212,255,.25);
+}
+.nav-item .ico{font-size:15px;width:20px;text-align:center;}
+.nav-cnt{
+  margin-left:auto;
+  background:var(--cyan);color:var(--bg);
+  font-size:10px;font-weight:900;font-family:var(--mono);
+  padding:2px 7px;border-radius:20px;min-width:20px;text-align:center;
+}
+.nav-cnt.amber{background:var(--amber);}
+.sidebar-foot{
+  padding:14px 16px;border-top:1px solid var(--border);
+  font-family:var(--mono);font-size:10px;color:var(--t3);
+}
+
+/* ─── MAIN ─── */
+#main{margin-left:230px;min-height:100vh;}
+
+/* ─── TOPBAR ─── */
+.topbar{
+  position:sticky;top:0;
+  background:rgba(8,11,16,.88);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  padding:14px 28px;
+  display:flex;align-items:center;justify-content:space-between;
+  z-index:50;
+}
+.topbar-left{display:flex;align-items:center;gap:14px;}
+.page-title{font-size:17px;font-weight:800;}
+.topbar-date{
+  font-family:var(--mono);font-size:11px;color:var(--t3);
+  background:var(--s2);padding:4px 10px;border-radius:6px;
+  border:1px solid var(--border);
+}
+.topbar-right{display:flex;gap:8px;}
+
+/* ─── BUTTONS ─── */
+.btn{
+  padding:8px 16px;border-radius:8px;
+  font-family:var(--font);font-size:13px;font-weight:800;
+  cursor:pointer;border:none;transition:all .15s;
+  display:inline-flex;align-items:center;gap:6px;
+}
+.btn-primary{background:var(--cyan);color:var(--bg);}
+.btn-primary:hover{filter:brightness(1.1);box-shadow:0 0 16px rgba(0,212,255,.35);}
+.btn-ghost{background:var(--s2);color:var(--t2);border:1px solid var(--border2);}
+.btn-ghost:hover{color:var(--t1);border-color:var(--t3);}
+.btn-danger{background:rgba(255,77,77,.12);color:var(--red);border:1px solid rgba(255,77,77,.3);}
+.btn-danger:hover{background:rgba(255,77,77,.22);}
+.btn-success{background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.25);}
+.btn-amber{background:rgba(255,179,0,.1);color:var(--amber);border:1px solid rgba(255,179,0,.25);}
+.btn-sm{padding:5px 11px;font-size:11px;}
+
+/* ─── PAGE ─── */
+.page{display:none;padding:24px 28px;}
+.page.active{display:block;animation:fadeUp .22s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ─── STATS GRID ─── */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+.stat-card{
+  background:var(--s1);border:1px solid var(--border);
+  border-radius:var(--r);padding:18px 20px;
+  position:relative;overflow:hidden;transition:border-color .2s;
+}
+.stat-card:hover{border-color:var(--border2);}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.stat-card.c-cyan::before{background:var(--cyan);}
+.stat-card.c-amber::before{background:var(--amber);}
+.stat-card.c-green::before{background:var(--green);}
+.stat-card.c-purple::before{background:var(--purple);}
+.stat-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:8px;}
+.stat-val{font-size:34px;font-weight:900;line-height:1;margin-bottom:3px;}
+.stat-card.c-cyan .stat-val{color:var(--cyan);}
+.stat-card.c-amber .stat-val{color:var(--amber);}
+.stat-card.c-green .stat-val{color:var(--green);}
+.stat-card.c-purple .stat-val{color:var(--purple);}
+.stat-hint{font-family:var(--mono);font-size:10px;color:var(--t3);}
+
+/* ─── CARD ─── */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:18px;}
+.card-head{
+  padding:14px 18px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.card-title{font-size:14px;font-weight:800;display:flex;align-items:center;gap:8px;}
+
+/* ─── TABLE ─── */
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead tr{background:var(--s2);}
+th{
+  padding:9px 14px;text-align:left;
+  font-family:var(--mono);font-size:9px;letter-spacing:1.8px;
+  text-transform:uppercase;color:var(--t3);font-weight:500;
+}
+td{padding:11px 14px;border-top:1px solid var(--border);color:var(--t1);}
+tr:hover td{background:rgba(255,255,255,.018);}
+.td-mono{font-family:var(--mono);font-size:12px;}
+.td-dim{color:var(--t2);font-size:12px;}
+.td-sm{font-family:var(--mono);font-size:10px;color:var(--t3);}
+
+/* ─── BADGES ─── */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:3px 8px;border-radius:6px;
+  font-family:var(--mono);font-size:10px;font-weight:500;letter-spacing:.4px;
+}
+.bdot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+.b-attente{background:rgba(255,179,0,.12);color:var(--amber);border:1px solid rgba(255,179,0,.3);}
+.b-encours{background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid rgba(0,212,255,.25);}
+.b-termine{background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.25);}
+.b-livre{background:rgba(179,136,255,.1);color:var(--purple);border:1px solid rgba(179,136,255,.25);}
+.b-accepte{background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.25);}
+.b-refuse{background:rgba(255,77,77,.1);color:var(--red);border:1px solid rgba(255,77,77,.25);}
+.b-emise{background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid rgba(0,212,255,.25);}
+.b-payee{background:rgba(0,230,118,.1);color:var(--green);border:1px solid rgba(0,230,118,.25);}
+.b-particulier{background:rgba(179,136,255,.1);color:var(--purple);border:1px solid rgba(179,136,255,.25);}
+.b-entreprise{background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid rgba(0,212,255,.25);}
+
+/* ─── TICKET TAG ─── */
+.tk-tag{
+  font-family:var(--mono);font-size:11px;color:var(--cyan);
+  background:rgba(0,212,255,.08);padding:2px 8px;
+  border-radius:5px;border:1px solid rgba(0,212,255,.2);
+}
+.avatar{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:28px;height:28px;border-radius:7px;
+  background:linear-gradient(135deg,#1a2a6c,#00d4ff);
+  font-size:11px;font-weight:900;color:#fff;margin-right:7px;
+  vertical-align:middle;flex-shrink:0;
+}
+
+/* ─── FORMS ─── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;padding:18px;}
+.form-full{grid-column:1/-1;}
+.fg{display:flex;flex-direction:column;gap:5px;}
+label{font-family:var(--mono);font-size:10px;color:var(--t2);text-transform:uppercase;letter-spacing:.8px;font-weight:500;}
+input,select,textarea{
+  background:var(--s2);border:1px solid var(--border2);
+  border-radius:8px;padding:9px 13px;
+  font-family:var(--font);font-size:13px;color:var(--t1);
+  outline:none;transition:border-color .15s,box-shadow .15s;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:var(--cyan);
+  box-shadow:0 0 0 3px rgba(0,212,255,.08);
+}
+select option{background:var(--s2);}
+textarea{resize:vertical;min-height:72px;line-height:1.5;}
+.form-foot{
+  padding:14px 18px;border-top:1px solid var(--border);
+  display:flex;justify-content:flex-end;gap:8px;
+}
+
+/* ─── MODAL ─── */
+.overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.72);backdrop-filter:blur(5px);
+  z-index:500;align-items:center;justify-content:center;
+}
+.overlay.open{display:flex;}
+.modal{
+  background:var(--s1);border:1px solid var(--border2);
+  border-radius:14px;width:580px;max-width:95vw;
+  max-height:88vh;overflow-y:auto;
+  box-shadow:0 28px 72px rgba(0,0,0,.6);
+  animation:mIn .18s ease;
+}
+@keyframes mIn{from{opacity:0;transform:scale(.95) translateY(10px)}to{opacity:1;transform:none}}
+.modal-head{
+  padding:18px 22px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+}
+.modal-title{font-size:16px;font-weight:800;}
+.modal-x{background:none;border:none;color:var(--t3);font-size:20px;cursor:pointer;line-height:1;transition:color .15s;}
+.modal-x:hover{color:var(--t1);}
+
+/* ─── STOCK BAR ─── */
+.sbar{height:3px;border-radius:2px;background:var(--border);margin-top:5px;}
+.sbar-fill{height:100%;border-radius:2px;}
+
+/* ─── SEARCH ─── */
+.search-wrap{position:relative;margin-bottom:16px;}
+.search-wrap input{width:100%;padding-left:38px;}
+.search-ico{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--t3);font-size:15px;pointer-events:none;}
+
+/* ─── EMPTY ─── */
+.empty{text-align:center;padding:40px;color:var(--t3);}
+.empty .ei{font-size:36px;margin-bottom:10px;}
+.empty p{font-size:12px;margin-top:4px;}
+
+/* ─── DASH GRID ─── */
+.dash-grid{display:grid;grid-template-columns:3fr 2fr;gap:18px;}
+
+/* ─── PRINT PREVIEW ─── */
+.doc-print{
+  background:#fff;color:#111;
+  border-radius:10px;padding:28px 32px;
+  font-family:var(--mono);font-size:12px;
+  box-shadow:0 8px 32px rgba(0,0,0,.4);
+}
+.doc-print h1{font-family:var(--font);font-size:22px;font-weight:900;color:#080b10;margin-bottom:2px;}
+.dp-meta{font-size:10px;color:#888;margin-bottom:18px;}
+.dp-client{background:#f5f7fa;border-radius:8px;padding:12px 16px;margin-bottom:18px;font-size:12px;}
+.dp-client strong{display:block;margin-bottom:4px;font-size:14px;}
+.dp-table{width:100%;border-collapse:collapse;margin-bottom:12px;}
+.dp-table th{background:#111;color:#fff;padding:7px 10px;text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;}
+.dp-table td{padding:7px 10px;border-bottom:1px solid #eee;}
+.dp-total{display:flex;justify-content:space-between;padding:8px 0;font-size:11px;border-bottom:1px solid #ddd;}
+.dp-total-ttc{display:flex;justify-content:space-between;padding:10px 0;font-weight:900;font-size:16px;border-top:2px solid #111;margin-top:4px;}
+.dp-foot{margin-top:24px;font-size:10px;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:12px;}
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar{width:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:var(--t3);}
+
+/* STATUS SELECT inline */
+.st-sel{
+  background:none;border:none;
+  font-family:var(--mono);font-size:11px;font-weight:500;
+  cursor:pointer;border-radius:6px;padding:3px 7px;
+}
+
+/* ════════════════════════════════
+   ANDROID / MOBILE STYLES
+════════════════════════════════ */
+
+/* Bottom navigation bar — mobile only */
+#bottomnav{
+  display:none;
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(10,12,16,.97);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+  border-top:1px solid var(--border);
+  z-index:500;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  height:calc(60px + env(safe-area-inset-bottom,0px));
+}
+.bnav-inner{
+  display:flex;align-items:stretch;
+  height:60px;
+}
+.bnav-item{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:3px;cursor:pointer;
+  color:var(--t3);transition:color .15s;
+  position:relative;-webkit-tap-highlight-color:transparent;
+  padding:6px 4px 4px;
+}
+.bnav-item:active{background:rgba(255,255,255,.04);}
+.bnav-item.active{color:var(--cyan);}
+.bnav-item.active .bico{filter:drop-shadow(0 0 6px rgba(0,212,255,.5));}
+.bico{font-size:19px;line-height:1;}
+.blbl{font-family:var(--mono);font-size:9px;letter-spacing:.5px;font-weight:500;}
+.bcnt{
+  position:absolute;top:5px;right:calc(50% - 19px);
+  background:var(--cyan);color:var(--bg);
+  font-size:9px;font-weight:900;font-family:var(--mono);
+  padding:1px 5px;border-radius:20px;min-width:16px;text-align:center;
+  line-height:14px;
+}
+.bcnt.amber{background:var(--amber);}
+
+/* FAB — bouton flottant mobile */
+#fab{
+  display:none;
+  position:fixed;
+  right:16px;
+  bottom:calc(70px + env(safe-area-inset-bottom,0px));
+  width:54px;height:54px;
+  border-radius:50%;
+  background:var(--cyan);
+  color:var(--bg);
+  font-size:26px;font-weight:900;
+  border:none;cursor:pointer;
+  z-index:400;
+  box-shadow:0 4px 20px rgba(0,212,255,.45),0 0 0 0 rgba(0,212,255,.3);
+  align-items:center;justify-content:center;
+  transition:transform .12s,box-shadow .12s;
+  -webkit-tap-highlight-color:transparent;
+  animation:fabPulse 2.5s infinite;
+}
+@keyframes fabPulse{
+  0%,100%{box-shadow:0 4px 20px rgba(0,212,255,.45),0 0 0 0 rgba(0,212,255,.25);}
+  50%{box-shadow:0 4px 20px rgba(0,212,255,.45),0 0 0 10px rgba(0,212,255,0);}
+}
+#fab:active{transform:scale(.91);}
+
+/* Banner installation Android */
+#install-banner{
+  display:none;
+  margin:10px 14px 0;
+  background:linear-gradient(135deg,rgba(0,212,255,.1),rgba(0,212,255,.04));
+  border:1px solid rgba(0,212,255,.28);
+  border-radius:10px;padding:11px 14px;
+  align-items:center;gap:10px;
+  animation:fadeUp .3s ease;
+}
+#install-banner.show{display:flex;}
+.ib-ico{font-size:26px;flex-shrink:0;}
+.ib-txt{flex:1;}
+.ib-title{font-size:13px;font-weight:800;}
+.ib-sub{font-size:11px;color:var(--t2);margin-top:2px;}
+
+/* Mobile card list — alternative au tableau sur petit écran */
+.mcard-list{display:none;padding:8px 6px;}
+.mcard{
+  background:var(--s2);border:1px solid var(--border);
+  border-radius:10px;padding:13px 14px;
+  margin-bottom:8px;
+  active{background:rgba(255,255,255,.02);}
+}
+.mcard-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.mcard-id{font-size:13px;font-weight:800;display:flex;align-items:center;gap:7px;}
+.mcard-body{font-size:13px;color:var(--t2);line-height:1.5;margin-bottom:8px;}
+.mcard-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+.mcard-foot{display:flex;gap:6px;flex-wrap:wrap;}
+
+/* Responsive breakpoint 768px */
+@media (max-width: 768px) {
+  #sidebar{display:none !important;}
+  #bottomnav{display:block;}
+  #fab{display:flex;}
+  #main{margin-left:0 !important;}
+  .page{padding:10px 12px;padding-bottom:calc(80px + env(safe-area-inset-bottom,0px));}
+  .topbar{padding:0 12px;}
+  .topbar-date{display:none;}
+  #topbar-actions .btn{display:none;} /* FAB remplace le bouton topbar */
+  /* Stats 2 colonnes */
+  .stats-row{grid-template-columns:1fr 1fr !important;gap:8px;}
+  .stat-val{font-size:26px !important;}
+  /* Dash 1 colonne */
+  .dash-grid{grid-template-columns:1fr !important;}
+  /* Cacher tables, afficher mcards */
+  .desktop-table{display:none !important;}
+  .mcard-list{display:block !important;}
+  /* Formulaires 1 col */
+  .form-grid{grid-template-columns:1fr !important;}
+  .form-full{grid-column:1 !important;}
+  /* Modal plein bas */
+  .modal{
+    border-radius:16px 16px 0 0 !important;
+    max-height:90vh !important;
+    width:100% !important;
+  }
+  #install-banner{margin:8px 12px 0;}
+  .card-head{padding:10px 14px;}
+  .card-title{font-size:13px;}
+}
+
+@media (min-width: 769px) {
+  #bottomnav{display:none !important;}
+  #fab{display:none !important;}
+  .mcard-list{display:none !important;}
+  .desktop-table{display:block !important;}
+  #install-banner{display:none !important;}
+}
+</style>
+
+<!-- Google API pour Drive Sync -->
+<script src="https://apis.google.com/js/api.js" async defer></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+<!-- ══ BOTTOM NAV (Android/Mobile) ══ -->
+<div id="bottomnav">
+  <div class="bnav-inner">
+    <div class="bnav-item active" data-bpage="dashboard">
+      <span class="bico">📊</span><span class="blbl">Accueil</span>
+    </div>
+    <div class="bnav-item" data-bpage="tickets">
+      <span class="bico">🔧</span><span class="blbl">Tickets</span>
+      <span class="bcnt" id="bcnt-tk">0</span>
+    </div>
+    <div class="bnav-item" data-bpage="clients">
+      <span class="bico">👤</span><span class="blbl">Clients</span>
+    </div>
+    <div class="bnav-item" data-bpage="devis">
+      <span class="bico">📋</span><span class="blbl">Devis</span>
+      <span class="bcnt amber" id="bcnt-dv">0</span>
+    </div>
+    <div class="bnav-item" data-bpage="agenda">
+      <span class="bico">📅</span><span class="blbl">Agenda</span>
+      <span class="bcnt" id="bcnt-rdv" style="display:none">0</span>
+    </div>
+    <div class="bnav-item" data-bpage="stock">
+      <span class="bico">📦</span><span class="blbl">Stock</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ FAB — bouton + flottant (Android) ══ -->
+<button id="fab" onclick="fabTap()">+</button>
+
+<!-- SIDEBAR -->
+<aside id="sidebar">
+  <div class="logo-zone">
+    <div class="logo-name">⚡ ZyFix</div>
+    <div class="logo-sub">Réparations &amp; Gestion IT</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-sec">Principal</div>
+    <div class="nav-item active" data-page="dashboard">
+      <span class="ico">📊</span> Dashboard
+    </div>
+    <div class="nav-item" data-page="tickets">
+      <span class="ico">🔧</span> Tickets
+      <span class="nav-cnt" id="cnt-tickets">0</span>
+    </div>
+    <div class="nav-item" data-page="clients">
+      <span class="ico">👤</span> Clients
+    </div>
+
+    <div class="nav-sec">Commercial</div>
+    <div class="nav-item" data-page="devis">
+      <span class="ico">📋</span> Devis
+      <span class="nav-cnt amber" id="cnt-devis">0</span>
+    </div>
+    <div class="nav-item" data-page="factures">
+      <span class="ico">💰</span> Factures
+    </div>
+
+    <div class="nav-sec">Atelier</div>
+    <div class="nav-item" data-page="stock">
+      <span class="ico">📦</span> Stock pièces
+    </div>
+    <div class="nav-item" data-page="agenda">
+      <span class="ico">📅</span> Agenda
+    </div>
+  </nav>
+  <div class="sidebar-foot">
+    <div style="margin-bottom:8px">
+      <button onclick="gdriveSync()" id="btn-gdrive" style="width:100%;background:rgba(66,133,244,.15);border:1px solid rgba(66,133,244,.35);color:#4285f4;border-radius:8px;padding:8px 12px;font-family:Syne,sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6.28 3L1 12.5l3.64 6.32L10 9.5 6.28 3zm5.44 0L8 9.5l5.36 9.32L17.72 12 11.72 3zm6 9l-5.36 9.32L17.72 21H23l-5.28-9z"/></svg>
+        <span id="gdrive-label">Connecter Google Drive</span>
+      </button>
+      <div id="gdrive-status" style="font-size:10px;color:var(--t3);text-align:center;margin-top:4px;font-family:var(--mono)"></div>
+    </div>
+    ZyRAMGamer © 2026 — v1.0
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main id="main">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="page-title" id="ptitle">📊 Dashboard</div>
+      <div class="topbar-date" id="tdate"></div>
+    </div>
+    <div class="topbar-right" style="display:flex;align-items:center;gap:6px">
+      <button onclick="gdriveSync()" title="Sync Google Drive" style="background:transparent;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;display:flex;align-items:center;gap:4px;color:#4285f4;font-size:11px;font-weight:700">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6.28 3L1 12.5l3.64 6.32L10 9.5 6.28 3zm5.44 0L8 9.5l5.36 9.32L17.72 12 11.72 3zm6 9l-5.36 9.32L17.72 21H23l-5.28-9z"/></svg>
+        <span id="topbar-sync-label">Drive</span>
+      </button>
+      <div id="topbar-actions" style="display:flex;gap:6px"></div>
+    </div>
+  </div>
+
+  <!-- ══ INSTALL BANNER Android ══ -->
+  <div id="install-banner">
+    <span class="ib-ico">📲</span>
+    <div class="ib-txt">
+      <div class="ib-title">Installer ZyFix sur Android</div>
+      <div class="ib-sub">Accès hors-ligne · Icône écran d'accueil</div>
+    </div>
+    <button class="btn btn-primary btn-sm" id="install-btn">Installer</button>
+    <button class="btn btn-ghost btn-sm" onclick="document.getElementById('install-banner').classList.remove('show')" style="padding:5px 8px">✕</button>
+  </div>
+
+  <!-- ════════ DASHBOARD ════════ -->
+  <div class="page active" id="page-dashboard">
+    <div class="stats-row">
+      <div class="stat-card c-cyan">
+        <div class="stat-lbl">En réparation</div>
+        <div class="stat-val" id="d-encours">0</div>
+        <div class="stat-hint">tickets actifs</div>
+      </div>
+      <div class="stat-card c-amber">
+        <div class="stat-lbl">Devis en attente</div>
+        <div class="stat-val" id="d-devisatt">0</div>
+        <div class="stat-hint">à valider</div>
+      </div>
+      <div class="stat-card c-purple">
+        <div class="stat-lbl">Factures émises</div>
+        <div class="stat-val" id="d-facemises">0</div>
+        <div class="stat-hint">ce mois</div>
+      </div>
+      <div class="stat-card c-green">
+        <div class="stat-lbl">CA Total</div>
+        <div class="stat-val" id="d-ca">0€</div>
+        <div class="stat-hint">toutes factures</div>
+      </div>
+    </div>
+
+    <div class="dash-grid">
+      <div>
+        <div class="card">
+          <div class="card-head">
+            <div class="card-title">🔧 Derniers tickets</div>
+            <button class="btn btn-ghost btn-sm" onclick="goto('tickets')">Tout voir</button>
+          </div>
+          <table>
+            <thead><tr><th>N°</th><th>Client</th><th>Appareil</th><th>Problème</th><th>Statut</th></tr></thead>
+            <tbody id="d-recent-tickets"><tr><td colspan="5"><div class="empty"><div class="ei">🔧</div><p>Aucun ticket</p></div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-head"><div class="card-title">⚠️ Stock bas</div></div>
+          <div id="d-stock-low" style="padding:4px 0"></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div class="card-title">👤 Derniers clients</div></div>
+          <div id="d-clients-rec" style="padding:4px 0"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════ TICKETS ════════ -->
+  <div class="page" id="page-tickets">
+    <div class="search-wrap">
+      <span class="search-ico">🔍</span>
+      <input type="text" placeholder="Rechercher ticket, client, problème…" oninput="filterTickets(this.value)">
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">🔧 Tickets de réparation</div>
+        <button class="btn btn-primary btn-sm" onclick="openM('m-ticket')">+ Nouveau ticket</button>
+      </div>
+      <div class="desktop-table"><table>
+        <thead><tr><th>Ticket</th><th>Client</th><th>Appareil</th><th>Problème</th><th>Diagnostic</th><th>Statut</th><th>Date</th><th>Hist.</th><th>Actions</th></tr></thead>
+        <tbody id="tbl-tickets"></tbody>
+      </table></div>
+      <div class="mcard-list" id="mlist-tickets"></div>
+    </div>
+  </div>
+
+  <!-- ════════ CLIENTS ════════ -->
+  <div class="page" id="page-clients">
+    <div class="search-wrap">
+      <span class="search-ico">🔍</span>
+      <input type="text" placeholder="Rechercher client…" oninput="filterClients(this.value)">
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">👤 Base clients</div>
+        <button class="btn btn-primary btn-sm" onclick="openM('m-client')">+ Nouveau client</button>
+      </div>
+      <div class="desktop-table"><table>
+        <thead><tr><th>Client</th><th>Téléphone</th><th>Email</th><th>Adresse</th><th>Type</th><th>Tickets</th><th>Hist.</th><th>Actions</th></tr></thead>
+        <tbody id="tbl-clients"></tbody>
+      </table></div>
+      <div class="mcard-list" id="mlist-clients"></div>
+    </div>
+  </div>
+
+  <!-- ════════ DEVIS ════════ -->
+  <div class="page" id="page-devis">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">📋 Devis</div>
+        <button class="btn btn-primary btn-sm" onclick="openM('m-devis')">+ Nouveau devis</button>
+      </div>
+      <div class="desktop-table"><table>
+        <thead><tr><th>N° Devis</th><th>Client</th><th>Prestations</th><th>Total HT</th><th>Total TTC</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody id="tbl-devis"></tbody>
+      </table></div>
+      <div class="mcard-list" id="mlist-devis"></div>
+    </div>
+  </div>
+
+  <!-- ════════ FACTURES ════════ -->
+  <div class="page" id="page-factures">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">💰 Factures</div>
+        <button class="btn btn-primary btn-sm" onclick="openM('m-facture')">+ Nouvelle facture</button>
+      </div>
+      <div class="desktop-table"><table>
+        <thead><tr><th>N° Facture</th><th>Client</th><th>Prestations</th><th>Total TTC</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody id="tbl-factures"></tbody>
+      </table></div>
+      <div class="mcard-list" id="mlist-factures"></div>
+    </div>
+  </div>
+
+  <!-- ════════ STOCK ════════ -->
+  <div class="page" id="page-stock">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">📦 Stock pièces détachées</div>
+        <button class="btn btn-primary btn-sm" onclick="openM('m-stock')">+ Ajouter pièce</button>
+      </div>
+      <div class="desktop-table"><table>
+        <thead><tr><th>Référence</th><th>Désignation</th><th>Catégorie</th><th>Qté</th><th>Prix achat</th><th>Prix vente</th><th>Marge</th><th>Seuil</th><th>Actions</th></tr></thead>
+        <tbody id="tbl-stock"></tbody>
+      </table></div>
+      <div class="mcard-list" id="mlist-stock"></div>
+    </div>
+  </div>
+
+  <!-- ════════ AGENDA ════════ -->
+  <div class="page" id="page-agenda">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+      <button class="btn btn-ghost btn-sm" onclick="agendaShift(-1)">&#9664;</button>
+      <div style="flex:1;text-align:center">
+        <div id="agenda-date-label" style="font-size:16px;font-weight:800"></div>
+        <div id="agenda-day-label" style="font-family:var(--mono);font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:1.5px"></div>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="agendaShift(1)">&#9654;</button>
+      <button class="btn btn-primary btn-sm" onclick="agendaGoToday()">Auj.</button>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-head">
+        <div class="card-title">&#128197; RDV du jour</div>
+        <button class="btn btn-primary btn-sm" onclick="openM('m-rdv')">+ RDV</button>
+      </div>
+      <div id="agenda-rdv-list" style="padding:6px"></div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">&#128100; Clients du jour</div>
+      </div>
+      <div id="agenda-clients-day" style="padding:6px"></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ═══════════════════ MODALS ═══════════════════ -->
+
+<!-- TICKET -->
+<div class="overlay" id="m-ticket">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">🔧 Nouveau ticket de réparation</div>
+      <button class="modal-x" onclick="closeM('m-ticket')">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="fg"><label>Client *</label><select id="t-client"><option value="">— Choisir —</option></select></div>
+      <div class="fg"><label>Type appareil</label>
+        <select id="t-type">
+          <option>PC Bureau</option><option>PC Portable</option><option>Serveur</option>
+          <option>Imprimante</option><option>Tablette</option><option>Téléphone</option><option>Autre</option>
+        </select>
+      </div>
+      <div class="fg"><label>Marque</label><input id="t-marque" placeholder="HP, Dell, Asus…"></div>
+      <div class="fg"><label>Modèle</label><input id="t-modele" placeholder="Modèle de l'appareil"></div>
+      <div class="fg"><label>N° Série</label><input id="t-serie" placeholder="Numéro de série"></div>
+      <div class="fg"><label>OS</label><input id="t-os" placeholder="Windows 11, Linux…"></div>
+      <div class="fg form-full"><label>Problème décrit par le client *</label><textarea id="t-probleme" placeholder="PC lent, écran noir, ne démarre pas…"></textarea></div>
+      <div class="fg form-full"><label>Diagnostic technicien</label><textarea id="t-diag" placeholder="SSD HS, RAM défaillante…"></textarea></div>
+      <div class="fg"><label>Statut initial</label>
+        <select id="t-statut">
+          <option value="attente">⏳ En attente</option>
+          <option value="encours">🔧 En réparation</option>
+          <option value="termine">✅ Terminé</option>
+          <option value="livre">📦 Livré</option>
+        </select>
+      </div>
+      <div class="fg" style="grid-column:1/-1;background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.2);border-radius:10px;padding:12px;margin-top:4px">
+        <label style="color:var(--cyan);font-size:11px;text-transform:uppercase;letter-spacing:1px">📅 RDV de dépôt (auto-ajouté à l'agenda)</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px">
+          <div class="fg" style="margin:0"><label>Date RDV</label><input type="date" id="t-rdv-date"></div>
+          <div class="fg" style="margin:0"><label>Heure</label><input type="time" id="t-rdv-heure" value="09:00"></div>
+        </div>
+        <div class="fg" style="margin-top:8px;margin-bottom:0"><label>Notes RDV</label><input id="t-rdv-notes" placeholder="Ex: dépôt PC tour, client vient le matin..."></div>
+      </div>
+    </div>
+    <div class="form-foot">
+      <button class="btn btn-ghost" onclick="closeM('m-ticket')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveTicket()">Créer le ticket</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLIENT -->
+<div class="overlay" id="m-client">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">👤 Nouveau client</div>
+      <button class="modal-x" onclick="closeM('m-client')">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="fg"><label>Nom *</label><input id="c-nom" placeholder="Dupont"></div>
+      <div class="fg"><label>Prénom</label><input id="c-prenom" placeholder="Jean"></div>
+      <div class="fg"><label>Téléphone</label><input id="c-tel" placeholder="06 XX XX XX XX"></div>
+      <div class="fg"><label>Email</label><input id="c-email" placeholder="jean@mail.com"></div>
+      <div class="fg form-full"><label>Adresse</label><input id="c-adresse" placeholder="12 rue de la Paix, Narbonne"></div>
+      <div class="fg"><label>Type client</label>
+        <select id="c-type"><option value="particulier">Particulier</option><option value="entreprise">Entreprise</option></select>
+      </div>
+      <div class="fg"><label>Entreprise (si pro)</label><input id="c-entreprise" placeholder="Nom société"></div>
+    </div>
+    <div class="form-foot">
+      <button class="btn btn-ghost" onclick="closeM('m-client')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveClient()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- DEVIS -->
+<div class="overlay" id="m-devis">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">📋 Nouveau devis</div>
+      <button class="modal-x" onclick="closeM('m-devis')">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="fg form-full"><label>Client *</label><select id="d-client"><option value="">— Choisir —</option></select></div>
+      <div class="fg form-full">
+        <label>Lignes prestations — format: Description | Prix HT (une par ligne)</label>
+        <textarea id="d-lignes" rows="5" placeholder="SSD Samsung 1TB | 80&#10;Main d'œuvre 2h | 60&#10;Pâte thermique | 5"></textarea>
+      </div>
+      <div class="fg"><label>TVA (%)</label><input type="number" id="d-tva" value="20" min="0" max="100"></div>
+      <div class="fg"><label>Statut</label>
+        <select id="d-statut"><option value="attente">⏳ En attente</option><option value="accepte">✅ Accepté</option><option value="refuse">❌ Refusé</option></select>
+      </div>
+    </div>
+    <div class="form-foot">
+      <button class="btn btn-ghost" onclick="closeM('m-devis')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveDevis()">Créer le devis</button>
+    </div>
+  </div>
+</div>
+
+<!-- FACTURE -->
+<div class="overlay" id="m-facture">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">💰 Nouvelle facture</div>
+      <button class="modal-x" onclick="closeM('m-facture')">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="fg form-full"><label>Client *</label><select id="f-client"><option value="">— Choisir —</option></select></div>
+      <div class="fg form-full">
+        <label>Lignes prestations — Description | Prix HT</label>
+        <textarea id="f-lignes" rows="5" placeholder="SSD Samsung 1TB | 80&#10;Main d'œuvre 2h | 60"></textarea>
+      </div>
+      <div class="fg"><label>TVA (%)</label><input type="number" id="f-tva" value="20" min="0" max="100"></div>
+      <div class="fg"><label>Statut</label>
+        <select id="f-statut"><option value="emise">📤 Émise</option><option value="payee">✅ Payée</option></select>
+      </div>
+    </div>
+    <div class="form-foot">
+      <button class="btn btn-ghost" onclick="closeM('m-facture')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveFacture()">Créer</button>
+    </div>
+  </div>
+</div>
+
+<!-- STOCK -->
+<div class="overlay" id="m-stock">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">📦 Ajouter une pièce</div>
+      <button class="modal-x" onclick="closeM('m-stock')">✕</button>
+    </div>
+    <div class="form-grid">
+      <div class="fg"><label>Référence</label><input id="s-ref" placeholder="SSD-SAM-1TB"></div>
+      <div class="fg"><label>Désignation *</label><input id="s-nom" placeholder="SSD Samsung 1TB"></div>
+      <div class="fg"><label>Catégorie</label>
+        <select id="s-cat">
+          <option>SSD / HDD</option><option>RAM</option><option>Alimentation</option>
+          <option>Carte Graphique</option><option>CPU</option><option>Carte Mère</option>
+          <option>Refroidissement</option><option>Câble</option><option>Consommable</option><option>Autre</option>
+        </select>
+      </div>
+      <div class="fg"><label>Quantité</label><input type="number" id="s-qte" value="1" min="0"></div>
+      <div class="fg"><label>Prix achat (€)</label><input type="number" id="s-achat" placeholder="45" step="0.01"></div>
+      <div class="fg"><label>Prix vente (€)</label><input type="number" id="s-vente" placeholder="80" step="0.01"></div>
+      <div class="fg"><label>Seuil alerte</label><input type="number" id="s-seuil" value="2" min="0"></div>
+    </div>
+    <div class="form-foot">
+      <button class="btn btn-ghost" onclick="closeM('m-stock')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveStock()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- APERCU DOC -->
+<div class="overlay" id="m-preview">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-head">
+      <div class="modal-title" id="prev-title">🖨️ Aperçu document</div>
+      <button class="modal-x" onclick="closeM('m-preview')">✕</button>
+    </div>
+    <div style="padding:18px" id="prev-body"></div>
+    <div class="form-foot">
+      <button class="btn btn-ghost" onclick="closeM('m-preview')">Fermer</button>
+      <button class="btn btn-primary" onclick="doPrint()">🖨️ Imprimer / PDF</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RDV -->
+<div class="overlay" id="m-rdv">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">&#128197; Nouveau RDV</div>
+      <button class="modal-x" onclick="closeM('m-rdv')">&#10005;</button>
+    </div>
+    <div class="form-grid">
+      <div class="fg form-full"><label>Client *</label><select id="rdv-client"><option value="">-- Choisir --</option></select></div>
+      <div class="fg"><label>Date *</label><input type="date" id="rdv-date"></div>
+      <div class="fg"><label>Heure</label><input type="time" id="rdv-heure" value="09:00"></div>
+      <div class="fg form-full"><label>Motif</label><input id="rdv-motif" placeholder="Dépôt PC, remise matériel..."></div>
+      <div class="fg form-full"><label>Notes</label><textarea id="rdv-notes" rows="2" placeholder="Informations complémentaires..."></textarea></div>
+    </div>
+    <div class="form-foot">
+      <button class="btn btn-ghost" onclick="closeM('m-rdv')">Annuler</button>
+      <button class="btn btn-primary" onclick="saveRdv()">Créer le RDV</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL HISTORIQUE CLIENT -->
+<div class="overlay" id="m-historique">
+  <div class="modal" style="max-width:620px">
+    <div class="modal-head">
+      <div class="modal-title" id="hist-title">&#128203; Historique client</div>
+      <button class="modal-x" onclick="closeM('m-historique')">&#10005;</button>
+    </div>
+    <div id="hist-body" style="padding:0 0 8px 0;max-height:75vh;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- MODAL GOOGLE DRIVE SETUP -->
+<div class="overlay" id="m-gdrive-setup">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-head">
+      <div class="modal-title">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="#4285f4" style="vertical-align:middle;margin-right:6px"><path d="M6.28 3L1 12.5l3.64 6.32L10 9.5 6.28 3zm5.44 0L8 9.5l5.36 9.32L17.72 12 11.72 3zm6 9l-5.36 9.32L17.72 21H23l-5.28-9z"/></svg>
+        Configurer Google Drive Sync
+      </div>
+      <button class="modal-x" onclick="closeM('m-gdrive-setup')">✕</button>
+    </div>
+    <div style="padding:16px 20px">
+      <!-- Instructions -->
+      <div style="background:rgba(66,133,244,.08);border:1px solid rgba(66,133,244,.25);border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;line-height:1.7">
+        <div style="font-weight:800;color:#4285f4;margin-bottom:8px">📋 Configuration (5 min, gratuit)</div>
+        <ol style="margin:0;padding-left:18px;color:var(--t2)">
+          <li>Va sur <a href="https://console.cloud.google.com" target="_blank" style="color:#4285f4">console.cloud.google.com</a></li>
+          <li>Crée un projet → active <strong>Google Drive API</strong></li>
+          <li>Identifiants → <strong>Créer des identifiants</strong> → ID client OAuth</li>
+          <li>Type : <strong>Application Web</strong></li>
+          <li>Origines autorisées : ajoute <code style="background:var(--s2);padding:1px 5px;border-radius:4px">http://localhost</code> et l'URL de ton hébergement</li>
+          <li>Copie l'<strong>ID client</strong> ci-dessous</li>
+        </ol>
+      </div>
+      <div class="fg">
+        <label>Client ID Google OAuth 2.0 *</label>
+        <input id="gdrive-client-id-input" placeholder="XXXXXXXXXXXX-XXXXXXXX.apps.googleusercontent.com" style="font-family:var(--mono);font-size:12px">
+      </div>
+      <div style="font-size:11px;color:var(--t3);margin-top:8px;font-family:var(--mono)">
+        Tes données sont stockées dans l'espace privé de ton compte Google (appDataFolder), invisibles dans Google Drive.
+      </div>
+    </div>
+    <div class="form-foot">
+      <button class="btn btn-ghost" onclick="closeM('m-gdrive-setup')">Annuler</button>
+      <button class="btn btn-primary" onclick="gdriveSetClientId()" style="background:#4285f4;border-color:#4285f4">Sauvegarder et activer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ JS ═══════════════════ -->
+<script>
+// ─── STATE ───────────────────────────────────────
+let DB = { clients:[], tickets:[], devis:[], factures:[], stock:[] };
+let CTR = { tk:1000, dv:100, fa:0 };
+
+function dbLoad(){
+  try{
+    const s=localStorage.getItem('zyfix');
+    if(s){ DB=JSON.parse(s); if(!DB.rdv) DB.rdv=[]; }
+    const c=localStorage.getItem('zyfix_ctr');
+    if(c) CTR=JSON.parse(c);
+  } catch(e){ console.warn('localStorage indisponible, données en mémoire uniquement'); }
+}
+function dbSave(){
+  try{
+    localStorage.setItem('zyfix', JSON.stringify(DB));
+    localStorage.setItem('zyfix_ctr', JSON.stringify(CTR));
+    localStorage.setItem('zyfix_last_save', new Date().toISOString());
+    if(_gdriveToken){ gdrivePush(true); }
+  } catch(e){
+    // localStorage bloqué (file:// ou navigation privée) → on affiche un avertissement une seule fois
+    if(!window._warnedStorage){
+      window._warnedStorage = true;
+      showToast('⚠️ Héberge ZyFix en HTTPS pour sauvegarder !');
+    }
+  }
+}
+
+// ─── NAVIGATION ──────────────────────────────────
+const PAGES = {
+  dashboard:'📊 Dashboard', tickets:'🔧 Tickets',
+  clients:'👤 Clients', devis:'📋 Devis',
+  factures:'💰 Factures', stock:'📦 Stock pièces', agenda:'📅 Agenda'
+};
+const ACTIONS = {
+  tickets:`<button class="btn btn-primary btn-sm" onclick="openM('m-ticket')">+ Ticket</button>`,
+  clients:`<button class="btn btn-primary btn-sm" onclick="openM('m-client')">+ Client</button>`,
+  devis:`<button class="btn btn-primary btn-sm" onclick="openM('m-devis')">+ Devis</button>`,
+  factures:`<button class="btn btn-primary btn-sm" onclick="openM('m-facture')">+ Facture</button>`,
+  stock:`<button class="btn btn-primary btn-sm" onclick="openM('m-stock')">+ Pièce</button>`,
+  agenda:`<button class="btn btn-primary btn-sm" onclick="openM('m-rdv')">+ RDV</button>`,
+};
+
+function _gotoCore(name){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name)?.classList.add('active');
+  document.querySelector(`[data-page="${name}"]`)?.classList.add('active');
+  document.getElementById('ptitle').textContent = PAGES[name]||name;
+  document.getElementById('topbar-actions').innerHTML = ACTIONS[name]||'';
+}
+
+document.querySelectorAll('.nav-item').forEach(n=>{
+  n.addEventListener('click',()=>goto(n.dataset.page));
+});
+
+// ─── MODAL ───────────────────────────────────────
+function openM(id){ syncSelects(); document.getElementById(id).classList.add('open'); }
+function closeM(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o=>{
+  o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
+});
+
+// ─── HELPERS ─────────────────────────────────────
+function fmt(n){ return new Intl.NumberFormat('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(n); }
+function fmtDate(d){ try{ return new Date(d).toLocaleDateString('fr-FR'); }catch(e){ return d||''; } }
+function today(){ return new Date().toISOString().split('T')[0]; }
+function getClient(id){ return DB.clients.find(c=>c.id===id)||null; }
+function clientName(id){ const c=getClient(id); return c?`${c.nom} ${c.prenom||''}`.trim():'Inconnu'; }
+function initials(s){ return s.split(' ').map(x=>x[0]||'').join('').substring(0,2).toUpperCase(); }
+
+function badge(st){
+  const map={
+    attente:`<span class="badge b-attente"><span class="bdot"></span>En attente</span>`,
+    encours:`<span class="badge b-encours"><span class="bdot"></span>En réparation</span>`,
+    termine:`<span class="badge b-termine"><span class="bdot"></span>Terminé</span>`,
+    livre:`<span class="badge b-livre"><span class="bdot"></span>Livré</span>`,
+    accepte:`<span class="badge b-accepte"><span class="bdot"></span>Accepté</span>`,
+    refuse:`<span class="badge b-refuse"><span class="bdot"></span>Refusé</span>`,
+    emise:`<span class="badge b-emise"><span class="bdot"></span>Émise</span>`,
+    payee:`<span class="badge b-payee"><span class="bdot"></span>Payée</span>`,
+  };
+  return map[st]||`<span class="badge">${st}</span>`;
+}
+
+function parseLignes(txt){
+  return txt.split('\n').filter(l=>l.trim()).map(l=>{
+    const p=l.split('|'); return {desc:(p[0]||'').trim(), prix:parseFloat(p[1])||0};
+  });
+}
+function calcTotaux(lignes,tva){
+  const ht=lignes.reduce((s,l)=>s+l.prix,0);
+  return {ht, ttc:ht*(1+tva/100)};
+}
+
+function resetFields(ids){ ids.forEach(i=>{ const el=document.getElementById(i); if(el) el.value=''; }); }
+
+function syncSelects(){
+  ['t-client','d-client','f-client'].forEach(id=>{
+    const sel=document.getElementById(id); if(!sel) return;
+    const prev=sel.value;
+    sel.innerHTML='<option value="">— Choisir —</option>';
+    DB.clients.forEach(c=>{
+      const o=document.createElement('option');
+      o.value=c.id; o.textContent=`${c.nom} ${c.prenom||''}`.trim();
+      sel.appendChild(o);
+    });
+    sel.value=prev;
+  });
+}
+
+// ─── TICKETS ─────────────────────────────────────
+function saveTicket(){
+  const cid=document.getElementById('t-client').value;
+  const pb=document.getElementById('t-probleme').value.trim();
+  if(!cid||!pb){ showToast('Client et problème requis !'); return; }
+  CTR.tk++;
+  DB.tickets.unshift({
+    id:`TK${CTR.tk}`, clientId:cid,
+    type:document.getElementById('t-type').value,
+    marque:document.getElementById('t-marque').value,
+    modele:document.getElementById('t-modele').value,
+    serie:document.getElementById('t-serie').value,
+    os:document.getElementById('t-os').value,
+    probleme:pb,
+    diag:document.getElementById('t-diag').value,
+    statut:document.getElementById('t-statut').value,
+    date:today()
+  });
+  // Auto-création RDV si date renseignée
+  var rdvDate = document.getElementById('t-rdv-date').value;
+  if(rdvDate){
+    if(!DB.rdv) DB.rdv = [];
+    var rdvHeure = document.getElementById('t-rdv-heure').value || '';
+    var rdvNotes = document.getElementById('t-rdv-notes').value || '';
+    var tkId = 'TK'+CTR.tk;
+    DB.rdv.push({
+      id: 'RDV'+Date.now(),
+      clientId: cid,
+      date: rdvDate,
+      heure: rdvHeure,
+      motif: 'Dépôt — '+document.getElementById('t-type').value+(document.getElementById('t-marque').value?' '+document.getElementById('t-marque').value:''),
+      notes: (rdvNotes ? rdvNotes+' — ' : '') + 'Ticket '+tkId
+    });
+    _agendaDate = rdvDate;
+    showToast('RDV créé le '+rdvDate+(rdvHeure?' à '+rdvHeure:'')+'!');
+  }
+  dbSave(); closeM('m-ticket');
+  resetFields(['t-marque','t-modele','t-serie','t-os','t-probleme','t-diag','t-rdv-notes']);
+  document.getElementById('t-rdv-date').value = '';
+  refreshAll();
+}
+
+function renderTickets(list){
+  const tb=document.getElementById('tbl-tickets');
+  if(!list.length){ tb.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="ei">🔧</div><p>Aucun ticket — créez-en un !</p></div></td></tr>`; return; }
+  tb.innerHTML=list.map(function(t){
+    const c=getClient(t.clientId);
+    const cname=clientName(t.clientId);
+    const telClean=c&&c.tel?c.tel.replace(/\s/g,''):'';
+    const telSpan=c&&c.tel?'<br><a data-tel="'+telClean+'" style="color:var(--cyan);font-family:var(--mono);font-size:11px;cursor:pointer">📞 '+c.tel+'</a>':'';
+    return '<tr>'
+      +'<td><span class="tk-tag">'+t.id+'</span></td>'
+      +'<td><span class="avatar">'+initials(cname)+'</span>'+cname+telSpan+'</td>'
+      +'<td class="td-dim">'+t.type+(t.marque?' · '+t.marque:'')+'</td>'
+      +'<td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+t.probleme+'">'+t.probleme+'</td>'
+      +'<td class="td-dim" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+(t.diag||'')+'">'+(t.diag||'—')+'</td>'
+      +'<td><select class="st-sel b-'+t.statut+'" onchange="setTicketStatus(&quot;'+t.id+'&quot;,this.value)" style="color:inherit">'
+        +'<option value="attente"'+(t.statut==='attente'?' selected':'')+'>⏳ Attente</option>'
+        +'<option value="encours"'+(t.statut==='encours'?' selected':'')+'>🔧 En cours</option>'
+        +'<option value="termine"'+(t.statut==='termine'?' selected':'')+'>✅ Terminé</option>'
+        +'<option value="livre"'+(t.statut==='livre'?' selected':'')+'>📦 Livré</option>'
+      +'</select></td>'
+      +'<td class="td-sm">'+fmtDate(t.date)+'</td>'
+      +'<td>'
+        +'<button class="btn btn-ghost btn-sm" onclick="showHistorique(this.dataset.cid)" data-cid="'+t.clientId+'" title="Historique client">📋</button> '
+        +'<button class="btn btn-danger btn-sm" onclick="del(&quot;tickets&quot;,&quot;'+t.id+'&quot;)">🗑</button>'
+      +'</td>'
+    +'</tr>';
+  }).join('');
+}
+
+function setTicketStatus(id,st){
+  const t=DB.tickets.find(x=>x.id===id); if(t){t.statut=st;dbSave();refreshAll();}
+}
+
+function filterTickets(q){
+  const lc=q.toLowerCase();
+  renderTickets(DB.tickets.filter(t=>
+    t.id.toLowerCase().includes(lc)||
+    clientName(t.clientId).toLowerCase().includes(lc)||
+    t.probleme.toLowerCase().includes(lc)
+  ));
+}
+
+// ─── CLIENTS ─────────────────────────────────────
+function saveClient(){
+  const nom=document.getElementById('c-nom').value.trim();
+  if(!nom){ showToast('Nom requis !'); return; }
+  DB.clients.push({
+    id:'CL'+Date.now(), nom,
+    prenom:document.getElementById('c-prenom').value,
+    tel:document.getElementById('c-tel').value,
+    email:document.getElementById('c-email').value,
+    adresse:document.getElementById('c-adresse').value,
+    type:document.getElementById('c-type').value,
+    entreprise:document.getElementById('c-entreprise').value,
+    date:today()
+  });
+  dbSave(); closeM('m-client');
+  resetFields(['c-nom','c-prenom','c-tel','c-email','c-adresse','c-entreprise']);
+  refreshAll();
+}
+
+function renderClients(list){
+  const tb=document.getElementById('tbl-clients');
+  if(!list.length){ tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="ei">👤</div><p>Aucun client</p></div></td></tr>'; return; }
+  tb.innerHTML=list.map(function(c){
+    const nb=DB.tickets.filter(function(t){return t.clientId===c.id;}).length;
+    const telClean=c.tel?c.tel.replace(/\s/g,''):'';
+    const telHtml=c.tel
+      ?'<a data-tel="'+telClean+'" style="color:var(--cyan);font-family:var(--mono);cursor:pointer;text-decoration:none">📞 '+c.tel+'</a>'
+      :'—';
+    const mailHtml=c.email
+      ?'<a data-mail="'+c.email+'" style="color:var(--purple);font-family:var(--mono);cursor:pointer;text-decoration:none">✉️ '+c.email+'</a>'
+      :'—';
+    return '<tr>'
+      +'<td><span class="avatar">'+initials(c.nom+' '+(c.prenom||''))+'</span><strong>'+c.nom+' '+(c.prenom||'')+'</strong>'+(c.entreprise?'<br><span class="td-sm">🏢 '+c.entreprise+'</span>':'')+'</td>'
+      +'<td>'+telHtml+'</td>'
+      +'<td>'+mailHtml+'</td>'
+      +'<td class="td-dim">'+(c.adresse||'—')+'</td>'
+      +'<td>'+(c.type==='entreprise'?'<span class="badge b-encours">🏢 Entreprise</span>':'<span class="badge b-livre">👤 Particulier</span>')+'</td>'
+      +'<td style="text-align:center"><span class="tk-tag">'+nb+'</span></td>'
+      +'<td><button class="btn btn-ghost btn-sm" onclick="showHistorique(this.dataset.cid)" data-cid="'+c.id+'">📋</button></td>'
+      +'<td><button class="btn btn-danger btn-sm" onclick="del(&quot;clients&quot;,&quot;'+c.id+'&quot;)">🗑</button></td>'
+    +'</tr>';
+  }).join('');
+}
+
+function filterClients(q){
+  const lc=q.toLowerCase();
+  renderClients(DB.clients.filter(c=>`${c.nom} ${c.prenom} ${c.email} ${c.tel}`.toLowerCase().includes(lc)));
+}
+
+// ─── DEVIS ───────────────────────────────────────
+function saveDevis(){
+  const cid=document.getElementById('d-client').value;
+  const ltxt=document.getElementById('d-lignes').value.trim();
+  if(!cid||!ltxt){ showToast('Client et prestations requis !'); return; }
+  CTR.dv++;
+  const lignes=parseLignes(ltxt);
+  const tva=parseFloat(document.getElementById('d-tva').value)||20;
+  const {ht,ttc}=calcTotaux(lignes,tva);
+  DB.devis.unshift({
+    id:`DV-2026-${String(CTR.dv).padStart(3,'0')}`,
+    clientId:cid, lignes, tva, ht, ttc,
+    statut:document.getElementById('d-statut').value,
+    date:today()
+  });
+  dbSave(); closeM('m-devis');
+  document.getElementById('d-lignes').value='';
+  refreshAll();
+}
+
+function renderDevis(list){
+  const tb=document.getElementById('tbl-devis');
+  const data=list||DB.devis;
+  if(!data.length){ tb.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="ei">📋</div><p>Aucun devis</p></div></td></tr>`; return; }
+  tb.innerHTML=data.map(d=>`
+    <tr>
+      <td><span class="tk-tag">${d.id}</span></td>
+      <td>${clientName(d.clientId)}</td>
+      <td class="td-dim">${d.lignes.map(l=>l.desc).join(', ')}</td>
+      <td class="td-mono">${fmt(d.ht)} €</td>
+      <td class="td-mono" style="color:var(--amber);font-weight:700">${fmt(d.ttc)} €</td>
+      <td>${badge(d.statut)}</td>
+      <td class="td-sm">${fmtDate(d.date)}</td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn btn-success btn-sm" onclick="previewDoc('devis','${d.id}')">👁 Aperçu</button>
+        <button class="btn btn-amber btn-sm" onclick="devisToFacture('${d.id}')">→ Facture</button>
+        <button class="btn btn-danger btn-sm" onclick="del('devis','${d.id}')">🗑</button>
+      </td>
+    </tr>`).join('');
+}
+
+function devisToFacture(dvId){
+  const d=DB.devis.find(x=>x.id===dvId); if(!d) return;
+  showConfirm('Convertir ce devis en facture ?', function(){
+    CTR.fa++;
+    DB.factures.unshift({
+      id:'FAC-2026-'+String(CTR.fa).padStart(3,'0'),
+      clientId:d.clientId, lignes:d.lignes, tva:d.tva,
+      ht:d.ht, ttc:d.ttc, statut:'emise', date:today()
+    });
+    d.statut='accepte';
+    dbSave(); refreshAll();
+    showToast('Facture créée !');
+  });
+}
+
+// ─── FACTURES ────────────────────────────────────
+function saveFacture(){
+  const cid=document.getElementById('f-client').value;
+  const ltxt=document.getElementById('f-lignes').value.trim();
+  if(!cid||!ltxt){ showToast('Client et prestations requis !'); return; }
+  CTR.fa++;
+  const lignes=parseLignes(ltxt);
+  const tva=parseFloat(document.getElementById('f-tva').value)||20;
+  const {ht,ttc}=calcTotaux(lignes,tva);
+  DB.factures.unshift({
+    id:`FAC-2026-${String(CTR.fa).padStart(3,'0')}`,
+    clientId:cid, lignes, tva, ht, ttc,
+    statut:document.getElementById('f-statut').value,
+    date:today()
+  });
+  dbSave(); closeM('m-facture');
+  document.getElementById('f-lignes').value='';
+  refreshAll();
+}
+
+function renderFactures(list){
+  const tb=document.getElementById('tbl-factures');
+  const data=list||DB.factures;
+  if(!data.length){ tb.innerHTML=`<tr><td colspan="7"><div class="empty"><div class="ei">💰</div><p>Aucune facture</p></div></td></tr>`; return; }
+  tb.innerHTML=data.map(f=>`
+    <tr>
+      <td><span class="tk-tag">${f.id}</span></td>
+      <td>${clientName(f.clientId)}</td>
+      <td class="td-dim">${f.lignes.map(l=>l.desc).join(', ')}</td>
+      <td class="td-mono" style="color:var(--green);font-weight:700">${fmt(f.ttc)} €</td>
+      <td>${badge(f.statut)}</td>
+      <td class="td-sm">${fmtDate(f.date)}</td>
+      <td style="display:flex;gap:4px">
+        <button class="btn btn-success btn-sm" onclick="previewDoc('facture','${f.id}')">👁 Aperçu</button>
+        <button class="btn btn-danger btn-sm" onclick="del('factures','${f.id}')">🗑</button>
+      </td>
+    </tr>`).join('');
+}
+
+// ─── STOCK ───────────────────────────────────────
+function saveStock(){
+  const nom=document.getElementById('s-nom').value.trim();
+  if(!nom){ showToast('Désignation requise !'); return; }
+  DB.stock.push({
+    id:'ST'+Date.now(),
+    ref:document.getElementById('s-ref').value||`REF-${Date.now()}`,
+    nom,
+    cat:document.getElementById('s-cat').value,
+    qte:parseInt(document.getElementById('s-qte').value)||0,
+    achat:parseFloat(document.getElementById('s-achat').value)||0,
+    vente:parseFloat(document.getElementById('s-vente').value)||0,
+    seuil:parseInt(document.getElementById('s-seuil').value)||2
+  });
+  dbSave(); closeM('m-stock');
+  resetFields(['s-ref','s-nom','s-achat','s-vente']);
+  refreshAll();
+}
+
+function renderStock(){
+  const tb=document.getElementById('tbl-stock');
+  if(!DB.stock.length){ tb.innerHTML=`<tr><td colspan="9"><div class="empty"><div class="ei">📦</div><p>Stock vide</p></div></td></tr>`; return; }
+  tb.innerHTML=DB.stock.map(s=>{
+    const low=s.qte<=s.seuil;
+    const pct=Math.min(100,(s.qte/(s.seuil*3+1))*100);
+    const marge=s.vente>0&&s.achat>0?Math.round((s.vente-s.achat)/s.vente*100):0;
+    return `<tr>
+      <td class="td-sm">${s.ref}</td>
+      <td><strong>${s.nom}</strong></td>
+      <td><span class="badge b-particulier">${s.cat}</span></td>
+      <td>
+        <span style="font-family:var(--mono);font-weight:700;color:${low?'var(--red)':'var(--green)'}">${s.qte}</span>
+        <div class="sbar"><div class="sbar-fill" style="width:${pct}%;background:${low?'var(--red)':'var(--green)'}"></div></div>
+      </td>
+      <td class="td-mono">${fmt(s.achat)} €</td>
+      <td class="td-mono" style="color:var(--amber)">${fmt(s.vente)} €</td>
+      <td class="td-mono" style="color:${marge>30?'var(--green)':'var(--amber)'}">${marge}%</td>
+      <td class="td-sm">${s.seuil}</td>
+      <td style="display:flex;gap:3px">
+        <button class="btn btn-success btn-sm" onclick="adjQte('${s.id}',1)">+</button>
+        <button class="btn btn-ghost btn-sm" onclick="adjQte('${s.id}',-1)">−</button>
+        <button class="btn btn-danger btn-sm" onclick="del('stock','${s.id}')">🗑</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function adjQte(id,d){
+  const s=DB.stock.find(x=>x.id===id); if(s){s.qte=Math.max(0,s.qte+d);dbSave();refreshAll();}
+}
+
+// ─── DELETE ──────────────────────────────────────
+function del(col,id){
+  showConfirm('Supprimer cet élément ?', function(){
+    DB[col]=DB[col].filter(x=>x.id!==id);
+    dbSave(); refreshAll();
+  });
+}
+
+function showConfirm(msg, onOk){
+  let box = document.getElementById('confirm-box');
+  if(!box){
+    box = document.createElement('div');
+    box.id = 'confirm-box';
+    box.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px';
+    box.innerHTML = '<div style="background:#131920;border:1px solid #1e2d3d;border-radius:14px;padding:24px;max-width:320px;width:100%;text-align:center"><div style="font-size:32px;margin-bottom:12px">&#128465;</div><div id="confirm-msg" style="font-size:15px;font-weight:700;margin-bottom:20px"></div><div style="display:flex;gap:10px"><button id="confirm-cancel" style="flex:1;padding:11px;border-radius:8px;border:1px solid #1e2d3d;background:#1a2230;color:#8899aa;font-family:Syne,sans-serif;font-size:14px;font-weight:700;cursor:pointer">Annuler</button><button id="confirm-ok" style="flex:1;padding:11px;border-radius:8px;border:none;background:#ff4d4d;color:#fff;font-family:Syne,sans-serif;font-size:14px;font-weight:700;cursor:pointer">Supprimer</button></div></div>';
+    document.body.appendChild(box);
+  }
+  document.getElementById('confirm-msg').textContent = msg;
+  box.style.display = 'flex';
+  document.getElementById('confirm-cancel').onclick = function(){ box.style.display='none'; };
+  document.getElementById('confirm-ok').onclick = function(){ box.style.display='none'; onOk(); };
+}
+
+function showToast(msg){
+  let t = document.getElementById('zytoast');
+  if(!t){
+    t = document.createElement('div');
+    t.id = 'zytoast';
+    t.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#00d4ff;color:#080b10;padding:10px 20px;border-radius:20px;font-family:Syne,sans-serif;font-weight:800;font-size:14px;z-index:9998;opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap';
+    document.body.appendChild(t);
+  }
+  t.textContent = '✅ ' + msg;
+  t.style.opacity = '1';
+  setTimeout(function(){ t.style.opacity='0'; }, 2200);
+}
+
+// ─── PREVIEW DOC ─────────────────────────────────
+function previewDoc(type,id){
+  const doc=type==='devis'?DB.devis.find(x=>x.id===id):DB.factures.find(x=>x.id===id);
+  if(!doc) return;
+  const c=getClient(doc.clientId);
+  const cname=c?`${c.nom} ${c.prenom||''}`.trim():'Client inconnu';
+  const label=type==='devis'?'DEVIS':'FACTURE';
+  const tvaAmt=doc.ttc-doc.ht;
+
+  const html=`
+  <div class="doc-print" id="printarea">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px">
+      <div>
+        <h1>⚡ ZyFix</h1>
+        <div style="font-size:10px;color:#888;margin-top:3px">ZyRAMGamer — Narbonne, Occitanie<br>SIRET : XXX XXX XXX 00001</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:24px;font-weight:900;font-family:'Syne',sans-serif;color:#080b10">${label}</div>
+        <div class="dp-meta">${doc.id}</div>
+        <div style="font-size:10px;color:#888">Date : ${fmtDate(doc.date)}</div>
+      </div>
+    </div>
+    <div class="dp-client">
+      <strong>${cname}</strong>
+      ${c?.entreprise?`<span style="color:#666">🏢 ${c.entreprise}</span><br>`:''}
+      ${c?.adresse?`<span style="color:#666">${c.adresse}</span><br>`:''}
+      ${c?.tel?`<span style="color:#666">📞 ${c.tel}</span>`:''}
+    </div>
+    <table class="dp-table">
+      <thead><tr><th>Désignation</th><th style="text-align:right">Prix HT</th></tr></thead>
+      <tbody>
+        ${doc.lignes.map(l=>`<tr><td>${l.desc}</td><td style="text-align:right">${fmt(l.prix)} €</td></tr>`).join('')}
+      </tbody>
+    </table>
+    <div style="margin-left:auto;width:220px">
+      <div class="dp-total"><span>Total HT</span><span>${fmt(doc.ht)} €</span></div>
+      <div class="dp-total"><span>TVA (${doc.tva}%)</span><span>${fmt(tvaAmt)} €</span></div>
+      <div class="dp-total-ttc"><span>Total TTC</span><span>${fmt(doc.ttc)} €</span></div>
+    </div>
+    <div class="dp-foot">ZyFix by ZyRAMGamer — Merci de votre confiance ⚡</div>
+  </div>`;
+
+  document.getElementById('prev-title').textContent=`🖨️ Aperçu ${label} — ${doc.id}`;
+  document.getElementById('prev-body').innerHTML=html;
+  openM('m-preview');
+}
+
+function doPrint(){
+  const html=document.getElementById('printarea').innerHTML;
+  const w=window.open('','_blank');
+  w.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>body{font-family:'DM Mono',monospace;margin:0;padding:20px;background:#fff}h1{font-family:'Syne',sans-serif}</style>
+  </head><body>${html}</body></html>`);
+  w.document.close(); setTimeout(()=>{ w.print(); },600);
+}
+
+// ─── DASHBOARD ───────────────────────────────────
+function refreshDash(){
+  const encours=DB.tickets.filter(t=>t.statut==='encours').length;
+  const dvAtt=DB.devis.filter(d=>d.statut==='attente').length;
+  const month=new Date().toISOString().substring(0,7);
+  const facMois=DB.factures.filter(f=>f.date?.startsWith(month)).length;
+  const ca=DB.factures.reduce((s,f)=>s+(f.ttc||0),0);
+
+  document.getElementById('d-encours').textContent=encours;
+  document.getElementById('d-devisatt').textContent=dvAtt;
+  document.getElementById('d-facemises').textContent=facMois;
+  document.getElementById('d-ca').textContent=fmt(ca)+'€';
+
+  // badges nav
+  const actifs=DB.tickets.filter(t=>t.statut!=='livre').length;
+  document.getElementById('cnt-tickets').textContent=actifs;
+  document.getElementById('cnt-devis').textContent=dvAtt;
+
+  // derniers tickets
+  const recent=DB.tickets.slice(0,5);
+  const rtb=document.getElementById('d-recent-tickets');
+  if(!recent.length){ rtb.innerHTML=`<tr><td colspan="5"><div class="empty" style="padding:16px"><div class="ei">🔧</div><p>Aucun ticket</p></div></td></tr>`; }
+  else rtb.innerHTML=recent.map(t=>`
+    <tr>
+      <td><span class="tk-tag">${t.id}</span></td>
+      <td>${clientName(t.clientId)}</td>
+      <td class="td-dim">${t.type}</td>
+      <td style="max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${t.probleme}</td>
+      <td>${badge(t.statut)}</td>
+    </tr>`).join('');
+
+  // stock bas
+  const low=DB.stock.filter(s=>s.qte<=s.seuil);
+  const sd=document.getElementById('d-stock-low');
+  if(!low.length) sd.innerHTML=`<div class="empty" style="padding:16px"><div class="ei">✅</div><p>Tous les stocks sont OK</p></div>`;
+  else sd.innerHTML=low.map(s=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 16px;border-bottom:1px solid var(--border)">
+      <span style="font-size:13px">${s.nom}</span>
+      <span class="td-mono" style="color:var(--red);font-weight:700">${s.qte} restant(s)</span>
+    </div>`).join('');
+
+  // clients récents
+  const crec=DB.clients.slice(-4).reverse();
+  const cd=document.getElementById('d-clients-rec');
+  if(!crec.length) cd.innerHTML=`<div class="empty" style="padding:16px"><p>Aucun client</p></div>`;
+  else cd.innerHTML=crec.map(c=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--border)">
+      <span class="avatar">${initials(`${c.nom} ${c.prenom||''}`)}</span>
+      <div>
+        <div style="font-size:13px;font-weight:700">${c.nom} ${c.prenom||''}</div>
+        <div class="td-sm">${c.type}</div>
+      </div>
+    </div>`).join('');
+}
+
+// ─── REFRESH ALL ─────────────────────────────────
+function _refreshCore(){
+  refreshDash();
+  renderTickets(DB.tickets);
+  renderClients(DB.clients);
+  renderDevis();
+  renderFactures();
+  renderStock();
+}
+
+// ─── DEMO DATA ───────────────────────────────────
+function loadDemoIfEmpty(){
+  // Tester si localStorage fonctionne
+  try{
+    localStorage.setItem('zyfix_test','1');
+    localStorage.removeItem('zyfix_test');
+  } catch(e){
+    // localStorage bloqué — on ne charge pas la démo non plus pour ne pas polluer
+    return;
+  }
+  if(DB.clients.length) return;
+  DB.clients=[
+    {id:'CL001',nom:'Dupont',prenom:'Jean',tel:'06 12 34 56 78',email:'jean.dupont@gmail.com',adresse:'12 rue Victor Hugo, Narbonne',type:'particulier',entreprise:'',date:'2026-01-15'},
+    {id:'CL002',nom:'Martin',prenom:'Sophie',tel:'07 98 76 54 32',email:'s.martin@sarl-martin.fr',adresse:'4 av. de la Mer, Narbonne',type:'entreprise',entreprise:'SARL Martin Informatique',date:'2026-02-03'},
+    {id:'CL003',nom:'Rossi',prenom:'Marco',tel:'06 55 44 33 22',email:'marco.rossi@mail.com',adresse:'7 rue des Oliviers, Carcassonne',type:'particulier',entreprise:'',date:'2026-03-01'}
+  ];
+  DB.tickets=[
+    {id:'TK1001',clientId:'CL001',type:'PC Bureau',marque:'HP',modele:'Pavilion Desktop',serie:'HPF24B',os:'Windows 11',probleme:'PC très lent, démarrage en 8 minutes',diag:'SSD saturé à 99%, malwares détectés',statut:'encours',date:'2026-03-01'},
+    {id:'TK1002',clientId:'CL002',type:'PC Portable',marque:'Dell',modele:'Inspiron 15',serie:'DELL789',os:'Windows 10',probleme:'Écran noir après logo Windows',diag:'',statut:'attente',date:'2026-03-04'},
+    {id:'TK1003',clientId:'CL003',type:'PC Bureau',marque:'Asus',modele:'ROG Strix',serie:'',os:'Windows 11',probleme:'PC ne démarre plus, bip au démarrage',diag:'RAM HS — un slot défaillant',statut:'termine',date:'2026-02-28'}
+  ];
+  DB.devis=[
+    {id:'DV-2026-101',clientId:'CL001',lignes:[{desc:'SSD Samsung 1TB',prix:80},{desc:'Main d\'œuvre 2h',prix:60}],tva:20,ht:140,ttc:168,statut:'attente',date:'2026-03-01'},
+    {id:'DV-2026-102',clientId:'CL002',lignes:[{desc:'Diagnostic avancé',prix:50},{desc:'Remplacement écran',prix:120}],tva:20,ht:170,ttc:204,statut:'attente',date:'2026-03-04'}
+  ];
+  DB.factures=[
+    {id:'FAC-2026-001',clientId:'CL003',lignes:[{desc:'RAM Kingston 16GB',prix:55},{desc:'Main d\'œuvre',prix:40}],tva:20,ht:95,ttc:114,statut:'payee',date:'2026-02-28'}
+  ];
+  DB.stock=[
+    {id:'ST001',ref:'SSD-SAM-1TB',nom:'SSD Samsung 1TB',cat:'SSD / HDD',qte:3,achat:58,vente:90,seuil:2},
+    {id:'ST002',ref:'RAM-KG-16GB',nom:'RAM Kingston 16GB DDR4',cat:'RAM',qte:1,achat:32,vente:55,seuil:2},
+    {id:'ST003',ref:'PATE-NT-3G',nom:'Pâte thermique Noctua NT-H1',cat:'Consommable',qte:9,achat:5.5,vente:12,seuil:3},
+    {id:'ST004',ref:'ALIM-BE-650W',nom:'Alimentation BeQuiet 650W',cat:'Alimentation',qte:0,achat:65,vente:105,seuil:1}
+  ];
+  CTR={tk:1003,dv:102,fa:1};
+  dbSave();
+}
+
+// ─── INIT ────────────────────────────────────────
+function init(){
+  dbLoad();
+  loadDemoIfEmpty();
+
+  const now=new Date();
+  document.getElementById('tdate').textContent=
+    now.toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+
+  refreshAll();
+}
+
+// ─── NAVIGATION BOTTOM (Android) ────────────────
+let _curPage = 'dashboard';
+const _fabModal = {tickets:'m-ticket',clients:'m-client',devis:'m-devis',factures:'m-facture',stock:'m-stock',agenda:'m-rdv'};
+
+// goto UNIQUE — gère sidebar + bottom nav + refresh
+function goto(name){
+  _curPage = name;
+  _gotoCore(name);
+  // sync bottom nav
+  document.querySelectorAll('.bnav-item').forEach(el=>{
+    el.classList.toggle('active', el.dataset.bpage === name);
+  });
+  refreshAll();
+}
+
+// Clics bottom nav
+document.querySelectorAll('.bnav-item').forEach(el=>{
+  el.addEventListener('click', ()=> goto(el.dataset.bpage));
+});
+
+// FAB → ouvre le modal de la page courante
+function fabTap(){
+  const m = _fabModal[_curPage];
+  if(m) openM(m);
+}
+
+// ─── MCARDS RENDERER ────────────────────────────
+// Fonctions correctes : del(), setTicketStatus(), adjQte(), devisToFacture()
+function renderMCards(){
+
+  // ── TICKETS
+  const tklist = document.getElementById('mlist-tickets');
+  if(tklist){
+    if(!DB.tickets.length){
+      tklist.innerHTML='<div class="empty"><div class="ei">&#128295;</div><p>Aucun ticket — appuyez sur + pour créer</p></div>';
+    } else {
+      tklist.innerHTML = DB.tickets.map(function(t){
+        const c = getClient(t.clientId);
+        const cname = clientName(t.clientId);
+        const av = initials(cname);
+        const telClean = c&&c.tel ? c.tel.replace(/\s/g,'') : '';
+        const telHtml = c&&c.tel
+          ? '<div data-tel="'+telClean+'" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);font-family:var(--mono);font-size:12px;padding:6px 10px;border-radius:7px;cursor:pointer;margin-bottom:8px">&#128222; '+c.tel+'</div>'
+          : '';
+        const diagHtml = t.diag
+          ? '<br>&#128300; <span style="color:var(--green)">'+t.diag+'</span>' : '';
+        const sel = '<select style="width:100%;background:#1a2230;border:1px solid #1e2d3d;border-radius:8px;color:#e8f0f8;font-family:DM Mono,monospace;font-size:13px;padding:9px 12px;cursor:pointer;margin-bottom:8px" onchange="setTicketStatus(\''+t.id+'\',this.value)">'
+          +'<option value="attente"'+(t.statut==='attente'?' selected':'')+'>&#9203; En attente</option>'
+          +'<option value="encours"'+(t.statut==='encours'?' selected':'')+'>&#128295; En réparation</option>'
+          +'<option value="termine"'+(t.statut==='termine'?' selected':'')+'>&#9989; Terminé</option>'
+          +'<option value="livre"'+(t.statut==='livre'?' selected':'')+'>&#128230; Livré</option>'
+          +'</select>';
+        return '<div class="mcard">'
+          +'<div class="mcard-top">'
+            +'<div class="mcard-id"><span class="tk-tag">'+t.id+'</span>'+t.type+(t.marque?' · '+t.marque:'')+'</div>'
+            +badge(t.statut)
+          +'</div>'
+          +'<div style="font-size:15px;font-weight:800;margin-bottom:6px"><span class="avatar">'+av+'</span>'+cname+'</div>'
+          +telHtml
+          +'<div class="mcard-body">&#128308; '+t.probleme+diagHtml+'</div>'
+          +'<div style="font-family:var(--mono);font-size:10px;color:var(--t3);margin:6px 0 10px">&#128197; '+fmtDate(t.date)+'</div>'
+          +sel
+          +'<div class="mcard-foot"><button class="btn btn-danger btn-sm" onclick="del(\'tickets\',\''+t.id+'\')">&#128465; Supprimer</button></div>'
+        +'</div>';
+      }).join('');
+    }
+  }
+
+  // ── CLIENTS
+  const cllist = document.getElementById('mlist-clients');
+  if(cllist){
+    if(!DB.clients.length){
+      cllist.innerHTML='<div class="empty"><div class="ei">👤</div><p>Aucun client — appuyez sur + pour créer</p></div>';
+    } else {
+      cllist.innerHTML = DB.clients.map(function(c){
+        const nb = DB.tickets.filter(function(t){ return t.clientId===c.id; }).length;
+        const telClean = c.tel ? c.tel.replace(/\s/g,'') : '';
+        const av = initials(c.nom+' '+(c.prenom||''));
+        const typeBadge = c.type==='entreprise'
+          ? '<span class="badge b-encours">Entreprise</span>'
+          : '<span class="badge b-livre">Particulier</span>';
+        const entrepriseHtml = c.entreprise
+          ? '<div style="font-size:11px;color:var(--t3)">&#127970; '+c.entreprise+'</div>' : '';
+        const telHtml = c.tel
+          ? '<div data-tel="'+telClean+'" style="display:flex;align-items:center;gap:8px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);border-radius:8px;padding:10px 14px;cursor:pointer;margin-bottom:6px">'
+            +'<span style="font-size:22px">&#128222;</span>'
+            +'<div><div style="font-size:10px;color:var(--t3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px">Appeler</div>'
+            +'<div style="font-family:var(--mono);font-size:15px;font-weight:700;color:var(--cyan)">'+c.tel+'</div></div></div>'
+          : '';
+        const mailHtml = c.email
+          ? '<div data-mail="'+c.email+'" style="display:flex;align-items:center;gap:8px;background:rgba(179,136,255,.1);border:1px solid rgba(179,136,255,.25);border-radius:8px;padding:10px 14px;cursor:pointer;margin-bottom:6px">'
+            +'<span style="font-size:22px">&#9993;</span>'
+            +'<div><div style="font-size:10px;color:var(--t3);font-family:var(--mono);text-transform:uppercase;letter-spacing:1px">Envoyer mail</div>'
+            +'<div style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--purple);word-break:break-all">'+c.email+'</div></div></div>'
+          : '';
+        const adresseHtml = c.adresse
+          ? '<div style="font-size:12px;color:var(--t2);margin-bottom:6px">&#128205; '+c.adresse+'</div>' : '';
+
+        return '<div class="mcard">'
+          +'<div class="mcard-top">'
+            +'<div style="display:flex;align-items:center;gap:8px">'
+              +'<span class="avatar">'+av+'</span>'
+              +'<div><div style="font-size:15px;font-weight:800">'+c.nom+' '+(c.prenom||'')+'</div>'+entrepriseHtml+'</div>'
+            +'</div>'+typeBadge
+          +'</div>'
+          +'<div style="margin:10px 0">'+telHtml+mailHtml+adresseHtml+'</div>'
+          +'<div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">'
+            +'<span class="tk-tag">'+nb+' ticket(s)</span>'
+            +'<button class="btn btn-danger btn-sm" onclick="del(\'clients\',\''+c.id+'\')">&#128465; Supprimer</button>'
+          +'</div>'
+        +'</div>';
+      }).join('');
+    }
+  }
+
+  // ── DEVIS
+  const dvlist = document.getElementById('mlist-devis');
+  if(dvlist){
+    if(!DB.devis.length){
+      dvlist.innerHTML='<div class="empty"><div class="ei">&#128203;</div><p>Aucun devis</p></div>';
+    } else {
+      dvlist.innerHTML = DB.devis.map(function(d){
+        const lignesTxt = d.lignes.map(function(l){ return l.desc; }).join(' · ');
+        return '<div class="mcard">'
+          +'<div class="mcard-top"><div class="mcard-id"><span class="tk-tag">'+d.id+'</span></div>'+badge(d.statut)+'</div>'
+          +'<div style="font-size:15px;font-weight:800;margin-bottom:6px">'+clientName(d.clientId)+'</div>'
+          +'<div style="font-size:12px;color:var(--t2);margin-bottom:8px">'+lignesTxt+'</div>'
+          +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+            +'<span style="font-family:var(--mono);font-size:12px;color:var(--t2)">HT '+fmt(d.ht)+' &#8364;</span>'
+            +'<span style="font-family:var(--mono);font-size:18px;font-weight:900;color:var(--amber)">'+fmt(d.ttc)+' &#8364;</span>'
+          +'</div>'
+          +'<div class="mcard-foot">'
+            +'<button class="btn btn-success btn-sm" onclick="previewDoc(\'devis\',\''+d.id+'\')">&#128065; Aperçu</button>'
+            +'<button class="btn btn-amber btn-sm" onclick="devisToFacture(\''+d.id+'\')">&#8594; Facture</button>'
+            +'<button class="btn btn-danger btn-sm" onclick="del(\'devis\',\''+d.id+'\')">&#128465;</button>'
+          +'</div>'
+        +'</div>';
+      }).join('');
+    }
+  }
+
+  // ── FACTURES
+  const falist = document.getElementById('mlist-factures');
+  if(falist){
+    if(!DB.factures.length){
+      falist.innerHTML='<div class="empty"><div class="ei">&#128176;</div><p>Aucune facture</p></div>';
+    } else {
+      falist.innerHTML = DB.factures.map(function(f){
+        const lignesTxt = f.lignes.map(function(l){ return l.desc; }).join(' · ');
+        return '<div class="mcard">'
+          +'<div class="mcard-top"><div class="mcard-id"><span class="tk-tag">'+f.id+'</span></div>'+badge(f.statut)+'</div>'
+          +'<div style="font-size:15px;font-weight:800;margin-bottom:6px">'+clientName(f.clientId)+'</div>'
+          +'<div style="font-size:12px;color:var(--t2);margin-bottom:8px">'+lignesTxt+'</div>'
+          +'<div style="text-align:right;font-family:var(--mono);font-size:20px;font-weight:900;color:var(--green);margin-bottom:10px">'+fmt(f.ttc)+' &#8364;</div>'
+          +'<div class="mcard-foot">'
+            +'<button class="btn btn-success btn-sm" onclick="previewDoc(\'facture\',\''+f.id+'\')">&#128065; Aperçu</button>'
+            +'<button class="btn btn-danger btn-sm" onclick="del(\'factures\',\''+f.id+'\')">&#128465;</button>'
+          +'</div>'
+        +'</div>';
+      }).join('');
+    }
+  }
+
+  // ── STOCK
+  const stlist = document.getElementById('mlist-stock');
+  if(stlist){
+    if(!DB.stock.length){
+      stlist.innerHTML='<div class="empty"><div class="ei">&#128230;</div><p>Stock vide</p></div>';
+    } else {
+      stlist.innerHTML = DB.stock.map(function(s){
+        const low = s.qte <= s.seuil;
+        const mg = s.vente>0&&s.achat>0 ? Math.round((s.vente-s.achat)/s.vente*100) : 0;
+        const qteColor = low ? 'var(--red)' : 'var(--green)';
+        const mgColor  = mg>30 ? 'var(--green)' : 'var(--amber)';
+        const alertHtml = low
+          ? '<div style="font-family:var(--mono);font-size:11px;color:var(--red);margin-top:2px">&#9888; STOCK BAS (seuil: '+s.seuil+')</div>' : '';
+        return '<div class="mcard">'
+          +'<div class="mcard-top">'
+            +'<div><div style="font-size:15px;font-weight:800">'+s.nom+'</div><div style="font-family:var(--mono);font-size:10px;color:var(--t3)">'+s.ref+'</div></div>'
+            +'<span class="badge b-livre">'+s.cat+'</span>'
+          +'</div>'
+          +'<div style="display:flex;justify-content:space-between;align-items:center;margin:10px 0">'
+            +'<div><span style="font-family:var(--mono);font-weight:900;font-size:28px;color:'+qteColor+'">'+s.qte+'</span>'
+              +'<span style="font-size:12px;color:var(--t3);margin-left:4px">en stock</span>'+alertHtml+'</div>'
+            +'<div style="text-align:right">'
+              +'<div style="font-family:var(--mono);font-size:12px;color:var(--t2)">Achat '+fmt(s.achat)+' &#8364;</div>'
+              +'<div style="font-family:var(--mono);font-size:13px;color:var(--amber)">Vente '+fmt(s.vente)+' &#8364;</div>'
+              +'<div style="font-family:var(--mono);font-size:12px;color:'+mgColor+'">Marge '+mg+'%</div>'
+            +'</div>'
+          +'</div>'
+          +'<div class="mcard-foot">'
+            +'<button class="btn btn-success btn-sm" onclick="adjQte(\''+s.id+'\',1)">+ Ajouter</button>'
+            +'<button class="btn btn-ghost btn-sm" onclick="adjQte(\''+s.id+'\',-1)">&#8722; Retirer</button>'
+            +'<button class="btn btn-danger btn-sm" onclick="del(\'stock\',\''+s.id+'\')">&#128465;</button>'
+          +'</div>'
+        +'</div>';
+      }).join('');
+    }
+  }
+
+  // ── Compteurs bottom nav
+  const actifs = DB.tickets.filter(t=>t.statut!=='livre').length;
+  const dvat = DB.devis.filter(d=>d.statut==='attente').length;
+  const bctk = document.getElementById('bcnt-tk');
+  const bcdv = document.getElementById('bcnt-dv');
+  if(bctk) bctk.textContent = actifs;
+  if(bcdv) bcdv.textContent = dvat;
+}
+
+// ─── REFRESH UNIFIÉ ──────────────────────────────
+function refreshAll(){
+  _refreshCore();
+  renderMCards();
+}
+
+// ─── PWA — Service Worker (HTTPS uniquement) ─────
+// Le SW ne fonctionne pas en file:// — on l'ignore silencieusement
+if('serviceWorker' in navigator && location.protocol === 'https:'){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('✅ ZyFix SW actif'))
+      .catch(err => console.warn('SW:', err));
+  });
+}
+
+// ─── PWA — Prompt installation Android ──────────
+let _deferredInstall = null;
+
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault();
+  _deferredInstall = e;
+  // Afficher banner uniquement mobile
+  if(window.innerWidth <= 768){
+    document.getElementById('install-banner').classList.add('show');
+  }
+});
+
+const installBtn = document.getElementById('install-btn');
+if(installBtn){
+  installBtn.addEventListener('click', async ()=>{
+    if(!_deferredInstall) return;
+    _deferredInstall.prompt();
+    const choice = await _deferredInstall.userChoice;
+    if(choice.outcome === 'accepted'){
+      document.getElementById('install-banner').classList.remove('show');
+      console.log('✅ ZyFix installé !');
+    }
+    _deferredInstall = null;
+  });
+}
+
+window.addEventListener('appinstalled', ()=>{
+  document.getElementById('install-banner').classList.remove('show');
+});
+
+
+// ═══════════════════════════════════════════════
+// AGENDA & HISTORIQUE CLIENT
+// ═══════════════════════════════════════════════
+
+
+// Event delegation pour tel/mail (évite problèmes guillemets imbriqués)
+document.addEventListener('click', function(e){
+  var el = e.target.closest('[data-tel]');
+  if(el){ window.location.href='tel:'+el.getAttribute('data-tel'); return; }
+  var em = e.target.closest('[data-mail]');
+  if(em){ window.location.href='mailto:'+em.getAttribute('data-mail'); return; }
+});
+// ─── STATE AGENDA ────────────────────────────
+let _agendaDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+function agendaShift(d){
+  var dt = new Date(_agendaDate);
+  dt.setDate(dt.getDate() + d);
+  _agendaDate = dt.toISOString().split('T')[0];
+  renderAgenda();
+}
+function agendaGoToday(){
+  _agendaDate = new Date().toISOString().split('T')[0];
+  renderAgenda();
+}
+
+// ─── SAVE RDV ────────────────────────────────
+function saveRdv(){
+  var cid = document.getElementById('rdv-client').value;
+  var date = document.getElementById('rdv-date').value;
+  if(!cid||!date){ showToast('Client et date requis !'); return; }
+  if(!DB.rdv) DB.rdv = [];
+  DB.rdv.push({
+    id: 'RDV'+Date.now(),
+    clientId: cid,
+    date: date,
+    heure: document.getElementById('rdv-heure').value||'',
+    motif: document.getElementById('rdv-motif').value||'',
+    notes: document.getElementById('rdv-notes').value||''
+  });
+  dbSave();
+  closeM('m-rdv');
+  document.getElementById('rdv-motif').value='';
+  document.getElementById('rdv-notes').value='';
+  _agendaDate = date;
+  refreshAll();
+  showToast('RDV créé !');
+}
+
+// ─── RENDER AGENDA ───────────────────────────
+function renderAgenda(){
+  if(!DB.rdv) DB.rdv = [];
+  var dt = new Date(_agendaDate + 'T00:00:00');
+  var jours = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  var mois  = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  var lbl = document.getElementById('agenda-date-label');
+  var dlbl = document.getElementById('agenda-day-label');
+  if(lbl) lbl.textContent = dt.getDate() + ' ' + mois[dt.getMonth()] + ' ' + dt.getFullYear();
+  if(dlbl) dlbl.textContent = jours[dt.getDay()];
+
+  var rdvDu = DB.rdv.filter(function(r){ return r.date === _agendaDate; });
+  rdvDu.sort(function(a,b){ return (a.heure||'00:00') > (b.heure||'00:00') ? 1 : -1; });
+
+  var listEl = document.getElementById('agenda-rdv-list');
+  if(!listEl) return;
+
+  if(!rdvDu.length){
+    listEl.innerHTML = '<div class="empty" style="padding:18px"><div class="ei">&#128197;</div><p>Aucun RDV ce jour — appuyez sur + pour en créer</p></div>';
+  } else {
+    listEl.innerHTML = rdvDu.map(function(r){
+      var c = getClient(r.clientId);
+      var cname = clientName(r.clientId);
+      var av = initials(cname);
+      var telClean = c&&c.tel ? c.tel.replace(/\s/g,'') : '';
+      var telHtml = c&&c.tel
+        ? '<div data-tel="'+telClean+'" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;margin-top:5px">&#128222; '+c.tel+'</div>'
+        : '';
+      return '<div style="display:flex;gap:12px;align-items:flex-start;padding:12px 10px;border-bottom:1px solid var(--border)">'
+        +'<div style="min-width:44px;text-align:center;padding-top:2px">'
+          +'<div style="font-family:var(--mono);font-size:16px;font-weight:900;color:var(--cyan)">'+(r.heure||'--:--')+'</div>'
+        +'</div>'
+        +'<div style="flex:1">'
+          +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+            +'<span class="avatar">'+av+'</span>'
+            +'<span style="font-size:14px;font-weight:800">'+cname+'</span>'
+          +'</div>'
+          +(r.motif ? '<div style="font-size:13px;color:var(--t2);margin-bottom:3px">'+r.motif+'</div>' : '')
+          +(r.notes ? '<div style="font-size:11px;color:var(--t3);font-style:italic">'+r.notes+'</div>' : '')
+          +telHtml
+        +'</div>'
+        +'<div style="display:flex;flex-direction:column;gap:5px">'
+          +'<button class="btn btn-success btn-sm" onclick="showHistorique(&quot;'+r.clientId+'&quot;)" style="font-size:11px">&#128203;</button>'
+          +'<button class="btn btn-danger btn-sm" onclick="delRdv(&quot;'+r.id+'&quot;)" style="font-size:11px">&#128465;</button>'
+        +'</div>'
+      +'</div>';
+    }).join('');
+  }
+
+  // Clients du jour (ceux qui ont un RDV)
+  var clientsIds = [];
+  rdvDu.forEach(function(r){ if(clientsIds.indexOf(r.clientId)<0) clientsIds.push(r.clientId); });
+  var cliEl = document.getElementById('agenda-clients-day');
+  if(!cliEl) return;
+  if(!clientsIds.length){
+    cliEl.innerHTML = '<div class="empty" style="padding:14px"><p>Aucun client ce jour</p></div>';
+  } else {
+    cliEl.innerHTML = clientsIds.map(function(cid){
+      var c = getClient(cid);
+      if(!c) return '';
+      var nbTk = DB.tickets.filter(function(t){ return t.clientId===cid; }).length;
+      var telClean = c.tel ? c.tel.replace(/\s/g,'') : '';
+      var telHtml = c.tel
+        ? '<div data-tel="'+telClean+'" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;margin-right:6px">&#128222; '+c.tel+'</div>'
+        : '';
+      var mailHtml = c.email
+        ? '<div data-mail="'+c.email+'" style="display:inline-flex;align-items:center;gap:5px;background:rgba(179,136,255,.1);border:1px solid rgba(179,136,255,.25);color:var(--purple);font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer">&#9993; '+c.email+'</div>'
+        : '';
+      return '<div style="padding:12px 10px;border-bottom:1px solid var(--border)">'
+        +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
+          +'<div style="display:flex;align-items:center;gap:8px">'
+            +'<span class="avatar">'+initials(c.nom+' '+(c.prenom||''))+'</span>'
+            +'<div><div style="font-size:14px;font-weight:800">'+c.nom+' '+(c.prenom||'')+'</div>'
+              +(c.entreprise?'<div style="font-size:11px;color:var(--t3)">'+c.entreprise+'</div>':'')
+            +'</div>'
+          +'</div>'
+          +'<span class="tk-tag">'+nbTk+' ticket(s)</span>'
+        +'</div>'
+        +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px">'+telHtml+mailHtml+'</div>'
+        +'<button class="btn btn-ghost btn-sm" onclick="showHistorique(&quot;'+cid+'&quot;)" style="width:100%;justify-content:center">&#128203; Voir historique complet</button>'
+      +'</div>';
+    }).join('');
+  }
+
+  // Compteur badge bottom nav
+  var todayRdv = DB.rdv.filter(function(r){ return r.date===new Date().toISOString().split('T')[0]; }).length;
+  var bcnt = document.getElementById('bcnt-rdv');
+  if(bcnt){ bcnt.textContent=todayRdv; bcnt.style.display=todayRdv?'block':'none'; }
+
+  // Sync select date dans modal RDV
+  var rdvDateInput = document.getElementById('rdv-date');
+  if(rdvDateInput && !rdvDateInput.value) rdvDateInput.value = _agendaDate;
+}
+
+function delRdv(id){
+  showConfirm('Supprimer ce RDV ?', function(){
+    if(!DB.rdv) DB.rdv=[];
+    DB.rdv = DB.rdv.filter(function(r){ return r.id!==id; });
+    dbSave(); refreshAll();
+  });
+}
+
+// ─── HISTORIQUE CLIENT ───────────────────────
+function showHistorique(clientId){
+  if(!DB.rdv) DB.rdv=[];
+  var c = getClient(clientId);
+  if(!c) return;
+  var cname = c.nom+' '+(c.prenom||'');
+  var av = initials(cname);
+
+  var tickets  = DB.tickets.filter(function(t){ return t.clientId===clientId; });
+  var devis    = DB.devis.filter(function(d){ return d.clientId===clientId; });
+  var factures = DB.factures.filter(function(f){ return f.clientId===clientId; });
+  var rdvs     = DB.rdv.filter(function(r){ return r.clientId===clientId; }).sort(function(a,b){ return a.date<b.date?1:-1; });
+
+  var telClean = c.tel ? c.tel.replace(/\s/g,'') : '';
+
+  var html = '';
+
+  // Header client
+  html += '<div style="padding:16px 20px;background:var(--s2);border-bottom:1px solid var(--border)">'
+    +'<div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">'
+      +'<span class="avatar" style="width:40px;height:40px;font-size:16px;border-radius:10px">'+av+'</span>'
+      +'<div><div style="font-size:18px;font-weight:900">'+cname+'</div>'
+        +(c.entreprise?'<div style="font-size:12px;color:var(--t3)">&#127970; '+c.entreprise+'</div>':'')
+      +'</div>'
+    +'</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:8px">'
+      +(c.tel?'<div data-tel="'+telClean+'" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer">&#128222; '+c.tel+'</div>':'')
+      +(c.email?'<div data-mail="'+c.email+'" style="display:inline-flex;align-items:center;gap:5px;background:rgba(179,136,255,.1);border:1px solid rgba(179,136,255,.25);color:var(--purple);font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer">&#9993; '+c.email+'</div>':'')
+    +'</div>'
+  +'</div>';
+
+  // Stats résumé
+  var caTotal = factures.reduce(function(s,f){ return s+(f.ttc||0); },0);
+  html += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);margin-bottom:0">'
+    +statMini('🔧','Tickets',tickets.length,'var(--cyan)')
+    +statMini('📋','Devis',devis.length,'var(--amber)')
+    +statMini('💰','Factures',factures.length,'var(--green)')
+    +statMini('📅','RDV',rdvs.length,'var(--purple)')
+  +'</div>';
+
+  // Section tickets
+  if(tickets.length){
+    html += sectionTitle('🔧 Tickets ('+tickets.length+')');
+    tickets.forEach(function(t){
+      html += '<div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">'
+        +'<div><div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span class="tk-tag">'+t.id+'</span>'+badge(t.statut)+'</div>'
+          +'<div style="font-size:12px;color:var(--t1)">'+t.type+(t.marque?' · '+t.marque:'')+'</div>'
+          +'<div style="font-size:12px;color:var(--t2)">'+t.probleme+'</div>'
+        +'</div>'
+        +'<div style="font-family:var(--mono);font-size:10px;color:var(--t3);text-align:right">'+fmtDate(t.date)+'</div>'
+      +'</div>';
+    });
+  }
+
+  // Section devis
+  if(devis.length){
+    html += sectionTitle('📋 Devis ('+devis.length+')');
+    devis.forEach(function(d){
+      html += '<div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">'
+        +'<div><div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span class="tk-tag">'+d.id+'</span>'+badge(d.statut)+'</div>'
+          +'<div style="font-size:12px;color:var(--t2)">'+d.lignes.map(function(l){return l.desc;}).join(', ')+'</div>'
+        +'</div>'
+        +'<div style="text-align:right"><div style="font-family:var(--mono);font-size:14px;font-weight:900;color:var(--amber)">'+fmt(d.ttc)+' &#8364;</div>'
+          +'<div style="font-family:var(--mono);font-size:10px;color:var(--t3)">'+fmtDate(d.date)+'</div>'
+        +'</div>'
+      +'</div>';
+    });
+  }
+
+  // Section factures
+  if(factures.length){
+    html += sectionTitle('💰 Factures ('+factures.length+') — CA: '+fmt(caTotal)+' &#8364;');
+    factures.forEach(function(f){
+      html += '<div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">'
+        +'<div><div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span class="tk-tag">'+f.id+'</span>'+badge(f.statut)+'</div>'
+          +'<div style="font-size:12px;color:var(--t2)">'+f.lignes.map(function(l){return l.desc;}).join(', ')+'</div>'
+        +'</div>'
+        +'<div style="text-align:right"><div style="font-family:var(--mono);font-size:14px;font-weight:900;color:var(--green)">'+fmt(f.ttc)+' &#8364;</div>'
+          +'<div style="font-family:var(--mono);font-size:10px;color:var(--t3)">'+fmtDate(f.date)+'</div>'
+        +'</div>'
+      +'</div>';
+    });
+  }
+
+  // Section RDV
+  if(rdvs.length){
+    html += sectionTitle('📅 RDV passés et à venir ('+rdvs.length+')');
+    rdvs.forEach(function(r){
+      var isPast = r.date < new Date().toISOString().split('T')[0];
+      html += '<div style="padding:10px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">'
+        +'<div><div style="font-family:var(--mono);font-size:13px;font-weight:700;color:'+(isPast?'var(--t3)':'var(--cyan)')+'">'+fmtDate(r.date)+(r.heure?' à '+r.heure:'')+'</div>'
+          +(r.motif?'<div style="font-size:12px;color:var(--t2)">'+r.motif+'</div>':'')
+          +(r.notes?'<div style="font-size:11px;color:var(--t3);font-style:italic">'+r.notes+'</div>':'')
+        +'</div>'
+        +'<span style="font-size:11px;color:'+(isPast?'var(--t3)':'var(--green)')+'">'+( isPast ? '&#128467; passé' : '&#9200; à venir')+'</span>'
+      +'</div>';
+    });
+  }
+
+  if(!tickets.length && !devis.length && !factures.length && !rdvs.length){
+    html += '<div class="empty" style="padding:28px"><div class="ei">&#128203;</div><p>Aucun historique pour ce client</p></div>';
+  }
+
+  document.getElementById('hist-title').textContent = '📋 Historique — '+cname;
+  document.getElementById('hist-body').innerHTML = html;
+  openM('m-historique');
+}
+
+function statMini(ico, lbl, val, color){
+  return '<div style="background:var(--s2);padding:10px;text-align:center">'
+    +'<div style="font-size:18px;font-weight:900;color:'+color+'">'+val+'</div>'
+    +'<div style="font-family:var(--mono);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:1px">'+lbl+'</div>'
+  +'</div>';
+}
+function sectionTitle(t){
+  return '<div style="padding:8px 16px;background:var(--s2);border-bottom:1px solid var(--border);font-size:12px;font-weight:800;color:var(--t2)">'+t+'</div>';
+}
+
+// Patch syncSelects pour inclure rdv-client
+var _syncSelectsOrig = syncSelects;
+syncSelects = function(){
+  _syncSelectsOrig();
+  var sel = document.getElementById('rdv-client');
+  if(!sel) return;
+  var prev = sel.value;
+  sel.innerHTML = '<option value="">-- Choisir --</option>';
+  DB.clients.forEach(function(c){
+    var o = document.createElement('option');
+    o.value = c.id;
+    o.textContent = c.nom+' '+(c.prenom||'');
+    sel.appendChild(o);
+  });
+  sel.value = prev;
+};
+
+// Patch _refreshCore pour inclure agenda + init rdv date
+var _refreshCoreOrig = _refreshCore;
+_refreshCore = function(){
+  if(!DB.rdv) DB.rdv = [];
+  _refreshCoreOrig();
+  renderAgenda();
+};
+
+// Bouton historique dans les mcards clients
+// → ajouter un bouton "Historique" dans renderMCards clients
+// Override partiel : on patche la fonction del pour gérer aussi rdv
+var _delOrig = del;
+del = function(col, id){
+  // del sur 'rdv' géré ici directement
+  if(col === 'rdv'){
+    showConfirm('Supprimer ce RDV ?', function(){
+      DB.rdv = DB.rdv.filter(function(r){ return r.id!==id; });
+      dbSave(); refreshAll();
+    });
+    return;
+  }
+  _delOrig(col, id);
+};
+
+// Init date agenda
+document.getElementById('rdv-date') && (document.getElementById('rdv-date').value = new Date().toISOString().split('T')[0]);
+
+
+
+// ═══════════════════════════════════════════════════
+// GOOGLE DRIVE SYNC — Sync automatique PC ↔ Android
+// ═══════════════════════════════════════════════════
+
+// ⚠️ Remplace CLIENT_ID par ton ID Google Cloud Console
+// (gratuit — voir instructions dans le modal ci-dessous)
+var GDRIVE_CLIENT_ID = localStorage.getItem('zyfix_gdrive_client_id') || '';
+var GDRIVE_FILE_NAME = 'zyfix-data.json';
+var GDRIVE_SCOPES    = 'https://www.googleapis.com/auth/drive.appdata';
+
+var _gdriveToken  = localStorage.getItem('zyfix_gdrive_token') || null;
+var _gdriveFileId = localStorage.getItem('zyfix_gdrive_file_id') || null;
+var _gapiReady    = false;
+var _syncInterval = null;
+
+// ── Init GAPI ─────────────────────────────────────
+window.addEventListener('load', function(){
+  if(!GDRIVE_CLIENT_ID){ gdriveUpdateUI('non connecté'); return; }
+  var check = setInterval(function(){
+    if(typeof gapi !== 'undefined'){
+      clearInterval(check);
+      gapi.load('client', function(){
+        gapi.client.init({ discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'] }).then(function(){
+          _gapiReady = true;
+          if(_gdriveToken){ gdriveRestoreSession(); }
+          else { gdriveUpdateUI('non connecté'); }
+        });
+      });
+    }
+  }, 300);
+});
+
+function gdriveRestoreSession(){
+  gapi.client.setToken({ access_token: _gdriveToken });
+  gdriveUpdateUI('connecté ✓');
+  gdriveStartAutoSync();
+}
+
+// ── Bouton principal ──────────────────────────────
+function gdriveSync(){
+  if(!GDRIVE_CLIENT_ID){
+    openM('m-gdrive-setup');
+    return;
+  }
+  if(!_gapiReady){ showToast('API Google en chargement...'); return; }
+  if(!_gdriveToken){ gdriveLogin(); return; }
+  gdrivePush();
+}
+
+// ── Connexion OAuth ───────────────────────────────
+function gdriveLogin(){
+  var client = google.accounts.oauth2.initTokenClient({
+    client_id: GDRIVE_CLIENT_ID,
+    scope: GDRIVE_SCOPES,
+    callback: function(resp){
+      if(resp.error){ showToast('Connexion annulée'); return; }
+      _gdriveToken = resp.access_token;
+      localStorage.setItem('zyfix_gdrive_token', _gdriveToken);
+      gapi.client.setToken({ access_token: _gdriveToken });
+      gdriveUpdateUI('connecté ✓');
+      gdriveStartAutoSync();
+      gdrivePush();
+    }
+  });
+  client.requestAccessToken();
+}
+
+function gdriveLogout(){
+  _gdriveToken = null; _gdriveFileId = null;
+  localStorage.removeItem('zyfix_gdrive_token');
+  localStorage.removeItem('zyfix_gdrive_file_id');
+  if(_syncInterval){ clearInterval(_syncInterval); _syncInterval=null; }
+  gdriveUpdateUI('non connecté');
+  showToast('Déconnecté de Google Drive');
+}
+
+// ── Auto-sync toutes les 2 min ────────────────────
+function gdriveStartAutoSync(){
+  if(_syncInterval) clearInterval(_syncInterval);
+  _syncInterval = setInterval(function(){
+    if(_gdriveToken) gdrivePush(true);
+  }, 2 * 60 * 1000);
+  // Sync au chargement
+  gdrivePull(true);
+}
+
+// ── PUSH : envoyer données → Drive ───────────────
+function gdrivePush(silent){
+  if(!_gdriveToken){ return; }
+  var content = JSON.stringify({ DB: DB, CTR: CTR, saved: new Date().toISOString() });
+  var boundary = '-------314159265358979323846';
+  var delimiter = '--' + boundary + '\r\n';
+  var close_delim = '--' + boundary + '--';
+
+  var findUrl = 'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27' + GDRIVE_FILE_NAME + '%27&fields=files(id)';
+
+  fetch(findUrl, { headers: { Authorization: 'Bearer ' + _gdriveToken } })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var fileId = (data.files && data.files.length) ? data.files[0].id : null;
+      _gdriveFileId = fileId;
+      if(fileId) localStorage.setItem('zyfix_gdrive_file_id', fileId);
+
+      var url, method;
+      if(fileId){
+        url = 'https://www.googleapis.com/upload/drive/v3/files/' + fileId + '?uploadType=media';
+        method = 'PATCH';
+      } else {
+        url = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+        method = 'POST';
+        content = delimiter
+          + 'Content-Type: application/json; charset=UTF-8\r\n\r\n'
+          + JSON.stringify({ name: GDRIVE_FILE_NAME, parents: ['appDataFolder'] }) + '\r\n'
+          + delimiter + 'Content-Type: application/json\r\n\r\n'
+          + JSON.stringify({ DB: DB, CTR: CTR, saved: new Date().toISOString() }) + '\r\n'
+          + close_delim;
+      }
+
+      var headers = { Authorization: 'Bearer ' + _gdriveToken };
+      if(fileId){ headers['Content-Type'] = 'application/json'; }
+      else { headers['Content-Type'] = 'multipart/related; boundary="' + boundary + '"'; }
+
+      return fetch(url, { method: method, headers: headers, body: content });
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(f){
+      if(f.id){ _gdriveFileId = f.id; localStorage.setItem('zyfix_gdrive_file_id', f.id); }
+      var now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+      gdriveUpdateUI('sync ' + now);
+      if(!silent) showToast('Synchronisé avec Google Drive !');
+    })
+    .catch(function(e){
+      if(e.toString().includes('401')){ _gdriveToken=null; localStorage.removeItem('zyfix_gdrive_token'); gdriveUpdateUI('session expirée'); }
+      if(!silent) showToast('Erreur sync Drive');
+    });
+}
+
+// ── PULL : récupérer données ← Drive ─────────────
+function gdrivePull(silent){
+  if(!_gdriveToken){ return; }
+  var findUrl = 'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27' + GDRIVE_FILE_NAME + '%27&fields=files(id,modifiedTime)';
+
+  fetch(findUrl, { headers: { Authorization: 'Bearer ' + _gdriveToken } })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(!data.files || !data.files.length){ if(!silent) showToast('Aucune donnée sur Drive'); return; }
+      var fileId = data.files[0].id;
+      _gdriveFileId = fileId;
+      localStorage.setItem('zyfix_gdrive_file_id', fileId);
+      return fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media', {
+        headers: { Authorization: 'Bearer ' + _gdriveToken }
+      });
+    })
+    .then(function(r){ return r ? r.json() : null; })
+    .then(function(remote){
+      if(!remote || !remote.DB) return;
+      // Fusionner : garder le plus récent
+      var localSaved = localStorage.getItem('zyfix_last_save') || '0';
+      var remoteSaved = remote.saved || '0';
+      if(remoteSaved > localSaved){
+        DB = remote.DB;
+        if(!DB.rdv) DB.rdv = [];
+        CTR = remote.CTR || CTR;
+        dbSave();
+        refreshAll();
+        if(!silent) showToast('Données mises à jour depuis Drive !');
+        var now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'});
+        gdriveUpdateUI('sync ' + now);
+      } else {
+        if(!silent) showToast('Données locales déjà à jour');
+      }
+    })
+    .catch(function(e){ if(!silent) showToast('Erreur lecture Drive'); });
+}
+
+// Sauvegarder timestamp à chaque dbSave
+var _dbSaveOrig = dbSave;
+dbSave = function(){
+  var ts = new Date().toISOString();
+  localStorage.setItem('zyfix_last_save', ts);
+  _dbSaveOrig();
+  // Auto-push si connecté
+  if(_gdriveToken){ gdrivePush(true); }
+};
+
+// ── UI helpers ────────────────────────────────────
+function gdriveUpdateUI(status){
+  var lbl  = document.getElementById('gdrive-label');
+  var stat = document.getElementById('gdrive-status');
+  var tbl  = document.getElementById('topbar-sync-label');
+  if(lbl) lbl.textContent  = _gdriveToken ? 'Drive connecté' : 'Connecter Google Drive';
+  if(stat) stat.textContent = status;
+  if(tbl) tbl.textContent   = _gdriveToken ? '✓' : 'Drive';
+}
+
+function gdriveSetClientId(){
+  var val = document.getElementById('gdrive-client-id-input').value.trim();
+  if(!val){ showToast('Client ID requis !'); return; }
+  GDRIVE_CLIENT_ID = val;
+  localStorage.setItem('zyfix_gdrive_client_id', val);
+  closeM('m-gdrive-setup');
+  showToast('Client ID sauvegardé !');
+  window.location.reload();
+}
+
+init();
+</script>
+</body>
+</html>
