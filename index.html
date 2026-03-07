@@ -988,14 +988,13 @@ function dbSave(){
     localStorage.setItem('zyfix', JSON.stringify(DB));
     localStorage.setItem('zyfix_ctr', JSON.stringify(CTR));
     localStorage.setItem('zyfix_last_save', new Date().toISOString());
-    if(_gdriveToken){ gdrivePush(true); }
   } catch(e){
-    // localStorage bloqué (file:// ou navigation privée) → on affiche un avertissement une seule fois
     if(!window._warnedStorage){
       window._warnedStorage = true;
-      showToast('⚠️ Héberge ZyFix en HTTPS pour sauvegarder !');
+      showToast('\u26a0\ufe0f Hberge ZyFix en HTTPS pour sauvegarder !');
     }
   }
+  try{ if(window._gdriveToken){ gdrivePush(true); } } catch(ex){}
 }
 
 // ─── NAVIGATION ──────────────────────────────────
@@ -1520,12 +1519,13 @@ function _refreshCore(){
 
 // ─── DEMO DATA ───────────────────────────────────
 function loadDemoIfEmpty(){
-  // Tester si localStorage fonctionne
+  // Ne jamais charger la démo si une sauvegarde existe déjà
   try{
     localStorage.setItem('zyfix_test','1');
     localStorage.removeItem('zyfix_test');
+    // Si une sauvegarde zyfix existe → ne pas toucher aux données
+    if(localStorage.getItem('zyfix')) return;
   } catch(e){
-    // localStorage bloqué — on ne charge pas la démo non plus pour ne pas polluer
     return;
   }
   if(DB.clients.length) return;
@@ -2147,7 +2147,7 @@ var GDRIVE_CLIENT_ID = localStorage.getItem('zyfix_gdrive_client_id') || '';
 var GDRIVE_FILE_NAME = 'zyfix-data.json';
 var GDRIVE_SCOPES    = 'https://www.googleapis.com/auth/drive.appdata';
 
-var _gdriveToken     = null; // NE PAS restaurer le token — il expire après 1h, toujours redemander
+window._gdriveToken  = null; var _gdriveToken = null; // NE PAS restaurer le token — il expire après 1h, toujours redemander
 var _gdriveFileId    = localStorage.getItem('zyfix_gdrive_file_id') || null;
 var _gapiReady       = false;
 var _syncInterval    = null;
@@ -2173,7 +2173,7 @@ window.addEventListener('load', function(){
             prompt: '',
             callback: function(resp){
               if(resp.error){ showToast('Connexion Google annulée'); return; }
-              _gdriveToken = resp.access_token;
+              _gdriveToken = resp.access_token; window._gdriveToken = resp.access_token; window._gdriveToken = _gdriveToken;
               localStorage.setItem('zyfix_gdrive_token', _gdriveToken);
               gapi.client.setToken({ access_token: _gdriveToken });
               gdriveUpdateUI('connecté ✓');
@@ -2309,7 +2309,7 @@ function gdrivePush(silent){
     })
     .catch(function(e){
       if(e.message === '401'){
-        _gdriveToken = null;
+        _gdriveToken = null; window._gdriveToken = null;
         gdriveUpdateUI('session expirée');
         _pendingAction = 'push';
         if(_tokenClient) _tokenClient.requestAccessToken({ prompt: '' });
@@ -2372,7 +2372,7 @@ function gdrivePull(silent){
     })
     .catch(function(e){
       if(e.message === '401'){
-        _gdriveToken = null;
+        _gdriveToken = null; window._gdriveToken = null;
         gdriveUpdateUI('session expirée');
         _pendingAction = 'pull';
         if(_tokenClient) _tokenClient.requestAccessToken({ prompt: '' });
@@ -2382,12 +2382,7 @@ function gdrivePull(silent){
     });
 }
 
-// ── Patch dbSave — push auto après chaque modif ──
-var _dbSaveOrig = dbSave;
-dbSave = function(){
-  _dbSaveOrig();
-  if(_gdriveToken){ gdrivePush(true); }
-};
+// push auto intégré dans dbSave directement
 
 // ── UI helpers ────────────────────────────────────
 function gdriveUpdateUI(status){
