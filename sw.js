@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zyfix-v1.2';
+const CACHE_NAME = 'zyfix-v1.4';
 const ASSETS = [
   './',
   './index.html',

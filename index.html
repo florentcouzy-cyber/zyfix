@@ -1519,41 +1519,7 @@ function _refreshCore(){
 
 // ─── DEMO DATA ───────────────────────────────────
 function loadDemoIfEmpty(){
-  // Ne jamais charger la démo si une sauvegarde existe déjà
-  try{
-    localStorage.setItem('zyfix_test','1');
-    localStorage.removeItem('zyfix_test');
-    // Si une sauvegarde zyfix existe → ne pas toucher aux données
-    if(localStorage.getItem('zyfix')) return;
-  } catch(e){
-    return;
-  }
-  if(DB.clients.length) return;
-  DB.clients=[
-    {id:'CL001',nom:'Dupont',prenom:'Jean',tel:'06 12 34 56 78',email:'jean.dupont@gmail.com',adresse:'12 rue Victor Hugo, Narbonne',type:'particulier',entreprise:'',date:'2026-01-15'},
-    {id:'CL002',nom:'Martin',prenom:'Sophie',tel:'07 98 76 54 32',email:'s.martin@sarl-martin.fr',adresse:'4 av. de la Mer, Narbonne',type:'entreprise',entreprise:'SARL Martin Informatique',date:'2026-02-03'},
-    {id:'CL003',nom:'Rossi',prenom:'Marco',tel:'06 55 44 33 22',email:'marco.rossi@mail.com',adresse:'7 rue des Oliviers, Carcassonne',type:'particulier',entreprise:'',date:'2026-03-01'}
-  ];
-  DB.tickets=[
-    {id:'TK1001',clientId:'CL001',type:'PC Bureau',marque:'HP',modele:'Pavilion Desktop',serie:'HPF24B',os:'Windows 11',probleme:'PC très lent, démarrage en 8 minutes',diag:'SSD saturé à 99%, malwares détectés',statut:'encours',date:'2026-03-01'},
-    {id:'TK1002',clientId:'CL002',type:'PC Portable',marque:'Dell',modele:'Inspiron 15',serie:'DELL789',os:'Windows 10',probleme:'Écran noir après logo Windows',diag:'',statut:'attente',date:'2026-03-04'},
-    {id:'TK1003',clientId:'CL003',type:'PC Bureau',marque:'Asus',modele:'ROG Strix',serie:'',os:'Windows 11',probleme:'PC ne démarre plus, bip au démarrage',diag:'RAM HS — un slot défaillant',statut:'termine',date:'2026-02-28'}
-  ];
-  DB.devis=[
-    {id:'DV-2026-101',clientId:'CL001',lignes:[{desc:'SSD Samsung 1TB',prix:80},{desc:'Main d\'œuvre 2h',prix:60}],tva:20,ht:140,ttc:168,statut:'attente',date:'2026-03-01'},
-    {id:'DV-2026-102',clientId:'CL002',lignes:[{desc:'Diagnostic avancé',prix:50},{desc:'Remplacement écran',prix:120}],tva:20,ht:170,ttc:204,statut:'attente',date:'2026-03-04'}
-  ];
-  DB.factures=[
-    {id:'FAC-2026-001',clientId:'CL003',lignes:[{desc:'RAM Kingston 16GB',prix:55},{desc:'Main d\'œuvre',prix:40}],tva:20,ht:95,ttc:114,statut:'payee',date:'2026-02-28'}
-  ];
-  DB.stock=[
-    {id:'ST001',ref:'SSD-SAM-1TB',nom:'SSD Samsung 1TB',cat:'SSD / HDD',qte:3,achat:58,vente:90,seuil:2},
-    {id:'ST002',ref:'RAM-KG-16GB',nom:'RAM Kingston 16GB DDR4',cat:'RAM',qte:1,achat:32,vente:55,seuil:2},
-    {id:'ST003',ref:'PATE-NT-3G',nom:'Pâte thermique Noctua NT-H1',cat:'Consommable',qte:9,achat:5.5,vente:12,seuil:3},
-    {id:'ST004',ref:'ALIM-BE-650W',nom:'Alimentation BeQuiet 650W',cat:'Alimentation',qte:0,achat:65,vente:105,seuil:1}
-  ];
-  CTR={tk:1003,dv:102,fa:1};
-  dbSave();
+  // Données de démo supprimées — base vide uniquement
 }
 
 // ─── INIT ────────────────────────────────────────
@@ -2196,27 +2162,14 @@ window.addEventListener('load', function(){
 // ── Renouveler token si expiré ────────────────────
 function gdriveEnsureToken(action, silent){
   if(_gdriveToken){
-    // Vérifier que le token est encore valide avec un ping léger
-    fetch('https://www.googleapis.com/drive/v3/about?fields=user', {
-      headers: { Authorization: 'Bearer ' + _gdriveToken }
-    }).then(function(r){
-      if(r.status === 401){
-        // Token expiré — renouveler
-        _gdriveToken = null;
-        _pendingAction = action;
-        if(_tokenClient) _tokenClient.requestAccessToken({ prompt: '' });
-        else gdriveUpdateUI('session expirée — reconnectez');
-      } else {
-        // Token OK — exécuter directement
-        if(action === 'push') gdrivePush(silent);
-        else gdrivePull(silent);
-      }
-    }).catch(function(){
-      if(action === 'push') gdrivePush(silent);
-      else gdrivePull(silent);
-    });
+    // Exécuter directement sans ping (le ping lui-même consomme le quota)
+    if(action === 'push') gdrivePush(silent);
+    else gdrivePull(silent);
   } else {
-    if(!_gapiReady){ showToast('API Google en chargement...'); return; }
+    if(!_gapiReady){ 
+      if(!silent) showToast('API Google en chargement...');
+      return; 
+    }
     _pendingAction = action;
     if(_tokenClient) _tokenClient.requestAccessToken({ prompt: '' });
     else openM('m-gdrive-setup');
@@ -2392,6 +2345,8 @@ function gdriveUpdateUI(status){
   if(lbl) lbl.textContent  = _gdriveToken ? 'Drive connecté' : 'Connecter Drive';
   if(stat) stat.textContent = status;
   if(tbl) tbl.textContent   = _gdriveToken ? '✓' : 'Drive';
+  // Log console pour debug
+  console.log('[ZyFix Drive]', status, '| token:', _gdriveToken ? 'OK' : 'null');
 }
 
 function gdriveSetClientId(){
