@@ -2106,54 +2106,110 @@ document.getElementById('rdv-date') && (document.getElementById('rdv-date').valu
 
 
 // ═══════════════════════════════════════════════════
-// GOOGLE DRIVE SYNC v2 — Token auto-renew + Pull forcé
+// GOOGLE DRIVE SYNC v3 — session restaurée + pull/push plus fiable
 // ═══════════════════════════════════════════════════
 
 var GDRIVE_CLIENT_ID = localStorage.getItem('zyfix_gdrive_client_id') || '';
 var GDRIVE_FILE_NAME = 'zyfix-data.json';
 var GDRIVE_SCOPES    = 'https://www.googleapis.com/auth/drive.appdata';
 
-window._gdriveToken  = null; var _gdriveToken = null; // NE PAS restaurer le token — il expire après 1h, toujours redemander
+window._gdriveToken  = null;
+var _gdriveToken     = null;
+var _gdriveTokenExp  = parseInt(localStorage.getItem('zyfix_gdrive_token_exp') || '0', 10) || 0;
 var _gdriveFileId    = localStorage.getItem('zyfix_gdrive_file_id') || null;
 var _gapiReady       = false;
 var _syncInterval    = null;
 var _tokenClient     = null;
-var _pendingAction   = null; // action à exécuter après renouvellement token
+var _pendingAction   = null;
+var _gdriveBusy      = false;
+
+function gdriveHasUsableToken(){
+  return !!(_gdriveToken && _gdriveTokenExp && Date.now() < (_gdriveTokenExp - 15000));
+}
+
+function gdriveSetToken(token, expiresIn){
+  _gdriveToken = token || null;
+  window._gdriveToken = _gdriveToken;
+  if(_gdriveToken){
+    if(expiresIn) _gdriveTokenExp = Date.now() + (expiresIn * 1000);
+    localStorage.setItem('zyfix_gdrive_token', _gdriveToken);
+    localStorage.setItem('zyfix_gdrive_token_exp', String(_gdriveTokenExp || 0));
+    if(typeof gapi !== 'undefined' && gapi.client) gapi.client.setToken({ access_token: _gdriveToken });
+  } else {
+    _gdriveTokenExp = 0;
+    localStorage.removeItem('zyfix_gdrive_token');
+    localStorage.removeItem('zyfix_gdrive_token_exp');
+    if(typeof gapi !== 'undefined' && gapi.client && gapi.client.setToken) gapi.client.setToken(null);
+  }
+}
+
+(function gdriveRestoreSavedToken(){
+  var savedToken = localStorage.getItem('zyfix_gdrive_token') || '';
+  if(savedToken && _gdriveTokenExp && Date.now() < (_gdriveTokenExp - 15000)){
+    _gdriveToken = savedToken;
+    window._gdriveToken = savedToken;
+  } else {
+    localStorage.removeItem('zyfix_gdrive_token');
+    localStorage.removeItem('zyfix_gdrive_token_exp');
+  }
+})();
+
+function gdriveBuildFindUrl(){
+  return 'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=' +
+    encodeURIComponent("name='" + GDRIVE_FILE_NAME + "'") + '&fields=files(id,modifiedTime)';
+}
+
+function gdriveOnAuthorized(resp){
+  if(!resp || resp.error){
+    if(resp && (resp.error === 'popup_closed' || resp.error === 'access_denied')){
+      gdriveUpdateUI('non connecté');
+      showToast('Connexion Google annulée');
+    } else if(resp && resp.error){
+      gdriveUpdateUI('erreur');
+      console.error('gdrive auth error', resp);
+      showToast('Erreur Google Drive');
+    }
+    _pendingAction = null;
+    return;
+  }
+  gdriveSetToken(resp.access_token, resp.expires_in || 3600);
+  gdriveUpdateUI('connecté ✓');
+  gdriveStartAutoSync();
+  if(_pendingAction === 'push') gdrivePush(false);
+  else gdrivePull(false);
+  _pendingAction = null;
+}
 
 // ── Init GAPI ─────────────────────────────────────
 window.addEventListener('load', function(){
-  gdriveUpdateUI('non connecté');
+  gdriveUpdateUI(GDRIVE_CLIENT_ID ? 'initialisation...' : 'non configuré');
   if(!GDRIVE_CLIENT_ID) return;
   var check = setInterval(function(){
-    if(typeof gapi !== 'undefined' && typeof google !== 'undefined'){
+    if(typeof gapi !== 'undefined' && typeof google !== 'undefined' && google.accounts && google.accounts.oauth2){
       clearInterval(check);
       gapi.load('client', function(){
         gapi.client.init({
           discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
         }).then(function(){
           _gapiReady = true;
-          // Initialiser le token client une seule fois
           _tokenClient = google.accounts.oauth2.initTokenClient({
             client_id: GDRIVE_CLIENT_ID,
             scope: GDRIVE_SCOPES,
-            prompt: '',
-            callback: function(resp){
-              if(resp.error){ showToast('Connexion Google annulée'); return; }
-              _gdriveToken = resp.access_token; window._gdriveToken = resp.access_token; window._gdriveToken = _gdriveToken;
-              localStorage.setItem('zyfix_gdrive_token', _gdriveToken);
-              gapi.client.setToken({ access_token: _gdriveToken });
-              gdriveUpdateUI('connecté ✓');
-              gdriveStartAutoSync();
-              // Exécuter l'action en attente
-              if(_pendingAction === 'push') gdrivePush(false);
-              else gdrivePull(false);
-              _pendingAction = null;
-            }
+            callback: gdriveOnAuthorized
           });
-          // Tenter une connexion silencieuse au chargement
-          _tokenClient.requestAccessToken({ prompt: '' });
-          gdriveUpdateUI('connexion...');
-        }).catch(function(){ gdriveUpdateUI('non connecté'); });
+
+          if(gdriveHasUsableToken()){
+            gdriveSetToken(_gdriveToken);
+            gdriveUpdateUI('session restaurée');
+            gdriveStartAutoSync();
+            gdrivePull(true);
+          } else {
+            gdriveUpdateUI('prêt à connecter');
+          }
+        }).catch(function(err){
+          console.error('gapi init error', err);
+          gdriveUpdateUI('non connecté');
+        });
       });
     }
   }, 300);
@@ -2161,25 +2217,32 @@ window.addEventListener('load', function(){
 
 // ── Renouveler token si expiré ────────────────────
 function gdriveEnsureToken(action, silent){
-  if(_gdriveToken){
-    // Exécuter directement sans ping (le ping lui-même consomme le quota)
+  if(gdriveHasUsableToken()){
     if(action === 'push') gdrivePush(silent);
     else gdrivePull(silent);
+    return;
+  }
+  gdriveSetToken(null);
+  if(!_gapiReady){
+    if(!silent) showToast('API Google en chargement...');
+    return;
+  }
+  _pendingAction = action;
+  if(_tokenClient){
+    _tokenClient.requestAccessToken({ prompt: silent ? '' : 'consent' });
   } else {
-    if(!_gapiReady){ 
-      if(!silent) showToast('API Google en chargement...');
-      return; 
-    }
-    _pendingAction = action;
-    if(_tokenClient) _tokenClient.requestAccessToken({ prompt: '' });
-    else openM('m-gdrive-setup');
+    openM('m-gdrive-setup');
   }
 }
 
 // ── Bouton principal ──────────────────────────────
 function gdriveSync(){
   if(!GDRIVE_CLIENT_ID){ openM('m-gdrive-setup'); return; }
-  gdriveEnsureToken('pull', false);
+  if(!gdriveHasUsableToken()){
+    gdriveLogin();
+    return;
+  }
+  gdrivePull(false);
 }
 
 // ── Connexion OAuth (bouton manuel) ───────────────
@@ -2190,8 +2253,7 @@ function gdriveLogin(){
 }
 
 function gdriveLogout(){
-  _gdriveToken = null;
-  localStorage.removeItem('zyfix_gdrive_token');
+  gdriveSetToken(null);
   localStorage.removeItem('zyfix_gdrive_file_id');
   if(_syncInterval){ clearInterval(_syncInterval); _syncInterval = null; }
   gdriveUpdateUI('non connecté');
@@ -2201,25 +2263,20 @@ function gdriveLogout(){
 // ── Auto-sync toutes les 2 min ────────────────────
 function gdriveStartAutoSync(){
   if(_syncInterval) clearInterval(_syncInterval);
-  // Pull immédiat au démarrage
-  gdrivePull(true);
-  // Puis sync toutes les 2 min
   _syncInterval = setInterval(function(){
-    gdriveEnsureToken('pull', true);
+    if(gdriveHasUsableToken()) gdrivePull(true);
   }, 2 * 60 * 1000);
 }
 
 // ── PUSH : envoyer données → Drive ───────────────
 function gdrivePush(silent){
-  if(!_gdriveToken) return;
+  if(!gdriveHasUsableToken() || _gdriveBusy) return;
+  _gdriveBusy = true;
   var ts = new Date().toISOString();
   localStorage.setItem('zyfix_last_save', ts);
   var payload = JSON.stringify({ DB: DB, CTR: CTR, saved: ts });
 
-  var findUrl = 'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27'
-    + GDRIVE_FILE_NAME + '%27&fields=files(id)';
-
-  fetch(findUrl, { headers: { Authorization: 'Bearer ' + _gdriveToken } })
+  fetch(gdriveBuildFindUrl(), { headers: { Authorization: 'Bearer ' + _gdriveToken }, cache: 'no-store' })
     .then(function(r){
       if(r.status === 401){ throw new Error('401'); }
       return r.json();
@@ -2235,11 +2292,13 @@ function gdrivePush(silent){
         headers = { Authorization: 'Bearer ' + _gdriveToken, 'Content-Type': 'application/json' };
         body = payload;
       } else {
-        var boundary = 'zyfix_boundary_001';
+        var boundary = 'zyfix_boundary_002';
         url    = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
         method = 'POST';
-        headers = { Authorization: 'Bearer ' + _gdriveToken,
-          'Content-Type': 'multipart/related; boundary="' + boundary + '"' };
+        headers = {
+          Authorization: 'Bearer ' + _gdriveToken,
+          'Content-Type': 'multipart/related; boundary="' + boundary + '"'
+        };
         body = '--' + boundary + '\r\n'
           + 'Content-Type: application/json; charset=UTF-8\r\n\r\n'
           + JSON.stringify({ name: GDRIVE_FILE_NAME, parents: ['appDataFolder'] }) + '\r\n'
@@ -2248,45 +2307,44 @@ function gdrivePush(silent){
           + payload + '\r\n'
           + '--' + boundary + '--';
       }
-      return fetch(url, { method: method, headers: headers, body: body });
+      return fetch(url, { method: method, headers: headers, body: body, cache: 'no-store' });
     })
     .then(function(r){
       if(r.status === 401){ throw new Error('401'); }
       return r.json();
     })
     .then(function(f){
-      if(f.id){ _gdriveFileId = f.id; localStorage.setItem('zyfix_gdrive_file_id', f.id); }
+      if(f && f.id){ _gdriveFileId = f.id; localStorage.setItem('zyfix_gdrive_file_id', f.id); }
       var now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
       gdriveUpdateUI('↑ ' + now);
       if(!silent) showToast('✅ Synchronisé avec Google Drive !');
     })
     .catch(function(e){
       if(e.message === '401'){
-        _gdriveToken = null; window._gdriveToken = null;
+        gdriveSetToken(null);
         gdriveUpdateUI('session expirée');
         _pendingAction = 'push';
-        if(_tokenClient) _tokenClient.requestAccessToken({ prompt: '' });
+        if(_tokenClient) _tokenClient.requestAccessToken({ prompt: 'consent' });
       } else {
         if(!silent) showToast('Erreur sync Drive');
         console.error('gdrivePush error', e);
       }
-    });
+    })
+    .finally(function(){ _gdriveBusy = false; });
 }
 
 // ── PULL : récupérer données ← Drive ─────────────
 function gdrivePull(silent){
-  if(!_gdriveToken) return;
-  var findUrl = 'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27'
-    + GDRIVE_FILE_NAME + '%27&fields=files(id,modifiedTime)';
+  if(!gdriveHasUsableToken() || _gdriveBusy) return;
+  _gdriveBusy = true;
 
-  fetch(findUrl, { headers: { Authorization: 'Bearer ' + _gdriveToken } })
+  fetch(gdriveBuildFindUrl(), { headers: { Authorization: 'Bearer ' + _gdriveToken }, cache: 'no-store' })
     .then(function(r){
       if(r.status === 401){ throw new Error('401'); }
       return r.json();
     })
     .then(function(data){
       if(!data.files || !data.files.length){
-        // Pas de fichier sur Drive → pousser les données locales
         gdrivePush(silent);
         return null;
       }
@@ -2294,20 +2352,23 @@ function gdrivePull(silent){
       _gdriveFileId = fileId;
       localStorage.setItem('zyfix_gdrive_file_id', fileId);
       return fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media', {
-        headers: { Authorization: 'Bearer ' + _gdriveToken }
+        headers: { Authorization: 'Bearer ' + _gdriveToken },
+        cache: 'no-store'
       });
     })
-    .then(function(r){ return r ? r.json() : null; })
+    .then(function(r){
+      if(!r) return null;
+      if(r.status === 401){ throw new Error('401'); }
+      return r.json();
+    })
     .then(function(remote){
       if(!remote || !remote.DB) return;
       var localTs  = new Date(localStorage.getItem('zyfix_last_save') || 0).getTime();
       var remoteTs = new Date(remote.saved || 0).getTime();
       if(remoteTs > localTs){
-        // Drive est plus récent → écraser local
         DB = remote.DB;
         if(!DB.rdv) DB.rdv = [];
         CTR = remote.CTR || CTR;
-        // Sauver sans re-push pour éviter boucle
         try{ localStorage.setItem('zyfix', JSON.stringify(DB)); } catch(e){}
         try{ localStorage.setItem('zyfix_ctr', JSON.stringify(CTR)); } catch(e){}
         try{ localStorage.setItem('zyfix_last_save', remote.saved); } catch(e){}
@@ -2315,24 +2376,25 @@ function gdrivePull(silent){
         var now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
         gdriveUpdateUI('↓ ' + now);
         if(!silent) showToast('✅ Données mises à jour depuis Drive !');
-        else showToast('🔄 Sync Drive — données mises à jour');
-      } else {
-        // Local est plus récent → pousser vers Drive
+      } else if(localTs > remoteTs) {
         gdrivePush(silent);
+      } else {
         var now2 = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
         gdriveUpdateUI('✓ ' + now2);
       }
     })
     .catch(function(e){
       if(e.message === '401'){
-        _gdriveToken = null; window._gdriveToken = null;
+        gdriveSetToken(null);
         gdriveUpdateUI('session expirée');
         _pendingAction = 'pull';
-        if(_tokenClient) _tokenClient.requestAccessToken({ prompt: '' });
+        if(_tokenClient) _tokenClient.requestAccessToken({ prompt: 'consent' });
       } else {
         console.error('gdrivePull error', e);
+        if(!silent) showToast('Erreur lecture Drive');
       }
-    });
+    })
+    .finally(function(){ _gdriveBusy = false; });
 }
 
 // push auto intégré dans dbSave directement
@@ -2342,11 +2404,10 @@ function gdriveUpdateUI(status){
   var lbl  = document.getElementById('gdrive-label');
   var stat = document.getElementById('gdrive-status');
   var tbl  = document.getElementById('topbar-sync-label');
-  if(lbl) lbl.textContent  = _gdriveToken ? 'Drive connecté' : 'Connecter Drive';
+  if(lbl) lbl.textContent  = gdriveHasUsableToken() ? 'Drive connecté' : 'Connecter Drive';
   if(stat) stat.textContent = status;
-  if(tbl) tbl.textContent   = _gdriveToken ? '✓' : 'Drive';
-  // Log console pour debug
-  console.log('[ZyFix Drive]', status, '| token:', _gdriveToken ? 'OK' : 'null');
+  if(tbl) tbl.textContent   = gdriveHasUsableToken() ? '✓' : 'Drive';
+  console.log('[ZyFix Drive]', status, '| token:', gdriveHasUsableToken() ? 'OK' : 'null');
 }
 
 function gdriveSetClientId(){

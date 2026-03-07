@@ -1,52 +1,56 @@
-const CACHE_NAME = 'zyfix-v1.4';
-const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json',
-  'https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap'
-];
+const CACHE_NAME = 'zyfix-v1.5';
+const APP_SHELL = ['./', './index.html', './manifest.json', './icon-192.svg', './icon-512.svg'];
 
-// Installation — mise en cache de tous les assets
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
-      .then(cache => cache.addAll(ASSETS))
+      .then(cache => cache.addAll(APP_SHELL))
       .then(() => self.skipWaiting())
   );
 });
 
-// Activation — supprime les anciens caches
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys()
-      .then(keys => Promise.all(
-        keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))
-      ))
+    caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
 
-// Fetch — cache-first pour assets, network-first pour le reste
 self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      if (cached) return cached;
+  const req = event.request;
+  const url = new URL(req.url);
 
-      return fetch(event.request)
-        .then(response => {
-          if (!response || response.status !== 200 || response.type === 'opaque') {
-            return response;
-          }
-          const toCache = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, toCache));
-          return response;
+  if (req.method !== 'GET') return;
+
+  if (url.hostname.includes('googleapis.com') || url.hostname.includes('accounts.google.com')) {
+    event.respondWith(fetch(req));
+    return;
+  }
+
+  if (req.mode === 'navigate' || req.destination === 'document') {
+    event.respondWith(
+      fetch(req)
+        .then(res => {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put('./index.html', copy));
+          return res;
         })
-        .catch(() => {
-          // Fallback vers index.html si offline
-          if (event.request.destination === 'document') {
-            return caches.match('./index.html');
+        .catch(() => caches.match('./index.html'))
+    );
+    return;
+  }
+
+  if (url.origin === self.location.origin) {
+    event.respondWith(
+      caches.match(req).then(cached => {
+        const network = fetch(req).then(res => {
+          if (res && res.status === 200) {
+            caches.open(CACHE_NAME).then(cache => cache.put(req, res.clone()));
           }
-        });
-    })
-  );
+          return res;
+        }).catch(() => cached);
+        return cached || network;
+      })
+    );
+  }
 });
