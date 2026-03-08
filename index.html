@@ -2156,16 +2156,17 @@ function ghApiUrl(){
 
 // ── PUSH : envoyer données → GitHub ───────────────
 function ghPush(silent){
-  if(!GH_TOKEN || _ghSyncing) return;
+  if(!GH_TOKEN) return;
+  if(_ghSyncing){ _ghPendingPush = true; return; }
   _ghSyncing = true;
+  _ghPendingPush = false;
   var ts = new Date().toISOString();
   localStorage.setItem('zyfix_last_save', ts);
-  console.log('[ZyFix Sync] ↑ Push démarré, ts=', ts);
   var content = btoa(unescape(encodeURIComponent(JSON.stringify({ DB: DB, CTR: CTR, saved: ts }))));
 
-  // D'abord récupérer le SHA du fichier existant (requis pour update)
-  fetch(ghApiUrl(), { headers: ghHeaders() })
-    .then(function(r){ return r.ok ? r.json() : null; })
+  // Toujours refetch le SHA frais juste avant PUT pour éviter 409
+  fetch(ghApiUrl() + '?t=' + Date.now(), { headers: ghHeaders() })
+    .then(function(r){ return r.status === 404 ? null : r.json(); })
     .then(function(existing){
       var body = {
         message: 'ZyFix sync ' + ts,
@@ -2173,7 +2174,6 @@ function ghPush(silent){
         branch: GH_BRANCH
       };
       if(existing && existing.sha) body.sha = existing.sha;
-
       return fetch(ghApiUrl(), {
         method: 'PUT',
         headers: ghHeaders(),
@@ -2185,24 +2185,32 @@ function ghPush(silent){
       _ghSyncing = false;
       if(data.content){
         var now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-        ghUpdateUI('↑ ' + now);
+        ghUpdateUI('✓ ' + now);
         console.log('[ZyFix Sync] ↑ Push OK', now);
         if(!silent) showToast('✅ Sauvegardé !');
+        // Si un push était en attente, le relancer
+        if(_ghPendingPush){ setTimeout(function(){ ghPush(true); }, 1000); }
+      } else if(data.message && data.message.indexOf('409') !== -1 || (data.message && data.message.indexOf('does not match') !== -1)){
+        // Conflit SHA → réessayer après 1s
+        _ghSyncing = false;
+        console.warn('[ZyFix Sync] 409 conflit SHA, retry...');
+        setTimeout(function(){ ghPush(silent); }, 1500);
       } else if(data.message){
-        ghUpdateUI('erreur: ' + data.message.substring(0,20));
+        _ghSyncing = false;
+        ghUpdateUI('❌ erreur');
         console.error('[ZyFix Sync] Push erreur:', data.message);
-        if(!silent) showToast('❌ ' + data.message);
+        if(!silent) showToast('❌ ' + data.message.substring(0,50));
       } else {
-        ghUpdateUI('erreur push');
-        console.error('[ZyFix Sync] Push erreur:', JSON.stringify(data));
+        _ghSyncing = false;
+        console.error('[ZyFix Sync] Push erreur:', JSON.stringify(data).substring(0,100));
       }
     })
     .catch(function(e){
       _ghSyncing = false;
       console.error('ghPush catch:', e);
-      if(!silent) showToast('Erreur réseau');
     });
 }
+var _ghPendingPush = false;
 
 // ── PULL : récupérer données ← GitHub ─────────────
 function ghPull(silent){
