@@ -739,7 +739,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
   <div class="modal">
     <div class="modal-head">
       <div class="modal-title">🔧 Nouveau ticket de réparation</div>
-      <button class="modal-x" onclick="closeM('m-ticket')">✕</button>
+      <button class="modal-x" onclick="closeM('m-ticket');resetModal('ticket')">✕</button>
     </div>
     <div class="form-grid">
       <div class="fg"><label>Client *</label><select id="t-client"><option value="">— Choisir —</option></select></div>
@@ -773,7 +773,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
       </div>
     </div>
     <div class="form-foot">
-      <button class="btn btn-ghost" onclick="closeM('m-ticket')">Annuler</button>
+      <button class="btn btn-ghost" onclick="closeM('m-ticket');resetModal('ticket')">Annuler</button>
       <button class="btn btn-primary" onclick="saveTicket()">Créer le ticket</button>
     </div>
   </div>
@@ -784,7 +784,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
   <div class="modal">
     <div class="modal-head">
       <div class="modal-title">👤 Nouveau client</div>
-      <button class="modal-x" onclick="closeM('m-client')">✕</button>
+      <button class="modal-x" onclick="closeM('m-client');resetModal('client')">✕</button>
     </div>
     <div class="form-grid">
       <div class="fg"><label>Nom *</label><input id="c-nom" placeholder="Dupont"></div>
@@ -798,8 +798,8 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
       <div class="fg"><label>Entreprise (si pro)</label><input id="c-entreprise" placeholder="Nom société"></div>
     </div>
     <div class="form-foot">
-      <button class="btn btn-ghost" onclick="closeM('m-client')">Annuler</button>
-      <button class="btn btn-primary" onclick="saveClient()">Ajouter</button>
+      <button class="btn btn-ghost" onclick="closeM('m-client');resetModal('client')">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-client" onclick="saveClient()">Ajouter</button>
     </div>
   </div>
 </div>
@@ -808,11 +808,15 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 <div class="overlay" id="m-devis">
   <div class="modal">
     <div class="modal-head">
-      <div class="modal-title">📋 Nouveau devis</div>
-      <button class="modal-x" onclick="closeM('m-devis')">✕</button>
+      <div class="modal-title" id="m-devis-title">📋 Nouveau devis</div>
+      <button class="modal-x" onclick="closeM('m-devis');resetModal('devis')">✕</button>
     </div>
     <div class="form-grid">
       <div class="fg form-full"><label>Client *</label><select id="d-client"><option value="">— Choisir —</option></select></div>
+      <div class="fg form-full" id="forfaits-box-d">
+        <label>⚡ Forfaits rapides</label>
+        <div id="forfaits-list-d" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div>
+      </div>
       <div class="fg form-full">
         <label>Lignes prestations — format: Description | Prix HT (une par ligne)</label>
         <textarea id="d-lignes" rows="5" placeholder="SSD Samsung 1TB | 80&#10;Main d'œuvre 2h | 60&#10;Pâte thermique | 5"></textarea>
@@ -823,8 +827,8 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
       </div>
     </div>
     <div class="form-foot">
-      <button class="btn btn-ghost" onclick="closeM('m-devis')">Annuler</button>
-      <button class="btn btn-primary" onclick="saveDevis()">Créer le devis</button>
+      <button class="btn btn-ghost" onclick="closeM('m-devis');resetModal('devis')">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-devis" onclick="saveDevis()">Créer le devis</button>
     </div>
   </div>
 </div>
@@ -833,11 +837,15 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 <div class="overlay" id="m-facture">
   <div class="modal">
     <div class="modal-head">
-      <div class="modal-title">💰 Nouvelle facture</div>
-      <button class="modal-x" onclick="closeM('m-facture')">✕</button>
+      <div class="modal-title" id="m-facture-title">💰 Nouvelle facture</div>
+      <button class="modal-x" onclick="closeM('m-facture');resetModal('facture')">✕</button>
     </div>
     <div class="form-grid">
       <div class="fg form-full"><label>Client *</label><select id="f-client"><option value="">— Choisir —</option></select></div>
+      <div class="fg form-full" id="forfaits-box-f">
+        <label>⚡ Forfaits rapides</label>
+        <div id="forfaits-list-f" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div>
+      </div>
       <div class="fg form-full">
         <label>Lignes prestations — Description | Prix HT</label>
         <textarea id="f-lignes" rows="5" placeholder="SSD Samsung 1TB | 80&#10;Main d'œuvre 2h | 60"></textarea>
@@ -848,8 +856,8 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
       </div>
     </div>
     <div class="form-foot">
-      <button class="btn btn-ghost" onclick="closeM('m-facture')">Annuler</button>
-      <button class="btn btn-primary" onclick="saveFacture()">Créer</button>
+      <button class="btn btn-ghost" onclick="closeM('m-facture');resetModal('facture')">Annuler</button>
+      <button class="btn btn-primary" id="btn-save-facture" onclick="saveFacture()">Créer</button>
     </div>
   </div>
 </div>
@@ -963,6 +971,28 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 
 </div>
 
+<!-- MODAL FORFAITS -->
+<div class="overlay" id="m-forfaits">
+  <div class="modal" style="max-width:500px">
+    <div class="modal-head">
+      <div class="modal-title">⚡ Gérer les forfaits</div>
+      <button class="modal-x" onclick="closeM('m-forfaits')">✕</button>
+    </div>
+    <div class="modal-body" style="padding:16px">
+      <div id="forfaits-edit-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;max-height:300px;overflow-y:auto"></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input id="forfait-new-nom" placeholder="Nom du forfait" style="flex:1;padding:8px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--t1);font-family:var(--mono)">
+        <input id="forfait-new-prix" type="number" placeholder="Prix €" style="width:80px;padding:8px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--t1);font-family:var(--mono)">
+        <button class="btn btn-primary btn-sm" onclick="addForfait()">+ Ajouter</button>
+      </div>
+    </div>
+    <div class="form-foot">
+      <button class="btn btn-ghost" onclick="closeM('m-forfaits')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+
 <!-- ═══════════════════ JS ═══════════════════ -->
 <script>
 // ─── STATE ───────────────────────────────────────
@@ -1025,6 +1055,10 @@ function openM(id){
   var el = document.getElementById(id);
   if(!el){ console.error('openM: element not found:', id); return; }
   el.classList.add('open');
+  if(id === 'm-forfaits'){ renderForfaitsEdit(); }
+  if(id === 'm-devis' || id === 'm-facture'){
+    renderForfaits('d'); renderForfaits('f');
+  }
 }
 function closeM(id){ document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.overlay').forEach(o=>{
@@ -1084,6 +1118,21 @@ function saveTicket(){
   const cid=document.getElementById('t-client').value;
   const pb=document.getElementById('t-probleme').value.trim();
   if(!cid||!pb){ showToast('Client et problème requis !'); return; }
+  if(_editMode.type === 'ticket'){
+    var t = DB.tickets.find(x=>x.id===_editMode.id);
+    if(t){
+      t.clientId=cid; t.type=document.getElementById('t-type').value;
+      t.marque=document.getElementById('t-marque').value;
+      t.modele=document.getElementById('t-modele').value;
+      t.serie=document.getElementById('t-serie').value;
+      t.os=document.getElementById('t-os').value;
+      t.probleme=pb; t.diag=document.getElementById('t-diag').value;
+      t.statut=document.getElementById('t-statut').value;
+    }
+    dbSave(); closeM('m-ticket'); resetModal('ticket');
+    resetFields(['t-marque','t-modele','t-serie','t-os','t-probleme','t-diag','t-rdv-notes']);
+    refreshAll(); showToast('✅ Ticket modifié !'); return;
+  }
   CTR.tk++;
   DB.tickets.unshift({
     id:`TK${CTR.tk}`, clientId:cid,
@@ -1144,6 +1193,7 @@ function renderTickets(list){
       +'<td class="td-sm">'+fmtDate(t.date)+'</td>'
       +'<td>'
         +'<button class="btn btn-ghost btn-sm" onclick="showHistorique(this.dataset.cid)" data-cid="'+t.clientId+'" title="Historique client">📋</button> '
+        +'<button class="btn btn-ghost btn-sm" onclick="editTicket(\''+t.id+'\')" title="Modifier">✏️</button> '
         +'<button class="btn btn-danger btn-sm" onclick="del(&quot;tickets&quot;,&quot;'+t.id+'&quot;)">🗑</button>'
       +'</td>'
     +'</tr>';
@@ -1167,6 +1217,20 @@ function filterTickets(q){
 function saveClient(){
   const nom=document.getElementById('c-nom').value.trim();
   if(!nom){ showToast('Nom requis !'); return; }
+  if(_editMode.type === 'client'){
+    var c = DB.clients.find(x=>x.id===_editMode.id);
+    if(c){
+      c.nom=nom; c.prenom=document.getElementById('c-prenom').value;
+      c.tel=document.getElementById('c-tel').value;
+      c.email=document.getElementById('c-email').value;
+      c.adresse=document.getElementById('c-adresse').value;
+      c.type=document.getElementById('c-type').value;
+      c.entreprise=document.getElementById('c-entreprise').value;
+    }
+    dbSave(); closeM('m-client'); resetModal('client');
+    resetFields(['c-nom','c-prenom','c-tel','c-email','c-adresse','c-entreprise']);
+    refreshAll(); showToast('✅ Client modifié !'); return;
+  }
   DB.clients.push({
     id:'CL'+Date.now(), nom,
     prenom:document.getElementById('c-prenom').value,
@@ -1202,7 +1266,7 @@ function renderClients(list){
       +'<td>'+(c.type==='entreprise'?'<span class="badge b-encours">🏢 Entreprise</span>':'<span class="badge b-livre">👤 Particulier</span>')+'</td>'
       +'<td style="text-align:center"><span class="tk-tag">'+nb+'</span></td>'
       +'<td><button class="btn btn-ghost btn-sm" onclick="showHistorique(this.dataset.cid)" data-cid="'+c.id+'">📋</button></td>'
-      +'<td><button class="btn btn-danger btn-sm" onclick="del(&quot;clients&quot;,&quot;'+c.id+'&quot;)">🗑</button></td>'
+      +'<td><button class="btn btn-ghost btn-sm" onclick="editClient(\''+c.id+'\')" title="Modifier">✏️</button> <button class="btn btn-danger btn-sm" onclick="del(&quot;clients&quot;,&quot;'+c.id+'&quot;)">🗑</button></td>'
     +'</tr>';
   }).join('');
 }
@@ -1217,6 +1281,19 @@ function saveDevis(){
   const cid=document.getElementById('d-client').value;
   const ltxt=document.getElementById('d-lignes').value.trim();
   if(!cid||!ltxt){ showToast('Client et prestations requis !'); return; }
+  if(_editMode.type === 'devis'){
+    var d = DB.devis.find(x=>x.id===_editMode.id);
+    if(d){
+      const lignes=parseLignes(ltxt);
+      const tva=parseFloat(document.getElementById('d-tva').value)||20;
+      const {ht,ttc}=calcTotaux(lignes,tva);
+      d.clientId=cid; d.lignes=lignes; d.tva=tva; d.ht=ht; d.ttc=ttc;
+      d.statut=document.getElementById('d-statut').value;
+    }
+    dbSave(); closeM('m-devis'); resetModal('devis');
+    document.getElementById('d-lignes').value='';
+    refreshAll(); showToast('✅ Devis modifié !'); return;
+  }
   CTR.dv++;
   const lignes=parseLignes(ltxt);
   const tva=parseFloat(document.getElementById('d-tva').value)||20;
@@ -1248,6 +1325,7 @@ function renderDevis(list){
       <td style="display:flex;gap:4px;flex-wrap:wrap">
         <button class="btn btn-success btn-sm" onclick="previewDoc('devis','${d.id}')">👁 Aperçu</button>
         <button class="btn btn-amber btn-sm" onclick="devisToFacture('${d.id}')">→ Facture</button>
+        <button class="btn btn-ghost btn-sm" onclick="editDevis('${d.id}')">✏️</button>
         <button class="btn btn-danger btn-sm" onclick="del('devis','${d.id}')">🗑</button>
       </td>
     </tr>`).join('');
@@ -1273,6 +1351,19 @@ function saveFacture(){
   const cid=document.getElementById('f-client').value;
   const ltxt=document.getElementById('f-lignes').value.trim();
   if(!cid||!ltxt){ showToast('Client et prestations requis !'); return; }
+  if(_editMode.type === 'facture'){
+    var f = DB.factures.find(x=>x.id===_editMode.id);
+    if(f){
+      const lignes=parseLignes(ltxt);
+      const tva=parseFloat(document.getElementById('f-tva').value)||20;
+      const {ht,ttc}=calcTotaux(lignes,tva);
+      f.clientId=cid; f.lignes=lignes; f.tva=tva; f.ht=ht; f.ttc=ttc;
+      f.statut=document.getElementById('f-statut').value;
+    }
+    dbSave(); closeM('m-facture'); resetModal('facture');
+    document.getElementById('f-lignes').value='';
+    refreshAll(); showToast('✅ Facture modifiée !'); return;
+  }
   CTR.fa++;
   const lignes=parseLignes(ltxt);
   const tva=parseFloat(document.getElementById('f-tva').value)||20;
@@ -1302,6 +1393,7 @@ function renderFactures(list){
       <td class="td-sm">${fmtDate(f.date)}</td>
       <td style="display:flex;gap:4px">
         <button class="btn btn-success btn-sm" onclick="previewDoc('facture','${f.id}')">👁 Aperçu</button>
+        <button class="btn btn-ghost btn-sm" onclick="editFacture('${f.id}')">✏️</button>
         <button class="btn btn-danger btn-sm" onclick="del('factures','${f.id}')">🗑</button>
       </td>
     </tr>`).join('');
@@ -1521,7 +1613,178 @@ function loadDemoIfEmpty(){
   // Données de démo supprimées — base vide uniquement
 }
 
+// ─── FORFAITS PRÉDÉFINIS ─────────────────────────────────
+var FORFAITS = JSON.parse(localStorage.getItem('zyfix_forfaits') || 'null') || [
+  { nom: 'Nettoyage système', prix: 40 },
+  { nom: 'Installation Windows', prix: 60 },
+  { nom: 'Sauvegarde données', prix: 30 },
+  { nom: 'Remplacement SSD', prix: 50 },
+  { nom: 'Remplacement RAM', prix: 35 },
+  { nom: 'Diagnostic complet', prix: 25 },
+  { nom: 'Réinstallation drivers', prix: 20 },
+  { nom: 'Antivirus + nettoyage', prix: 45 }
+];
+
+function saveForfaits(){ localStorage.setItem('zyfix_forfaits', JSON.stringify(FORFAITS)); }
+
+function renderForfaits(prefix){
+  var box = document.getElementById('forfaits-list-'+prefix);
+  if(!box) return;
+  box.innerHTML = '';
+  FORFAITS.forEach(function(f, i){
+    var btn = document.createElement('button');
+    btn.className = 'btn btn-ghost btn-sm';
+    btn.style.cssText = 'font-size:11px;padding:4px 10px;border:1px solid var(--cyan);color:var(--cyan);border-radius:20px;cursor:pointer;background:rgba(0,212,255,.08)';
+    btn.textContent = f.nom + ' — ' + f.prix + '€';
+    btn.onclick = function(){
+      var ta = document.getElementById(prefix+'-lignes');
+      var cur = ta.value.trim();
+      ta.value = cur ? cur + '\n' + f.nom + ' | ' + f.prix : f.nom + ' | ' + f.prix;
+      btn.style.background = 'rgba(0,212,255,.25)';
+      setTimeout(function(){ btn.style.background = 'rgba(0,212,255,.08)'; }, 600);
+    };
+    box.appendChild(btn);
+  });
+  // Bouton gérer forfaits
+  var add = document.createElement('button');
+  add.className = 'btn btn-ghost btn-sm';
+  add.style.cssText = 'font-size:11px;padding:4px 10px;border:1px dashed var(--t3);color:var(--t3);border-radius:20px;cursor:pointer';
+  add.textContent = '⚙ Gérer';
+  add.onclick = function(){ openM('m-forfaits'); };
+  box.appendChild(add);
+}
+
+// ─── MODAL EDIT — variables d'état ───────────────────────
+var _editMode = { type: null, id: null };
+
+function _setEditMode(type, id){
+  _editMode = { type: type, id: id };
+}
+
+// ─── EDIT CLIENT ─────────────────────────────────────────
+function editClient(id){
+  var c = DB.clients.find(function(x){ return x.id === id; });
+  if(!c){ showToast('Client introuvable'); return; }
+  _setEditMode('client', id);
+  document.getElementById('c-nom').value       = c.nom || '';
+  document.getElementById('c-prenom').value    = c.prenom || '';
+  document.getElementById('c-tel').value       = c.tel || '';
+  document.getElementById('c-email').value     = c.email || '';
+  document.getElementById('c-adresse').value   = c.adresse || '';
+  document.getElementById('c-type').value      = c.type || 'particulier';
+  document.getElementById('c-entreprise').value= c.entreprise || '';
+  document.getElementById('m-client-title').textContent = '✏️ Modifier client';
+  document.getElementById('btn-save-client').textContent = 'Enregistrer';
+  openM('m-client');
+}
+
+// ─── EDIT TICKET ─────────────────────────────────────────
+function editTicket(id){
+  var t = DB.tickets.find(function(x){ return x.id === id; });
+  if(!t){ showToast('Ticket introuvable'); return; }
+  _setEditMode('ticket', id);
+  document.getElementById('t-client').value   = t.clientId || '';
+  document.getElementById('t-type').value     = t.type || 'PC Bureau';
+  document.getElementById('t-marque').value   = t.marque || '';
+  document.getElementById('t-modele').value   = t.modele || '';
+  document.getElementById('t-serie').value    = t.serie || '';
+  document.getElementById('t-os').value       = t.os || '';
+  document.getElementById('t-probleme').value = t.probleme || '';
+  document.getElementById('t-diag').value     = t.diag || '';
+  document.getElementById('t-statut').value   = t.statut || 'attente';
+  document.getElementById('m-ticket-title').textContent = '✏️ Modifier ticket ' + id;
+  document.getElementById('btn-save-ticket').textContent = 'Enregistrer';
+  openM('m-ticket');
+}
+
+// ─── EDIT DEVIS ──────────────────────────────────────────
+function editDevis(id){
+  var d = DB.devis.find(function(x){ return x.id === id; });
+  if(!d){ showToast('Devis introuvable'); return; }
+  _setEditMode('devis', id);
+  document.getElementById('d-client').value = d.clientId || '';
+  var lignesTxt = d.lignes.map(function(l){ return l.desc + ' | ' + l.prix; }).join('\n');
+  document.getElementById('d-lignes').value  = lignesTxt;
+  document.getElementById('d-tva').value     = d.tva || 20;
+  document.getElementById('d-statut').value  = d.statut || 'attente';
+  document.getElementById('m-devis-title').textContent = '✏️ Modifier ' + id;
+  document.getElementById('btn-save-devis').textContent = 'Enregistrer';
+  openM('m-devis');
+}
+
+// ─── EDIT FACTURE ─────────────────────────────────────────
+function editFacture(id){
+  var f = DB.factures.find(function(x){ return x.id === id; });
+  if(!f){ showToast('Facture introuvable'); return; }
+  _setEditMode('facture', id);
+  document.getElementById('f-client').value = f.clientId || '';
+  var lignesTxt = f.lignes.map(function(l){ return l.desc + ' | ' + l.prix; }).join('\n');
+  document.getElementById('f-lignes').value  = lignesTxt;
+  document.getElementById('f-tva').value     = f.tva || 20;
+  document.getElementById('f-statut').value  = f.statut || 'emise';
+  document.getElementById('m-facture-title').textContent = '✏️ Modifier ' + id;
+  document.getElementById('btn-save-facture').textContent = 'Enregistrer';
+  openM('m-facture');
+}
+
+// ─── RESET MODAL AU FERMETURE ─────────────────────────────
+function resetModal(type){
+  _editMode = { type: null, id: null };
+  var titles = {
+    client: '👤 Nouveau client',
+    ticket: '🔧 Nouveau ticket de réparation',
+    devis:  '📋 Nouveau devis',
+    facture:'💰 Nouvelle facture'
+  };
+  var btns = {
+    client: 'Ajouter',
+    ticket: 'Créer le ticket',
+    devis:  'Créer le devis',
+    facture:'Créer'
+  };
+  var titleEl = document.getElementById('m-'+type+'-title');
+  var btnEl   = document.getElementById('btn-save-'+type);
+  if(titleEl) titleEl.textContent = titles[type];
+  if(btnEl)   btnEl.textContent   = btns[type];
+}
+
+
 // ─── INIT ────────────────────────────────────────
+function addForfait(){
+  var nom  = document.getElementById('forfait-new-nom').value.trim();
+  var prix = parseFloat(document.getElementById('forfait-new-prix').value);
+  if(!nom || !prix){ showToast('Nom et prix requis !'); return; }
+  FORFAITS.push({ nom: nom, prix: prix });
+  saveForfaits();
+  document.getElementById('forfait-new-nom').value  = '';
+  document.getElementById('forfait-new-prix').value = '';
+  renderForfaitsEdit();
+  renderForfaits('d');
+  renderForfaits('f');
+  showToast('✅ Forfait ajouté !');
+}
+
+function deleteForfait(i){
+  FORFAITS.splice(i, 1);
+  saveForfaits();
+  renderForfaitsEdit();
+  renderForfaits('d');
+  renderForfaits('f');
+}
+
+function renderForfaitsEdit(){
+  var list = document.getElementById('forfaits-edit-list');
+  if(!list) return;
+  if(!FORFAITS.length){ list.innerHTML='<p style="color:var(--t3);font-size:13px">Aucun forfait défini.</p>'; return; }
+  list.innerHTML = FORFAITS.map(function(f, i){
+    return '<div style="display:flex;align-items:center;gap:8px;padding:8px;background:var(--s2);border-radius:8px;">'
+      + '<span style="flex:1;font-size:13px">' + f.nom + '</span>'
+      + '<span style="color:var(--cyan);font-family:var(--mono);font-size:13px">' + f.prix + ' €</span>'
+      + '<button class="btn btn-danger btn-sm" onclick="deleteForfait(' + i + ')">🗑</button>'
+      + '</div>';
+  }).join('');
+}
+
 function init(){
   dbLoad();
   loadDemoIfEmpty();
@@ -1531,6 +1794,8 @@ function init(){
     now.toLocaleDateString('fr-FR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
 
   refreshAll();
+  renderForfaits('d');
+  renderForfaits('f');
 }
 
 // ─── NAVIGATION BOTTOM (Android) ────────────────
