@@ -458,8 +458,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 }
 </style>
 
-<!-- Google API pour Drive Sync -->
-<!-- Google APIs supprimés - utilisation GitHub Sync -->
+<!-- GitHub Sync -->
 </head>
 <body>
 
@@ -2109,6 +2108,9 @@ var GH_OWNER = 'florentcouzy-cyber';
 var GH_REPO  = 'zyfix-data';
 var GH_FILE  = 'zyfix-data.json';
 var GH_BRANCH= 'main';
+// Nettoyer anciens tokens Google Drive
+localStorage.removeItem('zyfix_gdrive_client_id');
+localStorage.removeItem('zyfix_gdrive_token');
 var GH_TOKEN = localStorage.getItem('zyfix_gh_token') || '';
 var _ghSyncInterval = null;
 var _ghSyncing = false;
