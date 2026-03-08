@@ -2220,11 +2220,17 @@ function ghPull(silent){
 
       var localTs  = new Date(localStorage.getItem('zyfix_last_save') || 0).getTime();
       var remoteTs = new Date(remote.saved || 0).getTime();
+      var remoteStr = JSON.stringify(remote.DB);
+      var localStr  = JSON.stringify(DB);
 
-      if(remoteTs > localTs){
+      if(remoteTs > localTs || (remoteTs === localTs && remoteStr !== localStr)){
         // GitHub plus récent → mettre à jour local
         DB = remote.DB;
         if(!DB.rdv) DB.rdv = [];
+        if(!DB.tickets) DB.tickets = [];
+        if(!DB.devis) DB.devis = [];
+        if(!DB.factures) DB.factures = [];
+        if(!DB.stock) DB.stock = [];
         CTR = remote.CTR || CTR;
         try{ localStorage.setItem('zyfix', JSON.stringify(DB)); }catch(e){}
         try{ localStorage.setItem('zyfix_ctr', JSON.stringify(CTR)); }catch(e){}
@@ -2232,12 +2238,15 @@ function ghPull(silent){
         refreshAll();
         var now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
         ghUpdateUI('↓ ' + now);
-        if(!silent) showToast('🔄 Données mises à jour !');
-        else showToast('🔄 Sync — données mises à jour');
-      } else {
-        // Local plus récent → push
+        if(!silent) showToast('🔄 Sync OK !');
+      } else if(localTs > remoteTs) {
+        // Local plus récent → push vers GitHub
+        ghPush(true);
         var now2 = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-        ghUpdateUI('✓ ' + now2);
+        ghUpdateUI('↑ ' + now2);
+      } else {
+        var now3 = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+        ghUpdateUI('✓ ' + now3);
       }
     })
     .catch(function(e){ console.error('ghPull:', e); });
