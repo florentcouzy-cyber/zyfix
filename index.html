@@ -459,8 +459,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 </style>
 
 <!-- Google API pour Drive Sync -->
-<script src="https://apis.google.com/js/api.js" async defer></script>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
+<!-- Google APIs supprimés - utilisation GitHub Sync -->
 </head>
 <body>
 
@@ -537,6 +536,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
         <span id="gdrive-label">Connecter Google Drive</span>
       </button>
       <div id="gdrive-status" style="font-size:10px;color:var(--t3);text-align:center;margin-top:4px;font-family:var(--mono)"></div>
+      <button id="btn-drive-connect" onclick="gdriveLogin()" style="display:none;width:100%;margin-top:6px;padding:6px;background:rgba(0,212,255,.15);border:1px solid rgba(0,212,255,.3);border-radius:8px;color:var(--cyan);font-size:11px;cursor:pointer;font-family:var(--mono)">🔄 Reconnecter Drive</button>
     </div>
     ZyRAMGamer © 2026 — v1.0
   </div>
@@ -931,44 +931,37 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
   </div>
 </div>
 
-<!-- MODAL GOOGLE DRIVE SETUP -->
+<!-- MODAL GITHUB SYNC SETUP -->
 <div class="overlay" id="m-gdrive-setup">
-  <div class="modal" style="max-width:500px">
+  <div class="modal" style="max-width:480px">
     <div class="modal-head">
       <div class="modal-title">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="#4285f4" style="vertical-align:middle;margin-right:6px"><path d="M6.28 3L1 12.5l3.64 6.32L10 9.5 6.28 3zm5.44 0L8 9.5l5.36 9.32L17.72 12 11.72 3zm6 9l-5.36 9.32L17.72 21H23l-5.28-9z"/></svg>
-        Configurer Google Drive Sync
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub Sync — Configuration
       </div>
-      <button class="modal-x" onclick="closeM('m-gdrive-setup')">✕</button>
+      <button class="modal-close" onclick="closeM('m-gdrive-setup')">✕</button>
     </div>
-    <div style="padding:16px 20px">
-      <!-- Instructions -->
-      <div style="background:rgba(66,133,244,.08);border:1px solid rgba(66,133,244,.25);border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;line-height:1.7">
-        <div style="font-weight:800;color:#4285f4;margin-bottom:8px">📋 Configuration (5 min, gratuit)</div>
-        <ol style="margin:0;padding-left:18px;color:var(--t2)">
-          <li>Va sur <a href="https://console.cloud.google.com" target="_blank" style="color:#4285f4">console.cloud.google.com</a></li>
-          <li>Crée un projet → active <strong>Google Drive API</strong></li>
-          <li>Identifiants → <strong>Créer des identifiants</strong> → ID client OAuth</li>
-          <li>Type : <strong>Application Web</strong></li>
-          <li>Origines autorisées : ajoute <code style="background:var(--s2);padding:1px 5px;border-radius:4px">http://localhost</code> et l'URL de ton hébergement</li>
-          <li>Copie l'<strong>ID client</strong> ci-dessous</li>
-        </ol>
+    <div class="modal-body">
+      <div style="background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;line-height:1.6">
+        <strong>🔒 Token GitHub requis</strong><br>
+        Le token est stocké <strong>uniquement dans ton navigateur</strong> (localStorage).<br>
+        Il ne sera jamais uploadé sur GitHub ni visible par personne.
       </div>
       <div class="fg">
-        <label>Client ID Google OAuth 2.0 *</label>
-        <input id="gdrive-client-id-input" placeholder="XXXXXXXXXXXX-XXXXXXXX.apps.googleusercontent.com" style="font-family:var(--mono);font-size:12px">
+        <label>Token GitHub (ghp_...)</label>
+        <input id="gh-token-input" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="font-family:var(--mono);font-size:13px">
       </div>
-      <div style="font-size:11px;color:var(--t3);margin-top:8px;font-family:var(--mono)">
-        Tes données sont stockées dans l'espace privé de ton compte Google (appDataFolder), invisibles dans Google Drive.
-      </div>
+      <p style="font-size:11px;color:var(--t3);margin-top:6px">
+        Dépôt de données : <strong>florentcouzy-cyber/zyfix-data</strong> (privé)
+      </p>
     </div>
-    <div class="form-foot">
-      <button class="btn btn-ghost" onclick="closeM('m-gdrive-setup')">Annuler</button>
-      <button class="btn" id="btn-gdrive-disconnect" onclick="gdriveLogout()" style="display:none;background:rgba(255,60,60,.15);color:#ff5555;border:1px solid rgba(255,60,60,.3)">⏻ Déconnecter</button>
-      <button class="btn btn-primary" id="btn-gdrive-reconnect" onclick="gdriveLogin()" style="display:none">🔄 Reconnecter</button>
-      <button class="btn btn-primary" onclick="gdriveSetClientId()" style="background:#4285f4;border-color:#4285f4">Sauvegarder et activer</button>
+    <div class="modal-foot">
+      <button onclick="closeM('m-gdrive-setup')" style="background:transparent;border-color:var(--border)">Annuler</button>
+      <button onclick="ghSetToken()" style="background:#238636;border-color:#238636">✅ Sauvegarder</button>
     </div>
   </div>
+</div>
+
 </div>
 
 <!-- ═══════════════════ JS ═══════════════════ -->
@@ -2108,279 +2101,180 @@ document.getElementById('rdv-date') && (document.getElementById('rdv-date').valu
 
 
 // ═══════════════════════════════════════════════════
-// GOOGLE DRIVE SYNC v2 — Token auto-renew + Pull forcé
+// GITHUB SYNC — Sync permanente PC ↔ Android
+// Token stocké en localStorage, ne expire jamais
 // ═══════════════════════════════════════════════════
 
-var GDRIVE_CLIENT_ID = localStorage.getItem('zyfix_gdrive_client_id') || '';
-var GDRIVE_FILE_NAME = 'zyfix-data.json';
-var GDRIVE_SCOPES    = 'https://www.googleapis.com/auth/drive.appdata';
+var GH_OWNER = 'florentcouzy-cyber';
+var GH_REPO  = 'zyfix-data';
+var GH_FILE  = 'zyfix-data.json';
+var GH_BRANCH= 'main';
+var GH_TOKEN = localStorage.getItem('zyfix_gh_token') || '';
+var _ghSyncInterval = null;
+var _ghSyncing = false;
 
-window._gdriveToken  = null; var _gdriveToken = null; // NE PAS restaurer le token — il expire après 1h, toujours redemander
-var _gdriveFileId    = localStorage.getItem('zyfix_gdrive_file_id') || null;
-var _gapiReady       = false;
-var _syncInterval    = null;
-var _tokenClient     = null;
-var _pendingAction   = null; // action à exécuter après renouvellement token
-
-// ── Init GAPI ─────────────────────────────────────
+// ── Init ──────────────────────────────────────────
 window.addEventListener('load', function(){
-  gdriveUpdateUI('non connecté');
-  if(!GDRIVE_CLIENT_ID) return;
-  var check = setInterval(function(){
-    if(typeof gapi !== 'undefined' && typeof google !== 'undefined'){
-      clearInterval(check);
-      gapi.load('client', function(){
-        gapi.client.init({
-          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
-        }).then(function(){
-          _gapiReady = true;
-          // Initialiser le token client une seule fois
-          _tokenClient = google.accounts.oauth2.initTokenClient({
-            client_id: GDRIVE_CLIENT_ID,
-            scope: GDRIVE_SCOPES,
-            prompt: '',
-            callback: function(resp){
-              if(resp.error || !resp.access_token){
-                gdriveUpdateUI('non connecté');
-                return;
-              }
-              _gdriveToken = resp.access_token;
-              window._gdriveToken = _gdriveToken;
-              localStorage.setItem('zyfix_gdrive_token', _gdriveToken);
-              gapi.client.setToken({ access_token: _gdriveToken });
-              gdriveUpdateUI('connecté ✓');
-              gdriveStartAutoSync();
-              if(_pendingAction === 'push') gdrivePush(false);
-              else gdrivePull(false);
-              _pendingAction = null;
-            }
-          });
-          try{ _tokenClient.requestAccessToken({ prompt: '' }); } catch(e){ gdriveUpdateUI('non connecté'); }
-          gdriveUpdateUI('connexion...');
-        }).catch(function(){ gdriveUpdateUI('non connecté'); });
-      });
-    }
-  }, 300);
+  if(!GH_TOKEN){
+    // Demander le token au premier lancement
+    ghUpdateUI('non configuré');
+    return;
+  }
+  ghUpdateUI('configuré ✓');
+  // Pull au chargement + sync auto toutes les 30 secondes
+  ghPull(true);
+  ghStartAutoSync();
 });
 
-// ── Renouveler token si expiré ────────────────────
-function gdriveEnsureToken(action, silent){
-  if(_gdriveToken){
-    // Exécuter directement sans ping (le ping lui-même consomme le quota)
-    if(action === 'push') gdrivePush(silent);
-    else gdrivePull(silent);
-  } else {
-    if(!_gapiReady){ 
-      if(!silent) showToast('API Google en chargement...');
-      return; 
-    }
-    _pendingAction = action;
-    if(_tokenClient) _tokenClient.requestAccessToken({ prompt: '' });
-    else openM('m-gdrive-setup');
-  }
+function ghStartAutoSync(){
+  if(_ghSyncInterval) clearInterval(_ghSyncInterval);
+  _ghSyncInterval = setInterval(function(){ ghPull(true); }, 30000);
 }
 
-// ── Bouton principal ──────────────────────────────
-function gdriveSync(){
-  if(!GDRIVE_CLIENT_ID){ openM('m-gdrive-setup'); return; }
-  gdriveEnsureToken('pull', false);
+// ── API GitHub ────────────────────────────────────
+function ghHeaders(){
+  return {
+    'Authorization': 'token ' + GH_TOKEN,
+    'Content-Type': 'application/json',
+    'Accept': 'application/vnd.github.v3+json'
+  };
 }
 
-// ── Connexion OAuth (bouton manuel) ───────────────
-function gdriveLogin(){
-  if(!_gapiReady){ showToast('API Google en chargement...'); return; }
-  _pendingAction = 'pull';
-  // Recréer le token client avec prompt consent pour forcer re-autorisation
-  var tc = google.accounts.oauth2.initTokenClient({
-    client_id: GDRIVE_CLIENT_ID,
-    scope: GDRIVE_SCOPES,
-    prompt: 'consent',
-    callback: function(resp){
-      if(resp.error){ showToast('Connexion Google annulée'); return; }
-      _gdriveToken = resp.access_token;
-      window._gdriveToken = _gdriveToken;
-      localStorage.setItem('zyfix_gdrive_token', _gdriveToken);
-      gapi.client.setToken({ access_token: _gdriveToken });
-      gdriveUpdateUI('connecté ✓');
-      gdriveStartAutoSync();
-      gdrivePull(false);
-    }
-  });
-  tc.requestAccessToken();
+function ghApiUrl(){
+  return 'https://api.github.com/repos/' + GH_OWNER + '/' + GH_REPO + '/contents/' + GH_FILE;
 }
 
-function gdriveLogout(){
-  _gdriveToken = null;
-  localStorage.removeItem('zyfix_gdrive_token');
-  localStorage.removeItem('zyfix_gdrive_file_id');
-  if(_syncInterval){ clearInterval(_syncInterval); _syncInterval = null; }
-  gdriveUpdateUI('non connecté');
-  showToast('Déconnecté de Google Drive');
-}
-
-// ── Auto-sync toutes les 2 min ────────────────────
-function gdriveStartAutoSync(){
-  if(_syncInterval) clearInterval(_syncInterval);
-  // Pull immédiat au démarrage
-  gdrivePull(true);
-  // Puis sync toutes les 2 min
-  _syncInterval = setInterval(function(){
-    gdriveEnsureToken('pull', true);
-  }, 2 * 60 * 1000);
-}
-
-// ── PUSH : envoyer données → Drive ───────────────
-function gdrivePush(silent){
-  if(!_gdriveToken) return;
+// ── PUSH : envoyer données → GitHub ───────────────
+function ghPush(silent){
+  if(!GH_TOKEN || _ghSyncing) return;
+  _ghSyncing = true;
   var ts = new Date().toISOString();
   localStorage.setItem('zyfix_last_save', ts);
-  var payload = JSON.stringify({ DB: DB, CTR: CTR, saved: ts });
+  var content = btoa(unescape(encodeURIComponent(JSON.stringify({ DB: DB, CTR: CTR, saved: ts }))));
 
-  var findUrl = 'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27'
-    + GDRIVE_FILE_NAME + '%27&fields=files(id)';
+  // D'abord récupérer le SHA du fichier existant (requis pour update)
+  fetch(ghApiUrl(), { headers: ghHeaders() })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(existing){
+      var body = {
+        message: 'ZyFix sync ' + ts,
+        content: content,
+        branch: GH_BRANCH
+      };
+      if(existing && existing.sha) body.sha = existing.sha;
 
-  fetch(findUrl, { headers: { Authorization: 'Bearer ' + _gdriveToken } })
-    .then(function(r){
-      if(r.status === 401){ throw new Error('401'); }
-      return r.json();
+      return fetch(ghApiUrl(), {
+        method: 'PUT',
+        headers: ghHeaders(),
+        body: JSON.stringify(body)
+      });
     })
+    .then(function(r){ return r.json(); })
     .then(function(data){
-      var fileId = (data.files && data.files.length) ? data.files[0].id : null;
-      if(fileId) _gdriveFileId = fileId;
-
-      var url, method, headers, body;
-      if(fileId){
-        url    = 'https://www.googleapis.com/upload/drive/v3/files/' + fileId + '?uploadType=media';
-        method = 'PATCH';
-        headers = { Authorization: 'Bearer ' + _gdriveToken, 'Content-Type': 'application/json' };
-        body = payload;
+      _ghSyncing = false;
+      if(data.content){
+        var now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+        ghUpdateUI('↑ ' + now);
+        if(!silent) showToast('✅ Sauvegardé sur GitHub !');
       } else {
-        var boundary = 'zyfix_boundary_001';
-        url    = 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-        method = 'POST';
-        headers = { Authorization: 'Bearer ' + _gdriveToken,
-          'Content-Type': 'multipart/related; boundary="' + boundary + '"' };
-        body = '--' + boundary + '\r\n'
-          + 'Content-Type: application/json; charset=UTF-8\r\n\r\n'
-          + JSON.stringify({ name: GDRIVE_FILE_NAME, parents: ['appDataFolder'] }) + '\r\n'
-          + '--' + boundary + '\r\n'
-          + 'Content-Type: application/json\r\n\r\n'
-          + payload + '\r\n'
-          + '--' + boundary + '--';
+        ghUpdateUI('erreur push');
+        if(!silent) showToast('Erreur sauvegarde');
+        console.error('ghPush error:', data);
       }
-      return fetch(url, { method: method, headers: headers, body: body });
-    })
-    .then(function(r){
-      if(r.status === 401){ throw new Error('401'); }
-      return r.json();
-    })
-    .then(function(f){
-      if(f.id){ _gdriveFileId = f.id; localStorage.setItem('zyfix_gdrive_file_id', f.id); }
-      var now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-      gdriveUpdateUI('↑ ' + now);
-      if(!silent) showToast('✅ Synchronisé avec Google Drive !');
     })
     .catch(function(e){
-      if(e.message === '401'){
-        _gdriveToken = null; window._gdriveToken = null;
-        gdriveUpdateUI('session expirée');
-        _pendingAction = 'push';
-        if(_tokenClient) _tokenClient.requestAccessToken({ prompt: '' });
-      } else {
-        if(!silent) showToast('Erreur sync Drive');
-        console.error('gdrivePush error', e);
-      }
+      _ghSyncing = false;
+      console.error('ghPush catch:', e);
+      if(!silent) showToast('Erreur réseau');
     });
 }
 
-// ── PULL : récupérer données ← Drive ─────────────
-function gdrivePull(silent){
-  if(!_gdriveToken) return;
-  var findUrl = 'https://www.googleapis.com/drive/v3/files?spaces=appDataFolder&q=name%3D%27'
-    + GDRIVE_FILE_NAME + '%27&fields=files(id,modifiedTime)';
+// ── PULL : récupérer données ← GitHub ─────────────
+function ghPull(silent){
+  if(!GH_TOKEN) return;
 
-  fetch(findUrl, { headers: { Authorization: 'Bearer ' + _gdriveToken } })
+  fetch(ghApiUrl() + '?ref=' + GH_BRANCH + '&t=' + Date.now(), { headers: ghHeaders() })
     .then(function(r){
-      if(r.status === 401){ throw new Error('401'); }
+      if(r.status === 404){ 
+        // Fichier n'existe pas encore → push les données locales
+        ghPush(silent);
+        return null;
+      }
       return r.json();
     })
     .then(function(data){
-      if(!data.files || !data.files.length){
-        // Pas de fichier sur Drive → pousser les données locales
-        gdrivePush(silent);
-        return null;
-      }
-      var fileId = data.files[0].id;
-      _gdriveFileId = fileId;
-      localStorage.setItem('zyfix_gdrive_file_id', fileId);
-      return fetch('https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media', {
-        headers: { Authorization: 'Bearer ' + _gdriveToken }
-      });
-    })
-    .then(function(r){ return r ? r.json() : null; })
-    .then(function(remote){
+      if(!data || !data.content) return;
+      var b64 = data.content.split('\n').join('');
+      var remote = JSON.parse(decodeURIComponent(escape(atob(b64))));
       if(!remote || !remote.DB) return;
+
       var localTs  = new Date(localStorage.getItem('zyfix_last_save') || 0).getTime();
       var remoteTs = new Date(remote.saved || 0).getTime();
+
       if(remoteTs > localTs){
-        // Drive est plus récent → écraser local
+        // GitHub plus récent → mettre à jour local
         DB = remote.DB;
         if(!DB.rdv) DB.rdv = [];
         CTR = remote.CTR || CTR;
-        // Sauver sans re-push pour éviter boucle
-        try{ localStorage.setItem('zyfix', JSON.stringify(DB)); } catch(e){}
-        try{ localStorage.setItem('zyfix_ctr', JSON.stringify(CTR)); } catch(e){}
-        try{ localStorage.setItem('zyfix_last_save', remote.saved); } catch(e){}
+        try{ localStorage.setItem('zyfix', JSON.stringify(DB)); }catch(e){}
+        try{ localStorage.setItem('zyfix_ctr', JSON.stringify(CTR)); }catch(e){}
+        try{ localStorage.setItem('zyfix_last_save', remote.saved); }catch(e){}
         refreshAll();
         var now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-        gdriveUpdateUI('↓ ' + now);
-        if(!silent) showToast('✅ Données mises à jour depuis Drive !');
-        else showToast('🔄 Sync Drive — données mises à jour');
+        ghUpdateUI('↓ ' + now);
+        if(!silent) showToast('🔄 Données mises à jour !');
+        else showToast('🔄 Sync — données mises à jour');
       } else {
-        // Local est plus récent → pousser vers Drive
-        gdrivePush(silent);
+        // Local plus récent → push
         var now2 = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-        gdriveUpdateUI('✓ ' + now2);
+        ghUpdateUI('✓ ' + now2);
       }
     })
-    .catch(function(e){
-      if(e.message === '401'){
-        _gdriveToken = null; window._gdriveToken = null;
-        gdriveUpdateUI('session expirée');
-        _pendingAction = 'pull';
-        if(_tokenClient) _tokenClient.requestAccessToken({ prompt: '' });
-      } else {
-        console.error('gdrivePull error', e);
-      }
-    });
+    .catch(function(e){ console.error('ghPull:', e); });
 }
 
-// push auto intégré dans dbSave directement
+// ── Patch dbSave — push auto après chaque modif ──
+var _dbSaveOrigGH = dbSave;
+dbSave = function(){
+  _dbSaveOrigGH();
+  if(GH_TOKEN){ ghPush(true); }
+};
 
-// ── UI helpers ────────────────────────────────────
-function gdriveUpdateUI(status){
+// ── Config token ──────────────────────────────────
+function ghSetToken(){
+  var val = document.getElementById('gh-token-input') ?
+    document.getElementById('gh-token-input').value.trim() : '';
+  if(!val){ showToast('Token requis !'); return; }
+  GH_TOKEN = val;
+  localStorage.setItem('zyfix_gh_token', val);
+  closeM('m-gh-setup');
+  showToast('✅ Token GitHub sauvegardé !');
+  ghUpdateUI('configuré ✓');
+  ghPull(false);
+  ghStartAutoSync();
+}
+
+function ghSyncNow(){
+  if(!GH_TOKEN){ openM('m-gh-setup'); return; }
+  ghPull(false);
+}
+
+// ── UI ────────────────────────────────────────────
+function ghUpdateUI(status){
   var lbl  = document.getElementById('gdrive-label');
   var stat = document.getElementById('gdrive-status');
   var tbl  = document.getElementById('topbar-sync-label');
-  var btnDc = document.getElementById('btn-gdrive-disconnect');
-  var btnRc = document.getElementById('btn-gdrive-reconnect');
-  if(lbl) lbl.textContent  = _gdriveToken ? '✓ Drive connecté' : '☁ Connecter Drive';
-  if(stat) stat.textContent = status;
-  if(tbl) tbl.textContent   = _gdriveToken ? '✓' : 'Drive';
-  if(btnDc) btnDc.style.display = _gdriveToken ? 'inline-block' : 'none';
-  if(btnRc) btnRc.style.display = !_gdriveToken && GDRIVE_CLIENT_ID ? 'inline-block' : 'none';
-  console.log('[ZyFix Drive]', status, '| token:', _gdriveToken ? 'OK' : 'null');
+  var btnCo= document.getElementById('btn-drive-connect');
+  var connected = !!GH_TOKEN;
+  if(lbl)   lbl.textContent  = connected ? '✓ GitHub Sync' : '⚙ Configurer Sync';
+  if(stat)  stat.textContent = status;
+  if(tbl)   tbl.textContent  = connected ? '✓' : 'Sync';
+  if(btnCo) btnCo.style.display = connected ? 'none' : 'block';
 }
 
-function gdriveSetClientId(){
-  var val = document.getElementById('gdrive-client-id-input').value.trim();
-  if(!val){ showToast('Client ID requis !'); return; }
-  GDRIVE_CLIENT_ID = val;
-  localStorage.setItem('zyfix_gdrive_client_id', val);
-  closeM('m-gdrive-setup');
-  showToast('Client ID sauvegardé !');
-  window.location.reload();
-}
+// Compat alias
+function gdriveSync(){ ghSyncNow(); }
+function gdriveUpdateUI(s){ ghUpdateUI(s); }
 
 init();
 </script>
