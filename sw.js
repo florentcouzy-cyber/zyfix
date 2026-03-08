@@ -1,4 +1,4 @@
-const CACHE_NAME = 'zyfix-v1.4';
+const CACHE_NAME = 'zyfix-v1.5';
 const ASSETS = [
   './',
   './index.html',
@@ -6,7 +6,6 @@ const ASSETS = [
   'https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap'
 ];
 
-// Installation — mise en cache de tous les assets
 self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -15,7 +14,6 @@ self.addEventListener('install', event => {
   );
 });
 
-// Activation — supprime les anciens caches
 self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
@@ -26,27 +24,30 @@ self.addEventListener('activate', event => {
   );
 });
 
-// Fetch — cache-first pour assets, network-first pour le reste
 self.addEventListener('fetch', event => {
+  // Ignorer tout ce qui n'est pas GET (POST, PATCH, PUT, DELETE...)
+  if (event.request.method !== 'GET') return;
+  
+  // Ignorer les requêtes vers Google APIs (ne jamais mettre en cache)
+  if (event.request.url.includes('googleapis.com') || 
+      event.request.url.includes('accounts.google.com') ||
+      event.request.url.includes('gstatic.com')) return;
+
   event.respondWith(
     caches.match(event.request).then(cached => {
       if (cached) return cached;
-
-      return fetch(event.request)
-        .then(response => {
-          if (!response || response.status !== 200 || response.type === 'opaque') {
-            return response;
-          }
-          const toCache = response.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(event.request, toCache));
+      return fetch(event.request).then(response => {
+        if (!response || response.status !== 200 || response.type === 'opaque') {
           return response;
-        })
-        .catch(() => {
-          // Fallback vers index.html si offline
-          if (event.request.destination === 'document') {
-            return caches.match('./index.html');
-          }
-        });
+        }
+        const toCache = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, toCache));
+        return response;
+      }).catch(() => {
+        if (event.request.destination === 'document') {
+          return caches.match('./index.html');
+        }
+      });
     })
   );
 });
