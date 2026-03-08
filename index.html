@@ -2160,6 +2160,7 @@ function ghPush(silent){
   _ghSyncing = true;
   var ts = new Date().toISOString();
   localStorage.setItem('zyfix_last_save', ts);
+  console.log('[ZyFix Sync] ↑ Push démarré, ts=', ts);
   var content = btoa(unescape(encodeURIComponent(JSON.stringify({ DB: DB, CTR: CTR, saved: ts }))));
 
   // D'abord récupérer le SHA du fichier existant (requis pour update)
@@ -2185,11 +2186,15 @@ function ghPush(silent){
       if(data.content){
         var now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
         ghUpdateUI('↑ ' + now);
-        if(!silent) showToast('✅ Sauvegardé sur GitHub !');
+        console.log('[ZyFix Sync] ↑ Push OK', now);
+        if(!silent) showToast('✅ Sauvegardé !');
+      } else if(data.message){
+        ghUpdateUI('erreur: ' + data.message.substring(0,20));
+        console.error('[ZyFix Sync] Push erreur:', data.message);
+        if(!silent) showToast('❌ ' + data.message);
       } else {
         ghUpdateUI('erreur push');
-        if(!silent) showToast('Erreur sauvegarde');
-        console.error('ghPush error:', data);
+        console.error('[ZyFix Sync] Push erreur:', JSON.stringify(data));
       }
     })
     .catch(function(e){
@@ -2203,6 +2208,7 @@ function ghPush(silent){
 function ghPull(silent){
   if(!GH_TOKEN) return;
 
+  console.log('[ZyFix Sync] Pull...', GH_OWNER+'/'+GH_REPO);
   fetch(ghApiUrl() + '?ref=' + GH_BRANCH + '&t=' + Date.now(), { headers: ghHeaders() })
     .then(function(r){
       if(r.status === 404){ 
@@ -2235,6 +2241,7 @@ function ghPull(silent){
         try{ localStorage.setItem('zyfix', JSON.stringify(DB)); }catch(e){}
         try{ localStorage.setItem('zyfix_ctr', JSON.stringify(CTR)); }catch(e){}
         try{ localStorage.setItem('zyfix_last_save', remote.saved); }catch(e){}
+        window._lastPullTs = remote.saved; // mémoriser le ts du dernier pull
         refreshAll();
         var now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
         ghUpdateUI('↓ ' + now);
