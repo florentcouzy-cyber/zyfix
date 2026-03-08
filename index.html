@@ -1020,7 +1020,12 @@ document.querySelectorAll('.nav-item').forEach(n=>{
 });
 
 // ─── MODAL ───────────────────────────────────────
-function openM(id){ syncSelects(); document.getElementById(id).classList.add('open'); }
+function openM(id){
+  try{ syncSelects(); }catch(e){}
+  var el = document.getElementById(id);
+  if(!el){ console.error('openM: element not found:', id); return; }
+  el.classList.add('open');
+}
 function closeM(id){ document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.overlay').forEach(o=>{
   o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
@@ -1748,7 +1753,10 @@ function refreshAll(){
 if('serviceWorker' in navigator && location.protocol === 'https:'){
   window.addEventListener('load', ()=>{
     navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('✅ ZyFix SW actif'))
+      .then(reg => {
+        console.log('✅ ZyFix SW actif');
+        reg.update(); // Force check nouvelle version
+      })
       .catch(err => console.warn('SW:', err));
   });
 }
@@ -2249,7 +2257,7 @@ function ghSetToken(){
   if(!val){ showToast('Token requis !'); return; }
   GH_TOKEN = val;
   localStorage.setItem('zyfix_gh_token', val);
-  closeM('m-gh-setup');
+  closeM('m-gdrive-setup');
   showToast('✅ Token GitHub sauvegardé !');
   ghUpdateUI('configuré ✓');
   ghPull(false);
@@ -2257,7 +2265,7 @@ function ghSetToken(){
 }
 
 function ghSyncNow(){
-  if(!GH_TOKEN){ openM('m-gh-setup'); return; }
+  if(!GH_TOKEN){ openM('m-gdrive-setup'); return; }
   ghPull(false);
 }
 
