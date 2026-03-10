@@ -420,6 +420,40 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 .mcard-actions .btn{font-size:12px;}
 .mcard-body>div{margin-bottom:4px;}
 
+/* ── Modaux Devis + Réparations mobile ── */
+@media (max-width: 768px) {
+  #m-devis .modal, #m-rep .modal, #m-facture .modal {
+    max-height: 93vh !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+  #m-devis .form-grid, #m-facture .form-grid {
+    grid-template-columns: 1fr !important;
+  }
+  #m-devis .form-full, #m-facture .form-full {
+    grid-column: 1 !important;
+  }
+}
+/* ── Modal Pièces mobile ── */
+@media (max-width: 768px) {
+  #m-piece .modal { max-height:92vh !important; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+  #m-piece .modal { width:100% !important; }
+  .piece-tab { flex-wrap:wrap; }
+  .piece-tab-btn { flex:1; min-width:120px; font-size:12px; padding:7px 8px; }
+  #piece-query { font-size:14px; }
+  .piece-search-result { padding:8px 10px; }
+}
+/* ── Modal Appel mobile ── */
+@media (max-width: 768px) {
+  #m-appel .modal { border-radius:16px 16px 0 0 !important; }
+  #m-appel .form-grid { grid-template-columns:1fr !important; }
+  #m-appel .form-full { grid-column:1 !important; }
+  .appel-scenario { font-size:11px !important; padding:5px 8px !important; }
+  .qual-pill { font-size:12px !important; padding:6px 10px !important; }
+  #appel-qual-pills { gap:6px !important; }
+  #appel-pec-pills { gap:6px !important; }
+  #m-appel [class*="rep-section"] { padding:10px !important; }
+}
 /* Responsive breakpoint 768px */
 @media (max-width: 768px) {
   #sidebar{display:none !important;}
@@ -979,6 +1013,29 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
   display: inline-block;
 }
 
+
+/* ── Mini-menu appel rapide ── */
+#tel-quick-menu {
+  position:fixed; z-index:9999;
+  background:var(--s2); border:1px solid var(--border);
+  border-radius:14px; padding:8px; 
+  box-shadow:0 8px 32px rgba(0,0,0,.5);
+  display:none; flex-direction:column; gap:6px;
+  min-width:200px;
+}
+#tel-quick-menu.open { display:flex; }
+.tel-menu-btn {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 14px; border-radius:10px;
+  border:none; background:var(--s3); color:var(--t1);
+  font-size:14px; font-weight:600; cursor:pointer; width:100%;
+  transition:background .15s;
+}
+.tel-menu-btn:active { background:var(--s4); }
+.tel-menu-cancel {
+  background:transparent; color:var(--t3); font-size:13px;
+  border:none; padding:6px; cursor:pointer; text-align:center; width:100%;
+}
 </style>
 
 <!-- GitHub Sync -->
@@ -1491,6 +1548,104 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 </div>
 
 <!-- MODAL SOURCE -->
+
+<!-- ══ MODAL PIÈCE / COMPOSANT ══════════════════════════════════════ -->
+<div class="overlay" id="m-piece" style="z-index:1050">
+<div class="modal" style="max-width:600px">
+  <div class="modal-head">
+    <div class="modal-title" id="m-piece-title">🔩 Ajouter une pièce / composant</div>
+    <button class="modal-x" onclick="closePieceModal()">✕</button>
+  </div>
+  <div style="padding:0 18px 18px">
+
+    <!-- ONGLETS -->
+    <div class="piece-tab">
+      <button class="piece-tab-btn active" id="ptab-search" onclick="switchPieceTab('search')">🔍 Recherche en ligne <span id="ptab-online-badge" style="font-size:9px;opacity:.6">(hors ligne)</span></button>
+      <button class="piece-tab-btn" id="ptab-manual" onclick="switchPieceTab('manual')">✏️ Ajout manuel</button>
+    </div>
+
+    <!-- ONGLET RECHERCHE -->
+    <div id="ptab-search-content">
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <input id="piece-query" placeholder="Ex: SSD 500Go, RTX 4060, RAM DDR5 16Go, écran 24 pouces…" style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--t1);font-size:13px">
+        <button class="btn btn-primary btn-sm" onclick="searchPiece()" style="white-space:nowrap">🔍 Rechercher</button>
+      </div>
+      <div id="piece-search-hint" style="font-size:11px;color:var(--t3);margin-bottom:8px">
+        💡 Recherche via IA — prix indicatifs depuis Amazon, LDLC, TopAchat, Materiel.net
+      </div>
+      <div id="piece-search-results" style="max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;background:var(--s2);display:none"></div>
+      <div id="piece-search-loading" style="display:none;text-align:center;padding:20px;color:var(--t3)">⏳ Recherche en cours…</div>
+    </div>
+
+    <!-- ONGLET MANUEL -->
+    <div id="ptab-manual-content" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+        <div class="fg" style="grid-column:1/-1">
+          <label>Désignation *</label>
+          <input id="pm-nom" placeholder="Ex: SSD Samsung 870 EVO 500Go" style="width:100%">
+        </div>
+        <div class="fg">
+          <label>Référence client <span style="color:var(--t3)">(visible sur devis)</span></label>
+          <input id="pm-ref-client" placeholder="Ex: MZ-77E500B/EU" style="width:100%">
+        </div>
+        <div class="fg">
+          <label>Référence fournisseur <span style="color:var(--t3)">(interne)</span></label>
+          <input id="pm-ref-fournisseur" placeholder="Réf. interne / SKU" style="width:100%">
+        </div>
+        <div class="fg">
+          <label>Fournisseur <span style="color:var(--t3)">(interne)</span></label>
+          <input id="pm-fournisseur" placeholder="Ex: LDLC, Amazon, TopAchat…" style="width:100%">
+        </div>
+        <div class="fg">
+          <label>Lien source <span style="color:var(--t3)">(interne)</span></label>
+          <input id="pm-lien" placeholder="https://…" style="width:100%">
+        </div>
+      </div>
+    </div>
+
+    <!-- ZONE COMMUNE : quantité + prix achat + marge + prix vente -->
+    <div id="piece-form-commune" style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
+      <div style="display:grid;grid-template-columns:70px 1fr 80px 80px;gap:10px;align-items:end;margin-bottom:10px">
+        <div class="fg">
+          <label>Qté</label>
+          <input type="number" id="pm-qte" value="1" min="1" oninput="calcPieceMarge()" style="width:100%">
+        </div>
+        <div class="fg">
+          <label>Prix d'achat HT <span style="color:var(--t3)">(interne)</span></label>
+          <input type="number" id="pm-achat" placeholder="0.00" step="0.01" min="0" oninput="calcPieceMarge()" style="width:100%">
+        </div>
+        <div class="fg">
+          <label>Marge %</label>
+          <input type="number" id="pm-marge-pct" value="30" step="1" min="0" max="999" oninput="calcPieceMarge()" style="width:100%">
+        </div>
+        <div class="fg">
+          <label>Prix de vente HT</label>
+          <input type="number" id="pm-vente" placeholder="0.00" step="0.01" min="0" oninput="calcPieceMargeFromVente()" style="width:100%;background:var(--s2);border-color:var(--cyan)">
+        </div>
+      </div>
+      <!-- Récap marge -->
+      <div id="pm-marge-recap" style="background:var(--s2);border-radius:8px;padding:8px 12px;font-size:12px;display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px">
+        <span>Marge brute : <strong id="pm-marge-brute" style="color:var(--green)">—</strong></span>
+        <span>Taux : <strong id="pm-marge-taux" style="color:var(--amber)">—</strong></span>
+        <span>PV TTC : <strong id="pm-vente-ttc" style="color:var(--cyan)">—</strong></span>
+        <span>Total vente : <strong id="pm-total-vente" style="color:var(--t1)">—</strong></span>
+      </div>
+      <div class="fg" style="margin-bottom:12px">
+        <label>Type de ligne</label>
+        <select id="pm-type" style="background:var(--s3);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--t1);font-size:12px;width:100%">
+          <option value="piece">🔩 Pièce / Composant</option>
+          <option value="mo">🔧 Main-d'œuvre</option>
+          <option value="forfait">⚡ Forfait</option>
+          <option value="autre">📝 Autre</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" onclick="insertPieceInDevis()" style="width:100%;padding:10px">✅ Ajouter au devis</button>
+    </div>
+
+  </div>
+</div>
+</div>
+
 <div class="overlay" id="m-pub-source">
   <div class="modal">
     <div class="modal-head">
@@ -1700,12 +1855,12 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
         <div id="forfaits-list-d" style="margin-top:6px;max-height:420px;overflow-y:auto;padding-right:2px"></div>
       </div>
       <div class="fg form-full">
-        <label style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;justify-content:space-between">
           <span>Prestations <span id="devis-lignes-badge" style="display:none;margin-left:7px;background:var(--cyan);color:#000;font-size:10px;font-weight:700;padding:1px 8px;border-radius:20px;vertical-align:middle"></span></span>
-          <button class="btn btn-ghost btn-sm" onclick="addLigneDevis()" style="font-size:11px;padding:3px 10px">+ Ligne</button>
-          <button class="btn btn-sm" onclick="openPieceModal()" style="font-size:11px;padding:3px 10px;background:rgba(179,136,255,.15);color:#b388ff;border:1px solid rgba(179,136,255,.35);border-radius:20px">🔩 + Pièce</button>
-          <button class="btn btn-sm" onclick="addLigneMO()" style="font-size:11px;padding:3px 10px;background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid rgba(0,212,255,.3);border-radius:20px">🔧 + MO</button>
-        </label>
+          <div style="display:flex;gap:4px;flex-wrap:wrap"><button class="btn btn-ghost btn-sm" onclick="addLigneDevis()" style="font-size:11px;padding:3px 10px">+ Ligne</button>
+          <button class="btn btn-sm" onclick="event.preventDefault();event.stopPropagation();openPieceModal();return false;" style="font-size:11px;padding:3px 10px;background:rgba(179,136,255,.15);color:#b388ff;border:1px solid rgba(179,136,255,.35);border-radius:20px">🔩 + Pièce</button>
+          <button class="btn btn-sm" onclick="addLigneMO()" style="font-size:11px;padding:3px 10px;background:rgba(0,212,255,.1);color:var(--cyan);border:1px solid rgba(0,212,255,.3);border-radius:20px">🔧 + MO</button></div>
+        </div>
         <div id="devis-lignes-container"></div>
         <div id="devis-total-preview">Total : <span id="devis-preview-ht">0.00</span> € HT — <span id="devis-preview-ttc">0.00</span> € TTC</div>
         <textarea id="d-lignes" style="display:none"></textarea>
@@ -2219,7 +2374,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
      MODAL PRISE D'APPEL
 ════════════════════════════════════════════════════════════════════ -->
 <div class="overlay" id="m-appel">
-  <div class="modal" style="max-width:680px;max-height:94vh;overflow-y:auto">
+  <div class="modal" style="max-width:680px;max-height:94vh;overflow-y:auto;-webkit-overflow-scrolling:touch">
 
     <!-- HEADER -->
     <div class="modal-head" style="background:linear-gradient(135deg,rgba(0,212,255,.12),rgba(0,200,120,.08));border-bottom:2px solid var(--cyan)">
@@ -2447,6 +2602,8 @@ const ACTIONS = {
 };
 
 function _gotoCore(name){
+  // Fermer tous les modaux/overlays ouverts avant de changer de page
+  document.querySelectorAll('.overlay.open').forEach(function(ov){ ov.classList.remove('open'); });
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+name)?.classList.add('active');
@@ -2633,7 +2790,7 @@ function renderTickets(list){
   if(tb) tb.innerHTML=list.map(function(t){
     const c=getClient(t.clientId); const cname=clientName(t.clientId);
     const telClean=c&&c.tel?c.tel.replace(/\s/g,''):'';
-    const telSpan=c&&c.tel?'<br><a href="tel:'+telClean+'" style="color:var(--cyan);font-family:var(--mono);font-size:11px;text-decoration:none">📞 '+c.tel+'</a>':'';
+    const telSpan=c&&c.tel?'<br><a href="#" onclick="openTelMenu('+telClean+',event)" style="color:var(--cyan);font-family:var(--mono);font-size:11px;text-decoration:none">📞 '+c.tel+'</a>':'';
     return '<tr>'
       +'<td><span class="tk-tag">'+t.id+'</span></td>'
       +'<td><span class="avatar">'+initials(cname)+'</span>'+cname+telSpan+'</td>'
@@ -2667,7 +2824,7 @@ function renderTickets(list){
       +'</div>'
       +'<div class="mcard-body">'
         +'<div style="font-size:13px">🔧 '+t.probleme+'</div>'
-        +(t.diag?'<div style="font-size:12px;color:var(--t2)">🩺 '+t.diag+'</div>':'')        +(c&&c.tel?'<div><a href="tel:'+telClean+'" style="color:var(--cyan);text-decoration:none;font-size:13px">📞 '+c.tel+'</a></div>':'')        +'<div style="font-size:12px;color:var(--t2)">📅 '+fmtDate(t.date)+'</div>'
+        +(t.diag?'<div style="font-size:12px;color:var(--t2)">🩺 '+t.diag+'</div>':'')        +(c&&c.tel?'<div><a href="#" onclick="openTelMenu('+telClean+',event)" style="color:var(--cyan);text-decoration:none;font-size:13px">📞 '+c.tel+'</a></div>':'')        +'<div style="font-size:12px;color:var(--t2)">📅 '+fmtDate(t.date)+'</div>'
       +'</div>'
       +'<div class="mcard-actions">'
         +'<select class="st-sel b-'+t.statut+'" onchange="setTicketStatus(\''+t.id+'\',this.value)" style="flex:1;color:inherit">'
@@ -2770,8 +2927,8 @@ function renderClients(list){
   const rows=list.map(function(c){
     const nb=DB.tickets.filter(function(t){return t.clientId===c.id;}).length;
     const telClean=c.tel?c.tel.replace(/\s/g,''):'';
-    const telHtml=c.tel?'<a href="tel:'+telClean+'" style="color:var(--cyan);font-family:var(--mono);text-decoration:none">📞 '+c.tel+'</a>':'—';
-    const mailHtml=c.email?'<a target="_blank" href="https://mail.google.com/mail/?view=cm&fs=1&to='+c.email+'" style="color:var(--purple);font-family:var(--mono);text-decoration:none">✉️ '+c.email+'</a>':'—';
+    const telHtml=c.tel?'<a href="#" onclick="openTelMenu('+telClean+',event)" style="color:var(--cyan);font-family:var(--mono);text-decoration:none">📞 '+c.tel+'</a>':'—';
+    const mailHtml=c.email?'<a target="_blank" href="https://mail.google.com/mail/?view=cm&fs=1&to='+c.email+',event)" style="color:var(--purple);font-family:var(--mono);text-decoration:none">✉️ '+c.email+'</a>':'—';
     return {c,nb,telHtml,mailHtml,telClean};
   });
   if(tb) tb.innerHTML=rows.map(function(r){
@@ -2789,7 +2946,7 @@ function renderClients(list){
   }).join('');
   if(ml) ml.innerHTML=rows.map(function(r){
     var c=r.c; var nb=r.nb;
-    return '<div class="mcard">'      +'<div class="mcard-top">'        +'<span class="avatar">'+initials(c.nom+' '+(c.prenom||''))+'</span>'        +'<div style="flex:1;min-width:0">'          +'<div style="font-weight:700;font-size:15px">'+c.nom+' '+(c.prenom||'')+'</div>'          +(c.entreprise?'<div style="font-size:12px;color:var(--t2)">🏢 '+c.entreprise+'</div>':'')        +'</div>'        +'<span class="badge '+(c.type==='entreprise'?'b-encours':'b-livre')+'" style="flex-shrink:0">'+(c.type==='entreprise'?'Entreprise':'Particulier')+'</span>'      +'</div>'      +'<div class="mcard-body">'        +(c.tel?'<div>'+r.telHtml+'</div>':'')        +(c.email?'<div>'+r.mailHtml+'</div>':'')        +(c.adresse?'<div><a href="'+gpsLink(c.adresse)+'" target="_blank" style="color:var(--cyan);text-decoration:none;font-size:12px">📍 '+c.adresse+'</a></div>':'')        +'<div style="font-size:12px;color:var(--t2)">🎫 '+nb+' ticket'+(nb>1?'s':'')+'</div>'      +'</div>'      +'<div class="mcard-actions">'        +'<button class="btn btn-ghost btn-sm" onclick="showHistorique(\''+c.id+'\')">📋 Historique</button>'        +'<button class="btn btn-ghost btn-sm" onclick="editClient(\''+c.id+'\')">✏️ Modifier</button>'        +'<button class="btn btn-danger btn-sm" onclick="del(\'clients\',\''+c.id+'\')">🗑</button>'      +'</div>'    +'</div>';
+    return '<div class="mcard">'      +'<div class="mcard-top">'        +'<span class="avatar">'+initials(c.nom+' '+(c.prenom||''))+'</span>'        +'<div style="flex:1;min-width:0">'          +'<div style="font-weight:700;font-size:15px">'+c.nom+' '+(c.prenom||'')+'</div>'          +(c.entreprise?'<div style="font-size:12px;color:var(--t2)">🏢 '+c.entreprise+'</div>':'')        +'</div>'        +'<span class="badge '+(c.type==='entreprise'?'b-encours':'b-livre')+',event)" style="flex-shrink:0">'+(c.type==='entreprise'?'Entreprise':'Particulier')+'</span>'      +'</div>'      +'<div class="mcard-body">'        +(c.tel?'<div>'+r.telHtml+'</div>':'')        +(c.email?'<div>'+r.mailHtml+'</div>':'')        +(c.adresse?'<div><a href="'+gpsLink(c.adresse)+'" target="_blank" style="color:var(--cyan);text-decoration:none;font-size:12px">📍 '+c.adresse+'</a></div>':'')        +'<div style="font-size:12px;color:var(--t2)">🎫 '+nb+' ticket'+(nb>1?'s':'')+'</div>'      +'</div>'      +'<div class="mcard-actions">'        +'<button class="btn btn-ghost btn-sm" onclick="showHistorique(\''+c.id+'\')">📋 Historique</button>'        +'<button class="btn btn-ghost btn-sm" onclick="editClient(\''+c.id+'\')">✏️ Modifier</button>'        +'<button class="btn btn-danger btn-sm" onclick="del(\'clients\',\''+c.id+'\')">🗑</button>'      +'</div>'    +'</div>';
   }).join('');
 }
 
@@ -4194,7 +4351,7 @@ function renderAgenda(){
       var isDone = r.statut === 'termine';
       var telClean = c&&c.tel ? c.tel.replace(/\s/g,'') : '';
       var telHtml = c&&c.tel
-        ? '<a href="tel:'+telClean+'" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;margin-top:5px">&#128222; '+c.tel+'</a>'
+        ? '<a href="#" onclick="openTelMenu('+telClean+',event)" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;margin-top:5px">&#128222; '+c.tel+'</a>'
         : '';
       // Chercher la réparation liée (via ticketId ou clientId + date proche)
       var linkedRep = null;
@@ -4255,10 +4412,10 @@ function renderAgenda(){
       var nbTk = DB.tickets.filter(function(t){ return t.clientId===cid; }).length;
       var telClean = c.tel ? c.tel.replace(/\s/g,'') : '';
       var telHtml = c.tel
-        ? '<a href="tel:'+telClean+'" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;margin-right:6px">&#128222; '+c.tel+'</a>'
+        ? '<a href="#" onclick="openTelMenu('+telClean+',event)" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;margin-right:6px">&#128222; '+c.tel+'</a>'
         : '';
       var mailHtml = c.email
-        ? '<a target="_blank" href="https://mail.google.com/mail/?view=cm&fs=1&to='+c.email+'" style="display:inline-flex;align-items:center;gap:5px;background:rgba(179,136,255,.1);border:1px solid rgba(179,136,255,.25);color:var(--purple);font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer">&#9993; '+c.email+'</a>'
+        ? '<a target="_blank" href="https://mail.google.com/mail/?view=cm&fs=1&to='+c.email+',event)" style="display:inline-flex;align-items:center;gap:5px;background:rgba(179,136,255,.1);border:1px solid rgba(179,136,255,.25);color:var(--purple);font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer">&#9993; '+c.email+'</a>'
         : '';
       return '<div style="padding:12px 10px;border-bottom:1px solid var(--border)">'
         +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
@@ -4343,8 +4500,8 @@ function showHistorique(clientId){
       +'</div>'
     +'</div>'
     +'<div style="display:flex;flex-wrap:wrap;gap:8px">'
-      +(c.tel?'<a href="tel:'+telClean+'" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer">&#128222; '+c.tel+'</a>':'')
-      +(c.email?'<a target="_blank" href="https://mail.google.com/mail/?view=cm&fs=1&to='+c.email+'" style="display:inline-flex;align-items:center;gap:5px;background:rgba(179,136,255,.1);border:1px solid rgba(179,136,255,.25);color:var(--purple);font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer">&#9993; '+c.email+'</a>':'')
+      +(c.tel?'<a href="#" onclick="openTelMenu('+telClean+',event)" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer">&#128222; '+c.tel+'</a>':'')
+      +(c.email?'<a target="_blank" href="https://mail.google.com/mail/?view=cm&fs=1&to='+c.email+',event)" style="display:inline-flex;align-items:center;gap:5px;background:rgba(179,136,255,.1);border:1px solid rgba(179,136,255,.25);color:var(--purple);font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer">&#9993; '+c.email+'</a>':'')
       +(c.adresse?'<a href="'+gpsLink(c.adresse)+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);color:var(--cyan);font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:8px;text-decoration:none">📍 '+c.adresse+'</a>':'')
     +'</div>'
   +'</div>';
@@ -4903,7 +5060,7 @@ function addLigneDevis(desc, prix, opts) {
     var margin = o.margeP ? Math.round(o.margeP) + '%' : '';
     var achat  = parseFloat(o.prixAchat).toFixed(2);
     var fourn  = o.fournisseur ? ' · ' + escHtml(o.fournisseur) : '';
-    internalBadge = '<span class="ligne-internal-info" title="Achat: '+achat+' €'+fourn+'" style="font-size:9px;background:rgba(255,184,0,.12);color:var(--amber);border:1px solid rgba(255,184,0,.25);padding:1px 6px;border-radius:10px;white-space:nowrap;cursor:help;flex-shrink:0">💰 '+achat+' € '+(margin?'· '+margin:'')+(fourn?fourn:'')+'</span>';
+    internalBadge = '<span class="ligne-internal-info" title="Achat: '+achat+' €'+fourn+',event)" style="font-size:9px;background:rgba(255,184,0,.12);color:var(--amber);border:1px solid rgba(255,184,0,.25);padding:1px 6px;border-radius:10px;white-space:nowrap;cursor:help;flex-shrink:0">💰 '+achat+' € '+(margin?'· '+margin:'')+(fourn?fourn:'')+'</span>';
   }
 
   row.innerHTML =
@@ -6481,6 +6638,7 @@ function addRepPhoto(cat) {
   if (input) input.click();
 }
 
+
 function handleRepPhoto(evt) {
   var files = evt.target.files;
   if (!files||!files.length) return;
@@ -6522,7 +6680,7 @@ function repZoomPhoto(idx) {
   if (!p) return;
   var ov = document.createElement('div');
   ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;display:flex;align-items:center;justify-content:center;cursor:pointer';
-  ov.innerHTML='<img src="'+p.dataUrl+'" style="max-width:95vw;max-height:90vh;border-radius:12px">'
+  ov.innerHTML='<img src="'+p.dataUrl+',event)" style="max-width:95vw;max-height:90vh;border-radius:12px">'
     +'<div style="position:absolute;top:16px;right:16px;color:#fff;font-size:24px">✕</div>'
     +'<div style="position:absolute;bottom:16px;color:var(--cyan);font-size:14px">'+(REP_PHOTO_LABELS[p.cat]||p.cat)+' — '+p.name+'</div>';
   ov.onclick = function(){ document.body.removeChild(ov); };
@@ -6874,7 +7032,7 @@ function appelSelectClient(c) {
     var lastTk = (DB.tickets||[]).filter(function(t){ return t.clientId===c.id; }).slice(-1)[0];
     var lastFac = (DB.factures||[]).filter(function(f){ return f.clientId===c.id; }).slice(-1)[0];
     var rows = [];
-    if(c.tel)      rows.push('<a href="tel:'+c.tel.replace(/\s/g,'')+'">📞 <b>'+escHtml(c.tel)+'</b></a>');
+    if(c.tel)      rows.push('<a href="#" onclick="openTelMenu('+c.tel.replace(/\s/g,'')+',event)">📞 <b>'+escHtml(c.tel)+'</b></a>');
     if(c.email)    rows.push('<a target="_blank" href="https://mail.google.com/mail/?view=cm&fs=1&to='+c.email+'">✉️ <b>'+escHtml(c.email)+'</b></a>');
     if(c.adresse)  rows.push('<span style="grid-column:1/-1">📍 <b>'+escHtml(c.adresse)+'</b></span>');
     if(c.entreprise) rows.push('<span>🏢 <b>'+escHtml(c.entreprise)+'</b></span>');
@@ -7294,7 +7452,7 @@ function renderAppels() {
       +'<div class="appel-card-body">'
         +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
           +'<span style="font-size:18px;font-weight:900;color:var(--t1)">'+escHtml(a.nom)+'</span>'
-          +(a.tel?'<a href="tel:'+a.tel.replace(/\s/g,'')+'" style="font-family:var(--mono);font-size:12px;color:var(--cyan)">📞 '+a.tel+'</a>':'')
+          +(a.tel?'<a href="#" onclick="openTelMenu('+a.tel.replace(/\s/g,'')+',event)" style="font-family:var(--mono);font-size:12px;color:var(--cyan)">📞 '+a.tel+'</a>':'')
         +'</div>'
         +(a.typeAppareil||a.marque?'<div style="font-size:12px;color:var(--t3);margin-bottom:6px">'+[a.typeAppareil,a.marque,a.modele].filter(Boolean).join(' · ')+'</div>':'')
         +(a.panne?'<div style="font-size:13px;color:var(--t2);margin-bottom:8px;padding:6px 10px;background:var(--s3);border-radius:7px">⚠️ '+escHtml(a.panne)+'</div>':'')
@@ -7322,60 +7480,40 @@ function renderAppels() {
 // ══════════════════════════════════════════════════════════════════════
 
 function openPieceModal() {
-  document.getElementById('pm-nom').value       = '';
-  document.getElementById('pm-ref-client').value= '';
-  document.getElementById('pm-ref-fournisseur').value='';
-  document.getElementById('pm-fournisseur').value='';
-  document.getElementById('pm-lien').value      = '';
-  document.getElementById('pm-qte').value       = '1';
-  document.getElementById('pm-achat').value     = '';
-  document.getElementById('pm-marge-pct').value = '30';
-  document.getElementById('pm-vente').value     = '';
-  document.getElementById('pm-marge-brute').textContent  = '—';
-  document.getElementById('pm-marge-taux').textContent   = '—';
-  document.getElementById('pm-vente-ttc').textContent    = '—';
-  document.getElementById('pm-total-vente').textContent  = '—';
-  document.getElementById('piece-search-results').style.display = 'none';
-  document.getElementById('piece-search-results').innerHTML     = '';
-  document.getElementById('piece-query').value = '';
-  /* Nettoyer le notif CORS s'il existe */
-  var n = document.getElementById('piece-manual-notif');
-  if (n) n.remove();
-
-  /* Détecter si on est en local (file://) → aller directement sur Manuel */
-  var isLocal = (location.protocol === 'file:');
-  /* Mettre à jour le badge de l'onglet recherche */
-  var onlineBadge = document.getElementById('ptab-online-badge');
-  if (onlineBadge) onlineBadge.style.display = isLocal ? '' : 'none';
-  if (isLocal) {
-    switchPieceTab('manual');
-    /* Afficher bannière info en haut de l'onglet manuel */
-    var manualContent = document.getElementById('ptab-manual-content');
-    if (manualContent && !document.getElementById('piece-local-banner')) {
-      var banner = document.createElement('div');
-      banner.id = 'piece-local-banner';
-      banner.style.cssText = 'background:rgba(255,193,7,.12);border:1px solid rgba(255,193,7,.3);'
-        + 'border-radius:8px;padding:8px 10px;margin-bottom:10px;font-size:11px;color:var(--yellow);line-height:1.4;';
-      banner.innerHTML = '<b>⚡ Mode local</b> — La recherche IA nécessite un serveur (GitHub Pages).<br>'
-        + 'Renseigne la pièce manuellement, ou déploie sur GitHub Pages pour activer la recherche.';
-      manualContent.insertBefore(banner, manualContent.firstChild);
-    }
-  } else {
-    switchPieceTab('search');
-  }
-
-  openM('m-piece');
+  // Reset champs
+  ['pm-nom','pm-ref-client','pm-ref-fournisseur','pm-fournisseur',
+   'pm-lien','pm-achat','pm-vente'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.value='';
+  });
+  var qte=document.getElementById('pm-qte'); if(qte) qte.value='1';
+  var mpc=document.getElementById('pm-marge-pct'); if(mpc) mpc.value='30';
+  ['pm-marge-brute','pm-marge-taux','pm-vente-ttc','pm-total-vente'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.textContent='—';
+  });
+  var sr=document.getElementById('piece-search-results');
+  if(sr){sr.style.display='none';sr.innerHTML='';}
+  var pq=document.getElementById('piece-query'); if(pq) pq.value='';
+  try{switchPieceTab(location.protocol==='file:'?'manual':'search');}catch(e){}
+  // Ouvrir
+  var el=document.getElementById('m-piece');
+  if(!el) return;
+  el.style.cssText='display:flex;z-index:1050;position:fixed;inset:0;align-items:center;justify-content:center;background:rgba(0,0,0,.72);backdrop-filter:blur(5px);';
 }
 
 function closePieceModal() {
-  closeM('m-piece');
+  var el = document.getElementById('m-piece');
+  if(el){ el.style.cssText=''; el.classList.remove('open'); }
 }
 
 function switchPieceTab(tab) {
-  document.getElementById('ptab-search-content').style.display = tab==='search' ? '' : 'none';
-  document.getElementById('ptab-manual-content').style.display = tab==='manual' ? '' : 'none';
-  document.getElementById('ptab-search').classList.toggle('active', tab==='search');
-  document.getElementById('ptab-manual').classList.toggle('active', tab==='manual');
+  var sc = document.getElementById('ptab-search-content');
+  var mc = document.getElementById('ptab-manual-content');
+  var sb = document.getElementById('ptab-search');
+  var mb = document.getElementById('ptab-manual');
+  if(sc) sc.style.display = tab==='search' ? '' : 'none';
+  if(mc) mc.style.display = tab==='manual' ? '' : 'none';
+  if(sb){ sb.classList.remove('active'); if(tab==='search') sb.classList.add('active'); }
+  if(mb){ mb.classList.remove('active'); if(tab==='manual') mb.classList.add('active'); }
 }
 
 function calcPieceMarge() {
@@ -7898,6 +8036,13 @@ function init() {
   document.querySelectorAll('[data-bpage]').forEach(function(el){
     el.addEventListener('click', function(){
       var pg = el.getAttribute('data-bpage');
+      // Bouton Appel sur mobile → ouvre directement le modal prise d'appel
+      if(pg === 'appels' && window.matchMedia('(max-width:768px)').matches) {
+        document.querySelectorAll('.overlay.open').forEach(function(ov){ ov.classList.remove('open'); });
+        if(typeof openNewAppel === 'function') { openNewAppel(); return; }
+        openM('m-appel');
+        return;
+      }
       if(pg){ _curPage=pg; _gotoCore(pg); refreshAll(); }
     });
   });
@@ -7906,102 +8051,64 @@ function init() {
 init();
 </script>
 
-<!-- ══ MODAL PIÈCE / COMPOSANT ══════════════════════════════════════ -->
-<div class="overlay" id="m-piece">
-<div class="modal" style="max-width:600px">
-  <div class="modal-head">
-    <div class="modal-title" id="m-piece-title">🔩 Ajouter une pièce / composant</div>
-    <button class="modal-x" onclick="closePieceModal()">✕</button>
-  </div>
-  <div style="padding:0 18px 18px">
 
-    <!-- ONGLETS -->
-    <div class="piece-tab">
-      <button class="piece-tab-btn active" id="ptab-search" onclick="switchPieceTab('search')">🔍 Recherche en ligne <span id="ptab-online-badge" style="font-size:9px;opacity:.6">(hors ligne)</span></button>
-      <button class="piece-tab-btn" id="ptab-manual" onclick="switchPieceTab('manual')">✏️ Ajout manuel</button>
-    </div>
-
-    <!-- ONGLET RECHERCHE -->
-    <div id="ptab-search-content">
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <input id="piece-query" placeholder="Ex: SSD 500Go, RTX 4060, RAM DDR5 16Go, écran 24 pouces…" style="flex:1;background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--t1);font-size:13px">
-        <button class="btn btn-primary btn-sm" onclick="searchPiece()" style="white-space:nowrap">🔍 Rechercher</button>
-      </div>
-      <div id="piece-search-hint" style="font-size:11px;color:var(--t3);margin-bottom:8px">
-        💡 Recherche via IA — prix indicatifs depuis Amazon, LDLC, TopAchat, Materiel.net
-      </div>
-      <div id="piece-search-results" style="max-height:260px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;background:var(--s2);display:none"></div>
-      <div id="piece-search-loading" style="display:none;text-align:center;padding:20px;color:var(--t3)">⏳ Recherche en cours…</div>
-    </div>
-
-    <!-- ONGLET MANUEL -->
-    <div id="ptab-manual-content" style="display:none">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-        <div class="fg" style="grid-column:1/-1">
-          <label>Désignation *</label>
-          <input id="pm-nom" placeholder="Ex: SSD Samsung 870 EVO 500Go" style="width:100%">
-        </div>
-        <div class="fg">
-          <label>Référence client <span style="color:var(--t3)">(visible sur devis)</span></label>
-          <input id="pm-ref-client" placeholder="Ex: MZ-77E500B/EU" style="width:100%">
-        </div>
-        <div class="fg">
-          <label>Référence fournisseur <span style="color:var(--t3)">(interne)</span></label>
-          <input id="pm-ref-fournisseur" placeholder="Réf. interne / SKU" style="width:100%">
-        </div>
-        <div class="fg">
-          <label>Fournisseur <span style="color:var(--t3)">(interne)</span></label>
-          <input id="pm-fournisseur" placeholder="Ex: LDLC, Amazon, TopAchat…" style="width:100%">
-        </div>
-        <div class="fg">
-          <label>Lien source <span style="color:var(--t3)">(interne)</span></label>
-          <input id="pm-lien" placeholder="https://…" style="width:100%">
-        </div>
-      </div>
-    </div>
-
-    <!-- ZONE COMMUNE : quantité + prix achat + marge + prix vente -->
-    <div id="piece-form-commune" style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
-      <div style="display:grid;grid-template-columns:70px 1fr 80px 80px;gap:10px;align-items:end;margin-bottom:10px">
-        <div class="fg">
-          <label>Qté</label>
-          <input type="number" id="pm-qte" value="1" min="1" oninput="calcPieceMarge()" style="width:100%">
-        </div>
-        <div class="fg">
-          <label>Prix d'achat HT <span style="color:var(--t3)">(interne)</span></label>
-          <input type="number" id="pm-achat" placeholder="0.00" step="0.01" min="0" oninput="calcPieceMarge()" style="width:100%">
-        </div>
-        <div class="fg">
-          <label>Marge %</label>
-          <input type="number" id="pm-marge-pct" value="30" step="1" min="0" max="999" oninput="calcPieceMarge()" style="width:100%">
-        </div>
-        <div class="fg">
-          <label>Prix de vente HT</label>
-          <input type="number" id="pm-vente" placeholder="0.00" step="0.01" min="0" oninput="calcPieceMargeFromVente()" style="width:100%;background:var(--s2);border-color:var(--cyan)">
-        </div>
-      </div>
-      <!-- Récap marge -->
-      <div id="pm-marge-recap" style="background:var(--s2);border-radius:8px;padding:8px 12px;font-size:12px;display:flex;gap:16px;flex-wrap:wrap;margin-bottom:12px">
-        <span>Marge brute : <strong id="pm-marge-brute" style="color:var(--green)">—</strong></span>
-        <span>Taux : <strong id="pm-marge-taux" style="color:var(--amber)">—</strong></span>
-        <span>PV TTC : <strong id="pm-vente-ttc" style="color:var(--cyan)">—</strong></span>
-        <span>Total vente : <strong id="pm-total-vente" style="color:var(--t1)">—</strong></span>
-      </div>
-      <div class="fg" style="margin-bottom:12px">
-        <label>Type de ligne</label>
-        <select id="pm-type" style="background:var(--s3);border:1px solid var(--border);border-radius:7px;padding:6px 10px;color:var(--t1);font-size:12px;width:100%">
-          <option value="piece">🔩 Pièce / Composant</option>
-          <option value="mo">🔧 Main-d'œuvre</option>
-          <option value="forfait">⚡ Forfait</option>
-          <option value="autre">📝 Autre</option>
-        </select>
-      </div>
-      <button class="btn btn-primary" onclick="insertPieceInDevis()" style="width:100%;padding:10px">✅ Ajouter au devis</button>
-    </div>
-
-  </div>
+<!-- Menu appel rapide (tel + WhatsApp) -->
+<div id="tel-quick-menu">
+  <button class="tel-menu-btn" id="tel-menu-call" onclick="telMenuCall()">
+    📞 <span>Appeler</span>
+  </button>
+  <button class="tel-menu-btn" style="color:#25d366" onclick="telMenuWA()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="#25d366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    <span>WhatsApp</span>
+  </button>
+  <button class="tel-menu-cancel" onclick="closeTelMenu()">Annuler</button>
 </div>
-</div>
+<script>
+var _telMenuNumber = '';
+function openTelMenu(tel, event) {
+  _telMenuNumber = tel;
+  var menu = document.getElementById('tel-quick-menu');
+  menu.classList.add('open');
+  // Positionner le menu près du clic
+  if (event) {
+    var x = Math.min(event.clientX, window.innerWidth - 220);
+    var y = Math.min(event.clientY, window.innerHeight - 160);
+    menu.style.left = x + 'px';
+    menu.style.top  = y + 'px';
+  } else {
+    menu.style.left = '50%';
+    menu.style.top  = '50%';
+    menu.style.transform = 'translate(-50%,-50%)';
+  }
+  // Mettre à jour le label du bouton appel
+  document.getElementById('tel-menu-call').querySelector('span').textContent = 'Appeler ' + tel;
+  event && event.stopPropagation();
+}
+function closeTelMenu() {
+  var menu = document.getElementById('tel-quick-menu');
+  menu.classList.remove('open');
+  menu.style.transform = '';
+}
+function telMenuCall() {
+  closeTelMenu();
+  window.location.href = 'tel:' + _telMenuNumber.replace(/\s/g,'');
+}
+function telMenuWA() {
+  closeTelMenu();
+  var n = _telMenuNumber.replace(/[\s+\-().]/g,'');
+  if (n.startsWith('0')) n = '33' + n.slice(1);
+  window.open('https://wa.me/' + n, '_blank');
+}
+// Fermer si clic ailleurs
+document.addEventListener('click', function(e){
+  var menu = document.getElementById('tel-quick-menu');
+  if (menu && menu.classList.contains('open') && !menu.contains(e.target)) {
+    closeTelMenu();
+  }
+});
+</script>
+
+
 
 </body>
 </html>
