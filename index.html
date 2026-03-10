@@ -411,11 +411,14 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
   margin-bottom:8px;
   active{background:rgba(255,255,255,.02);}
 }
-.mcard-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.mcard-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;}
 .mcard-id{font-size:13px;font-weight:800;display:flex;align-items:center;gap:7px;}
 .mcard-body{font-size:13px;color:var(--t2);line-height:1.5;margin-bottom:8px;}
 .mcard-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
 .mcard-foot{display:flex;gap:6px;flex-wrap:wrap;}
+.mcard-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.mcard-actions .btn{font-size:12px;}
+.mcard-body>div{margin-bottom:4px;}
 
 /* Responsive breakpoint 768px */
 @media (max-width: 768px) {
@@ -2619,10 +2622,16 @@ function saveTicket(){
 
 function renderTickets(list){
   const tb=document.getElementById('tbl-tickets');
-  if(!list.length){ tb.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="ei">🔧</div><p>Aucun ticket — créez-en un !</p></div></td></tr>`; return; }
-  tb.innerHTML=list.map(function(t){
-    const c=getClient(t.clientId);
-    const cname=clientName(t.clientId);
+  const ml=document.getElementById('mlist-tickets');
+  const empty='<div class="empty"><div class="ei">🔧</div><p>Aucun ticket — créez-en un !</p></div>';
+  if(!list.length){
+    if(tb) tb.innerHTML='<tr><td colspan="8">'+empty+'</td></tr>';
+    if(ml) ml.innerHTML=empty;
+    return;
+  }
+  const statutLabel={attente:'⏳ Attente',encours:'🔧 En cours',termine:'✅ Terminé',livre:'📦 Livré'};
+  if(tb) tb.innerHTML=list.map(function(t){
+    const c=getClient(t.clientId); const cname=clientName(t.clientId);
     const telClean=c&&c.tel?c.tel.replace(/\s/g,''):'';
     const telSpan=c&&c.tel?'<br><a href="tel:'+telClean+'" style="color:var(--cyan);font-family:var(--mono);font-size:11px;text-decoration:none">📞 '+c.tel+'</a>':'';
     return '<tr>'
@@ -2639,11 +2648,39 @@ function renderTickets(list){
       +'</select></td>'
       +'<td class="td-sm">'+fmtDate(t.date)+'</td>'
       +'<td>'
-        +'<button class="btn btn-ghost btn-sm" onclick="showHistorique(this.dataset.cid)" data-cid="'+t.clientId+'" title="Historique client">📋</button> '
-        +'<button class="btn btn-ghost btn-sm" onclick="editTicket(\''+t.id+'\')" title="Modifier">✏️</button> '
+        +'<button class="btn btn-ghost btn-sm" onclick="showHistorique(this.dataset.cid)" data-cid="'+t.clientId+'">📋</button> '
+        +'<button class="btn btn-ghost btn-sm" onclick="editTicket(\''+t.id+'\')">✏️</button> '
         +'<button class="btn btn-danger btn-sm" onclick="del(&quot;tickets&quot;,&quot;'+t.id+'&quot;)">🗑</button>'
-      +'</td>'
-    +'</tr>';
+      +'</td></tr>';
+  }).join('');
+  if(ml) ml.innerHTML=list.map(function(t){
+    const c=getClient(t.clientId); const cname=clientName(t.clientId);
+    const telClean=c&&c.tel?c.tel.replace(/\s/g,''):'';
+    return '<div class="mcard">'
+      +'<div class="mcard-top">'
+        +'<span class="tk-tag" style="font-size:13px">'+t.id+'</span>'
+        +'<div style="flex:1;min-width:0">'
+          +'<div style="font-weight:700">'+cname+'</div>'
+          +'<div style="font-size:12px;color:var(--t2)">'+t.type+(t.marque?' · '+t.marque:'')+'</div>'
+        +'</div>'
+        +'<span class="badge b-'+t.statut+'">'+(statutLabel[t.statut]||t.statut)+'</span>'
+      +'</div>'
+      +'<div class="mcard-body">'
+        +'<div style="font-size:13px">🔧 '+t.probleme+'</div>'
+        +(t.diag?'<div style="font-size:12px;color:var(--t2)">🩺 '+t.diag+'</div>':'')        +(c&&c.tel?'<div><a href="tel:'+telClean+'" style="color:var(--cyan);text-decoration:none;font-size:13px">📞 '+c.tel+'</a></div>':'')        +'<div style="font-size:12px;color:var(--t2)">📅 '+fmtDate(t.date)+'</div>'
+      +'</div>'
+      +'<div class="mcard-actions">'
+        +'<select class="st-sel b-'+t.statut+'" onchange="setTicketStatus(\''+t.id+'\',this.value)" style="flex:1;color:inherit">'
+          +'<option value="attente"'+(t.statut==='attente'?' selected':'')+'>⏳ Attente</option>'
+          +'<option value="encours"'+(t.statut==='encours'?' selected':'')+'>🔧 En cours</option>'
+          +'<option value="termine"'+(t.statut==='termine'?' selected':'')+'>✅ Terminé</option>'
+          +'<option value="livre"'+(t.statut==='livre'?' selected':'')+'>📦 Livré</option>'
+        +'</select>'
+        +'<button class="btn btn-ghost btn-sm" onclick="showHistorique(\''+t.clientId+'\')">📋</button>'
+        +'<button class="btn btn-ghost btn-sm" onclick="editTicket(\''+t.id+'\')">✏️</button>'
+        +'<button class="btn btn-danger btn-sm" onclick="del(\'tickets\',\''+t.id+'\')">🗑</button>'
+      +'</div>'
+    +'</div>';
   }).join('');
 }
 
@@ -2723,27 +2760,36 @@ function saveClient(){
 function renderClients(list){
   list = list || DB.clients || [];
   const tb=document.getElementById('tbl-clients');
-  if(!tb) return;
-  if(!list.length){ tb.innerHTML='<tr><td colspan="8"><div class="empty"><div class="ei">👤</div><p>Aucun client</p></div></td></tr>'; return; }
-  tb.innerHTML=list.map(function(c){
+  const ml=document.getElementById('mlist-clients');
+  const empty='<div class="empty"><div class="ei">👤</div><p>Aucun client</p></div>';
+  if(!list.length){
+    if(tb) tb.innerHTML='<tr><td colspan="8">'+empty+'</td></tr>';
+    if(ml) ml.innerHTML=empty;
+    return;
+  }
+  const rows=list.map(function(c){
     const nb=DB.tickets.filter(function(t){return t.clientId===c.id;}).length;
     const telClean=c.tel?c.tel.replace(/\s/g,''):'';
-    const telHtml=c.tel
-      ?'<a href="tel:'+telClean+'" style="color:var(--cyan);font-family:var(--mono);text-decoration:none">📞 '+c.tel+'</a>'
-      :'—';
-    const mailHtml=c.email
-      ?'<a target="_blank" href="https://mail.google.com/mail/?view=cm&fs=1&to='+c.email+'" style="color:var(--purple);font-family:var(--mono);cursor:pointer;text-decoration:none">✉️ '+c.email+'</a>'
-      :'—';
+    const telHtml=c.tel?'<a href="tel:'+telClean+'" style="color:var(--cyan);font-family:var(--mono);text-decoration:none">📞 '+c.tel+'</a>':'—';
+    const mailHtml=c.email?'<a target="_blank" href="https://mail.google.com/mail/?view=cm&fs=1&to='+c.email+'" style="color:var(--purple);font-family:var(--mono);text-decoration:none">✉️ '+c.email+'</a>':'—';
+    return {c,nb,telHtml,mailHtml,telClean};
+  });
+  if(tb) tb.innerHTML=rows.map(function(r){
+    var c=r.c; var nb=r.nb;
     return '<tr>'
       +'<td><span class="avatar">'+initials(c.nom+' '+(c.prenom||''))+'</span><strong>'+c.nom+' '+(c.prenom||'')+'</strong>'+(c.entreprise?'<br><span class="td-sm">🏢 '+c.entreprise+'</span>':'')+'</td>'
-      +'<td>'+telHtml+'</td>'
-      +'<td>'+mailHtml+'</td>'
-      +'<td>'+(c.adresse?'<a href="'+gpsLink(c.adresse)+'" target="_blank" rel="noopener" title="Ouvrir dans GPS" style="color:var(--cyan);text-decoration:none;font-size:12px">&#128205; '+c.adresse+'</a>':'—')+'</td>'
+      +'<td>'+r.telHtml+'</td>'
+      +'<td>'+r.mailHtml+'</td>'
+      +'<td>'+(c.adresse?'<a href="'+gpsLink(c.adresse)+'" target="_blank" rel="noopener" style="color:var(--cyan);text-decoration:none;font-size:12px">📍 '+c.adresse+'</a>':'—')+'</td>'
       +'<td>'+(c.type==='entreprise'?'<span class="badge b-encours">🏢 Entreprise</span>':'<span class="badge b-livre">👤 Particulier</span>')+'</td>'
       +'<td style="text-align:center"><span class="tk-tag">'+nb+'</span></td>'
       +'<td><button class="btn btn-ghost btn-sm" onclick="showHistorique(this.dataset.cid)" data-cid="'+c.id+'">📋</button></td>'
-      +'<td><button class="btn btn-ghost btn-sm" onclick="editClient(\''+c.id+'\')" title="Modifier">✏️</button> <button class="btn btn-danger btn-sm" onclick="del(&quot;clients&quot;,&quot;'+c.id+'&quot;)">🗑</button></td>'
-    +'</tr>';
+      +'<td><button class="btn btn-ghost btn-sm" onclick="editClient(\''+c.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="del(&quot;clients&quot;,&quot;'+c.id+'&quot;)">🗑</button></td>'
+      +'</tr>';
+  }).join('');
+  if(ml) ml.innerHTML=rows.map(function(r){
+    var c=r.c; var nb=r.nb;
+    return '<div class="mcard">'      +'<div class="mcard-top">'        +'<span class="avatar">'+initials(c.nom+' '+(c.prenom||''))+'</span>'        +'<div style="flex:1;min-width:0">'          +'<div style="font-weight:700;font-size:15px">'+c.nom+' '+(c.prenom||'')+'</div>'          +(c.entreprise?'<div style="font-size:12px;color:var(--t2)">🏢 '+c.entreprise+'</div>':'')        +'</div>'        +'<span class="badge '+(c.type==='entreprise'?'b-encours':'b-livre')+'" style="flex-shrink:0">'+(c.type==='entreprise'?'Entreprise':'Particulier')+'</span>'      +'</div>'      +'<div class="mcard-body">'        +(c.tel?'<div>'+r.telHtml+'</div>':'')        +(c.email?'<div>'+r.mailHtml+'</div>':'')        +(c.adresse?'<div><a href="'+gpsLink(c.adresse)+'" target="_blank" style="color:var(--cyan);text-decoration:none;font-size:12px">📍 '+c.adresse+'</a></div>':'')        +'<div style="font-size:12px;color:var(--t2)">🎫 '+nb+' ticket'+(nb>1?'s':'')+'</div>'      +'</div>'      +'<div class="mcard-actions">'        +'<button class="btn btn-ghost btn-sm" onclick="showHistorique(\''+c.id+'\')">📋 Historique</button>'        +'<button class="btn btn-ghost btn-sm" onclick="editClient(\''+c.id+'\')">✏️ Modifier</button>'        +'<button class="btn btn-danger btn-sm" onclick="del(\'clients\',\''+c.id+'\')">🗑</button>'      +'</div>'    +'</div>';
   }).join('');
 }
 
@@ -2931,9 +2977,15 @@ function saveDevis(){
 function renderDevis(list){
   list = list || DB.devis || [];
   const tb=document.getElementById('tbl-devis');
+  const ml=document.getElementById('mlist-devis');
   const data=list||DB.devis;
-  if(!data.length){ tb.innerHTML=`<tr><td colspan="8"><div class="empty"><div class="ei">📋</div><p>Aucun devis</p></div></td></tr>`; return; }
-  tb.innerHTML=data.map(d=>`
+  const empty='<div class="empty"><div class="ei">📋</div><p>Aucun devis</p></div>';
+  if(!data.length){
+    if(tb) tb.innerHTML='<tr><td colspan="8">'+empty+'</td></tr>';
+    if(ml) ml.innerHTML=empty;
+    return;
+  }
+  if(tb) tb.innerHTML=data.map(d=>`
     <tr>
       <td><span class="tk-tag">${d.id}</span></td>
       <td>${clientName(d.clientId)}</td>
@@ -2949,6 +3001,30 @@ function renderDevis(list){
         <button class="btn btn-danger btn-sm" onclick="del('devis','${d.id}')">🗑</button>
       </td>
     </tr>`).join('');
+  if(ml) ml.innerHTML=data.map(d=>`
+    <div class="mcard">
+      <div class="mcard-top">
+        <span class="tk-tag" style="font-size:13px">${d.id}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700">${clientName(d.clientId)}</div>
+          <div style="font-size:12px;color:var(--t2)">${d.lignes.map(l=>l.desc).join(', ')}</div>
+        </div>
+        ${badge(d.statut)}
+      </div>
+      <div class="mcard-body">
+        <div style="display:flex;gap:16px">
+          <div><div style="font-size:11px;color:var(--t2)">HT</div><div style="font-family:var(--mono);font-weight:700">${fmt(d.ht)} €</div></div>
+          <div><div style="font-size:11px;color:var(--t2)">TTC</div><div style="font-family:var(--mono);font-weight:700;color:var(--amber)">${fmt(d.ttc)} €</div></div>
+        </div>
+        <div style="font-size:12px;color:var(--t2)">📅 ${fmtDate(d.date)}</div>
+      </div>
+      <div class="mcard-actions">
+        <button class="btn btn-success btn-sm" onclick="previewDoc('devis','${d.id}')">👁 Aperçu</button>
+        <button class="btn btn-amber btn-sm" onclick="devisToFacture('${d.id}')">→ Facture</button>
+        <button class="btn btn-ghost btn-sm" onclick="editDevis('${d.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="del('devis','${d.id}')">🗑</button>
+      </div>
+    </div>`).join('');
 }
 
 function devisToFacture(dvId){
@@ -3007,9 +3083,15 @@ function saveFacture(){
 function renderFactures(list){
   list = list || DB.factures || [];
   const tb=document.getElementById('tbl-factures');
+  const ml=document.getElementById('mlist-factures');
   const data=list||DB.factures;
-  if(!data.length){ tb.innerHTML=`<tr><td colspan="7"><div class="empty"><div class="ei">💰</div><p>Aucune facture</p></div></td></tr>`; return; }
-  tb.innerHTML=data.map(f=>`
+  const empty='<div class="empty"><div class="ei">💰</div><p>Aucune facture</p></div>';
+  if(!data.length){
+    if(tb) tb.innerHTML='<tr><td colspan="7">'+empty+'</td></tr>';
+    if(ml) ml.innerHTML=empty;
+    return;
+  }
+  if(tb) tb.innerHTML=data.map(f=>`
     <tr>
       <td><span class="tk-tag">${f.id}</span></td>
       <td>${clientName(f.clientId)}</td>
@@ -3019,11 +3101,32 @@ function renderFactures(list){
       <td class="td-sm">${fmtDate(f.date)}</td>
       <td style="display:flex;gap:4px">
         <button class="btn btn-success btn-sm" onclick="previewDoc('facture','${f.id}')">👁 Aperçu</button>
-        ${f.statut!=='payee'&&f.statut!=='encaisse'?`<button class="btn btn-primary btn-sm" onclick="marquerPayee('${f.id}')" title="Marquer payée">✅</button>`:''}
+        ${f.statut!=='payee'&&f.statut!=='encaisse'?`<button class="btn btn-primary btn-sm" onclick="marquerPayee('${f.id}')">✅</button>`:''}
         <button class="btn btn-ghost btn-sm" onclick="editFacture('${f.id}')">✏️</button>
         <button class="btn btn-danger btn-sm" onclick="del('factures','${f.id}')">🗑</button>
       </td>
     </tr>`).join('');
+  if(ml) ml.innerHTML=data.map(f=>`
+    <div class="mcard">
+      <div class="mcard-top">
+        <span class="tk-tag" style="font-size:13px">${f.id}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700">${clientName(f.clientId)}</div>
+          <div style="font-size:12px;color:var(--t2)">${f.lignes.map(l=>l.desc).join(', ')}</div>
+        </div>
+        ${badge(f.statut)}
+      </div>
+      <div class="mcard-body">
+        <div style="font-family:var(--mono);font-weight:700;font-size:18px;color:var(--green)">${fmt(f.ttc)} € TTC</div>
+        <div style="font-size:12px;color:var(--t2)">📅 ${fmtDate(f.date)}</div>
+      </div>
+      <div class="mcard-actions">
+        <button class="btn btn-success btn-sm" onclick="previewDoc('facture','${f.id}')">👁 Aperçu</button>
+        ${f.statut!=='payee'&&f.statut!=='encaisse'?`<button class="btn btn-primary btn-sm" onclick="marquerPayee('${f.id}')">✅ Payée</button>`:''}
+        <button class="btn btn-ghost btn-sm" onclick="editFacture('${f.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="del('factures','${f.id}')">🗑</button>
+      </div>
+    </div>`).join('');
 }
 
 // ─── STOCK ───────────────────────────────────────
@@ -3047,12 +3150,20 @@ function saveStock(){
 
 function renderStock(){
   const tb=document.getElementById('tbl-stock');
-  if(!DB.stock.length){ tb.innerHTML=`<tr><td colspan="9"><div class="empty"><div class="ei">📦</div><p>Stock vide</p></div></td></tr>`; return; }
-  tb.innerHTML=DB.stock.map(s=>{
+  const ml=document.getElementById('mlist-stock');
+  const empty='<div class="empty"><div class="ei">📦</div><p>Stock vide</p></div>';
+  if(!DB.stock.length){
+    if(tb) tb.innerHTML='<tr><td colspan="9">'+empty+'</td></tr>';
+    if(ml) ml.innerHTML=empty;
+    return;
+  }
+  const rows=DB.stock.map(s=>{
     const low=s.qte<=s.seuil;
     const pct=Math.min(100,(s.qte/(s.seuil*3+1))*100);
     const marge=s.vente>0&&s.achat>0?Math.round((s.vente-s.achat)/s.vente*100):0;
-    return `<tr>
+    return {s,low,pct,marge};
+  });
+  if(tb) tb.innerHTML=rows.map(({s,low,pct,marge})=>`<tr>
       <td class="td-sm">${s.ref}</td>
       <td><strong>${s.nom}</strong></td>
       <td><span class="badge b-particulier">${s.cat}</span></td>
@@ -3069,8 +3180,31 @@ function renderStock(){
         <button class="btn btn-ghost btn-sm" onclick="adjQte('${s.id}',-1)">−</button>
         <button class="btn btn-danger btn-sm" onclick="del('stock','${s.id}')">🗑</button>
       </td>
-    </tr>`;
-  }).join('');
+    </tr>`).join('');
+  if(ml) ml.innerHTML=rows.map(({s,low,pct,marge})=>`
+    <div class="mcard">
+      <div class="mcard-top">
+        <div style="flex:1;min-width:0">
+          <div style="font-weight:700">${s.nom}</div>
+          <div style="font-size:12px;color:var(--t2)">${s.ref} · <span class="badge b-particulier">${s.cat}</span></div>
+        </div>
+        <span style="font-family:var(--mono);font-weight:700;font-size:20px;color:${low?'var(--red)':'var(--green)'}">${s.qte}</span>
+      </div>
+      <div class="mcard-body">
+        <div class="sbar" style="margin:0 0 8px"><div class="sbar-fill" style="width:${pct}%;background:${low?'var(--red)':'var(--green)'}"></div></div>
+        <div style="display:flex;gap:16px;font-size:13px">
+          <div><span style="color:var(--t2)">Achat </span><span style="font-family:var(--mono)">${fmt(s.achat)} €</span></div>
+          <div><span style="color:var(--t2)">Vente </span><span style="font-family:var(--mono);color:var(--amber)">${fmt(s.vente)} €</span></div>
+          <div><span style="color:var(--t2)">Marge </span><span style="font-family:var(--mono);color:${marge>30?'var(--green)':'var(--amber)'}">${marge}%</span></div>
+        </div>
+        ${low?'<div style="color:var(--red);font-size:12px;margin-top:4px">⚠️ Stock bas — seuil : '+s.seuil+'</div>':''}
+      </div>
+      <div class="mcard-actions">
+        <button class="btn btn-success btn-sm" onclick="adjQte('${s.id}',1)" style="flex:1">+ Entrée</button>
+        <button class="btn btn-ghost btn-sm" onclick="adjQte('${s.id}',-1)" style="flex:1">− Sortie</button>
+        <button class="btn btn-danger btn-sm" onclick="del('stock','${s.id}')">🗑</button>
+      </div>
+    </div>`).join('');
 }
 
 function adjQte(id,d){
