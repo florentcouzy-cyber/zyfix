@@ -2803,7 +2803,7 @@ function renderTickets(list){
   if(tb) tb.innerHTML=list.map(function(t){
     const c=getClient(t.clientId); const cname=clientName(t.clientId);
     const telClean=c&&c.tel?c.tel.replace(/\s/g,''):'';
-    const telSpan=c&&c.tel?'<br><a href="#" onclick="openTelMenu('+telClean+',event)" style="color:var(--cyan);font-family:var(--mono);font-size:11px;text-decoration:none">📞 '+c.tel+'</a>':'';
+    const telSpan=c&&c.tel?'<br><a href="#" onclick="openTelMenu(this.dataset.tel,event)" data-tel="'+telClean+'" style="color:var(--cyan);font-family:var(--mono);font-size:11px;text-decoration:none">📞 '+c.tel+'</a>':'';
     return '<tr>'
       +'<td><span class="tk-tag">'+t.id+'</span></td>'
       +'<td><span class="avatar">'+initials(cname)+'</span>'+cname+telSpan+'</td>'
@@ -2837,7 +2837,7 @@ function renderTickets(list){
       +'</div>'
       +'<div class="mcard-body">'
         +'<div style="font-size:13px">🔧 '+t.probleme+'</div>'
-        +(t.diag?'<div style="font-size:12px;color:var(--t2)">🩺 '+t.diag+'</div>':'')        +(c&&c.tel?'<div><a href="#" onclick="openTelMenu('+telClean+',event)" style="color:var(--cyan);text-decoration:none;font-size:13px">📞 '+c.tel+'</a></div>':'')        +'<div style="font-size:12px;color:var(--t2)">📅 '+fmtDate(t.date)+'</div>'
+        +(t.diag?'<div style="font-size:12px;color:var(--t2)">🩺 '+t.diag+'</div>':'')        +(c&&c.tel?'<div><a href="#" onclick="openTelMenu(this.dataset.tel,event)" data-tel="'+telClean+'" style="color:var(--cyan);text-decoration:none;font-size:13px">📞 '+c.tel+'</a></div>':'')        +'<div style="font-size:12px;color:var(--t2)">📅 '+fmtDate(t.date)+'</div>'
       +'</div>'
       +'<div class="mcard-actions">'
         +'<select class="st-sel b-'+t.statut+'" onchange="setTicketStatus(\''+t.id+'\',this.value)" style="flex:1;color:inherit">'
@@ -2940,7 +2940,7 @@ function renderClients(list){
   const rows=list.map(function(c){
     const nb=DB.tickets.filter(function(t){return t.clientId===c.id;}).length;
     const telClean=c.tel?c.tel.replace(/\s/g,''):'';
-    const telHtml=c.tel?'<a href="#" onclick="openTelMenu('+telClean+',event)" style="color:var(--cyan);font-family:var(--mono);text-decoration:none">📞 '+c.tel+'</a>':'—';
+    const telHtml=c.tel?'<a href="#" onclick="openTelMenu(this.dataset.tel,event)" data-tel="'+telClean+'" style="color:var(--cyan);font-family:var(--mono);text-decoration:none">📞 '+c.tel+'</a>':'—';
     const mailHtml=c.email?'<a target="_blank" href="mailto:'+c.email+'" style="color:var(--purple);font-family:var(--mono);text-decoration:none">✉️ '+c.email+'</a>':'—';
     return {c,nb,telHtml,mailHtml,telClean};
   });
@@ -2950,7 +2950,7 @@ function renderClients(list){
       +'<td><span class="avatar">'+initials(c.nom+' '+(c.prenom||''))+'</span><strong>'+c.nom+' '+(c.prenom||'')+'</strong>'+(c.entreprise?'<br><span class="td-sm">🏢 '+c.entreprise+'</span>':'')+'</td>'
       +'<td>'+r.telHtml+'</td>'
       +'<td>'+r.mailHtml+'</td>'
-      +'<td>'+(c.adresse?'<a href="#" onclick="openMap(\''+c.adresse+'\');return false;" style="color:var(--cyan);text-decoration:none;font-size:12px;cursor:pointer">📍 '+c.adresse+'</a>':'—')+'</td>'
+      +'<td>'+(c.adresse?'<a href="#" onclick="openMap(this.dataset.a);return false;" data-a="'+escHtml(c.adresse)+'" style="color:var(--cyan);text-decoration:none;font-size:12px;cursor:pointer">📍 '+c.adresse+'</a>':'—')+'</td>'
       +'<td>'+(c.type==='entreprise'?'<span class="badge b-encours">🏢 Entreprise</span>':'<span class="badge b-livre">👤 Particulier</span>')+'</td>'
       +'<td style="text-align:center"><span class="tk-tag">'+nb+'</span></td>'
       +'<td><button class="btn btn-ghost btn-sm" onclick="showHistorique(this.dataset.cid)" data-cid="'+c.id+'">📋</button></td>'
@@ -2959,7 +2959,7 @@ function renderClients(list){
   }).join('');
   if(ml) ml.innerHTML=rows.map(function(r){
     var c=r.c; var nb=r.nb;
-    return '<div class="mcard">'      +'<div class="mcard-top">'        +'<span class="avatar">'+initials(c.nom+' '+(c.prenom||''))+'</span>'        +'<div style="flex:1;min-width:0">'          +'<div style="font-weight:700;font-size:15px">'+c.nom+' '+(c.prenom||'')+'</div>'          +(c.entreprise?'<div style="font-size:12px;color:var(--t2)">🏢 '+c.entreprise+'</div>':'')        +'</div>'        +'<span class="badge '+(c.type==='entreprise'?'b-encours':'b-livre')+',event)" style="flex-shrink:0">'+(c.type==='entreprise'?'Entreprise':'Particulier')+'</span>'      +'</div>'      +'<div class="mcard-body">'        +(c.tel?'<div>'+r.telHtml+'</div>':'')        +(c.email?'<div>'+r.mailHtml+'</div>':'')        +(c.adresse?'<div><a href="#" onclick="openMap(\'' + c.adresse + '\');return false;" style="color:var(--cyan);text-decoration:none;font-size:12px;cursor:pointer">📍 ' + c.adresse + '</a></div>':'')        +'<div style="font-size:12px;color:var(--t2)">🎫 '+nb+' ticket'+(nb>1?'s':'')+'</div>'      +'</div>'      +'<div class="mcard-actions">'        +'<button class="btn btn-ghost btn-sm" onclick="showHistorique(\''+c.id+'\')">📋 Historique</button>'        +'<button class="btn btn-ghost btn-sm" onclick="editClient(\''+c.id+'\')">✏️ Modifier</button>'        +'<button class="btn btn-danger btn-sm" onclick="del(\'clients\',\''+c.id+'\')">🗑</button>'      +'</div>'    +'</div>';
+    return '<div class="mcard">'      +'<div class="mcard-top">'        +'<span class="avatar">'+initials(c.nom+' '+(c.prenom||''))+'</span>'        +'<div style="flex:1;min-width:0">'          +'<div style="font-weight:700;font-size:15px">'+c.nom+' '+(c.prenom||'')+'</div>'          +(c.entreprise?'<div style="font-size:12px;color:var(--t2)">🏢 '+c.entreprise+'</div>':'')        +'</div>'        +'<span class="badge '+(c.type==='entreprise'?'b-encours':'b-livre')+',event)" style="flex-shrink:0">'+(c.type==='entreprise'?'Entreprise':'Particulier')+'</span>'      +'</div>'      +'<div class="mcard-body">'        +(c.tel?'<div>'+r.telHtml+'</div>':'')        +(c.email?'<div>'+r.mailHtml+'</div>':'')        +(c.adresse?'<div><a href="#" onclick="openMap(this.dataset.a);return false;" data-a="' + escHtml(c.adresse) + '" style="color:var(--cyan);text-decoration:none;font-size:12px;cursor:pointer">📍 ' + c.adresse + '</a></div>':'')        +'<div style="font-size:12px;color:var(--t2)">🎫 '+nb+' ticket'+(nb>1?'s':'')+'</div>'      +'</div>'      +'<div class="mcard-actions">'        +'<button class="btn btn-ghost btn-sm" onclick="showHistorique(\''+c.id+'\')">📋 Historique</button>'        +'<button class="btn btn-ghost btn-sm" onclick="editClient(\''+c.id+'\')">✏️ Modifier</button>'        +'<button class="btn btn-danger btn-sm" onclick="del(\'clients\',\''+c.id+'\')">🗑</button>'      +'</div>'    +'</div>';
   }).join('');
 }
 
@@ -4365,7 +4365,7 @@ function renderAgenda(){
       var isDone = r.statut === 'termine';
       var telClean = c&&c.tel ? c.tel.replace(/\s/g,'') : '';
       var telHtml = c&&c.tel
-        ? '<a href="#" onclick="openTelMenu('+telClean+',event)" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;margin-top:5px">&#128222; '+c.tel+'</a>'
+        ? '<a href="#" onclick="openTelMenu(this.dataset.tel,event)" data-tel="'+telClean+'" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;margin-top:5px">&#128222; '+c.tel+'</a>'
         : '';
       // Chercher la réparation liée (via ticketId ou clientId + date proche)
       var linkedRep = null;
@@ -4426,7 +4426,7 @@ function renderAgenda(){
       var nbTk = DB.tickets.filter(function(t){ return t.clientId===cid; }).length;
       var telClean = c.tel ? c.tel.replace(/\s/g,'') : '';
       var telHtml = c.tel
-        ? '<a href="#" onclick="openTelMenu('+telClean+',event)" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;margin-right:6px">&#128222; '+c.tel+'</a>'
+        ? '<a href="#" onclick="openTelMenu(this.dataset.tel,event)" data-tel="'+telClean+'" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;margin-right:6px">&#128222; '+c.tel+'</a>'
         : '';
       var mailHtml = c.email
         ? '<a target="_blank" href="mailto:'+c.email+'" style="display:inline-flex;align-items:center;gap:5px;background:rgba(179,136,255,.1);border:1px solid rgba(179,136,255,.25);color:var(--purple);font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer">&#9993; '+c.email+'</a>'
@@ -4514,9 +4514,9 @@ function showHistorique(clientId){
       +'</div>'
     +'</div>'
     +'<div style="display:flex;flex-wrap:wrap;gap:8px">'
-      +(c.tel?'<a href="#" onclick="openTelMenu('+telClean+',event)" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer">&#128222; '+c.tel+'</a>':'')
+      +(c.tel?'<a href="#" onclick="openTelMenu(this.dataset.tel,event)" data-tel="'+telClean+'" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer">&#128222; '+c.tel+'</a>':'')
       +(c.email?'<a target="_blank" href="mailto:'+c.email+'" style="display:inline-flex;align-items:center;gap:5px;background:rgba(179,136,255,.1);border:1px solid rgba(179,136,255,.25);color:var(--purple);font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer">&#9993; '+c.email+'</a>':'')
-      +(c.adresse?'<a href="#" onclick="openMap(\''+c.adresse+'\');return false;" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);color:var(--cyan);font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer">📍 '+c.adresse+'</a>':'')
+      +(c.adresse?'<a href="#" onclick="openMap(this.dataset.a);return false;" data-a="'+escHtml(c.adresse)+'" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);color:var(--cyan);font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer">📍 '+c.adresse+'</a>':'')
     +'</div>'
   +'</div>';
 
@@ -6357,10 +6357,14 @@ function renderPubCharts(stats, periode) {
 
 // ── GPS LINK ─────────────────────────────────────────────────────────
 function openMap(adresse) {
+  // Accepte string ou élément DOM (via this.dataset.a dans onclick)
+  if (adresse && typeof adresse === 'object' && adresse.dataset) adresse = adresse.dataset.a;
+  adresse = String(adresse || '').trim();
+  if (!adresse) return;
   var enc = encodeURIComponent(adresse);
   var url;
   if (/Android/i.test(navigator.userAgent)) {
-    // geo: URI → Android propose le choix de l'appli de navigation
+    // geo: URI → Android ouvre le sélecteur d'app de navigation (Maps, Waze...)
     url = 'geo:0,0?q=' + enc;
   } else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
     url = 'maps://?q=' + enc;
@@ -6500,7 +6504,7 @@ function renderReparations() {
     var cname = c ? c.nom+' '+(c.prenom||'') : '—';
     var urgCls = 'rep-urgence-'+(r.urgence||'normal');
     var tel = c ? c.tel : '';
-    return '<div class="mcard">'      +'<div class="mcard-head">'        +'<div>'          +'<div class="mcard-title">'+escHtml(cname)+'</div>'          +'<div class="mcard-sub">'+escHtml(r.typeAppareil+' '+r.marque+(r.modele?' '+r.modele:''))+'</div>'        +'</div>'        +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">'          +'<span class="rep-status-badge rep-status-'+r.statut+'">'+REP_STATUT_LABELS[r.statut]+'</span>'          +'<span class="mcard-sub td-mono">'+r.num+'</span>'        +'</div>'      +'</div>'      +'<div class="mcard-body">'        +(r.panneDec?'<div style="font-size:12px;color:var(--t2);margin-bottom:6px;padding:6px 8px;background:var(--s3);border-radius:6px">⚠️ '+escHtml((r.panneDec||'').substring(0,60))+'</div>':'')        +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'          +'<span class="'+urgCls+'">'+REP_URGENCE_LABELS[r.urgence||'normal']+'</span>'          +'<span class="mcard-sub">📅 '+r.dateEntree+'</span>'        +'</div>'      +'</div>'      +'<div class="mcard-foot">'        +(tel?'<a href="#" onclick="openTelMenu('+tel.replace(/\s/g,'')+',event)" class="btn btn-ghost btn-sm">📞</a>':'')        +'<button class="btn btn-ghost btn-sm" onclick="editRep(\''+r.id+'\')" >✏️ Modifier</button>'        +'<button class="btn btn-ghost btn-sm" onclick="viewRep(\''+r.id+'\')" >👁 Fiche</button>'        +'<button class="btn btn-danger btn-sm" onclick="del(\'reparations\',\''+r.id+'\')" >🗑</button>'      +'</div>'    +'</div>';
+    return '<div class="mcard">'      +'<div class="mcard-head">'        +'<div>'          +'<div class="mcard-title">'+escHtml(cname)+'</div>'          +'<div class="mcard-sub">'+escHtml(r.typeAppareil+' '+r.marque+(r.modele?' '+r.modele:''))+'</div>'        +'</div>'        +'<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">'          +'<span class="rep-status-badge rep-status-'+r.statut+'">'+REP_STATUT_LABELS[r.statut]+'</span>'          +'<span class="mcard-sub td-mono">'+r.num+'</span>'        +'</div>'      +'</div>'      +'<div class="mcard-body">'        +(r.panneDec?'<div style="font-size:12px;color:var(--t2);margin-bottom:6px;padding:6px 8px;background:var(--s3);border-radius:6px">⚠️ '+escHtml((r.panneDec||'').substring(0,60))+'</div>':'')        +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">'          +'<span class="'+urgCls+'">'+REP_URGENCE_LABELS[r.urgence||'normal']+'</span>'          +'<span class="mcard-sub">📅 '+r.dateEntree+'</span>'        +'</div>'      +'</div>'      +'<div class="mcard-foot">'        +(tel?'<a href="#" onclick="openTelMenu(this.dataset.tel,event)" data-tel="'+tel.replace(/\s/g,'')+'" class="btn btn-ghost btn-sm">📞</a>':'')        +'<button class="btn btn-ghost btn-sm" onclick="editRep(\''+r.id+'\')" >✏️ Modifier</button>'        +'<button class="btn btn-ghost btn-sm" onclick="viewRep(\''+r.id+'\')" >👁 Fiche</button>'        +'<button class="btn btn-danger btn-sm" onclick="del(\'reparations\',\''+r.id+'\')" >🗑</button>'      +'</div>'    +'</div>';
   }).join('');
 }
 
@@ -7101,7 +7105,7 @@ function appelSelectClient(c) {
     var lastTk = (DB.tickets||[]).filter(function(t){ return t.clientId===c.id; }).slice(-1)[0];
     var lastFac = (DB.factures||[]).filter(function(f){ return f.clientId===c.id; }).slice(-1)[0];
     var rows = [];
-    if(c.tel)      rows.push('<a href="#" onclick="openTelMenu('+c.tel.replace(/\s/g,'')+',event)">📞 <b>'+escHtml(c.tel)+'</b></a>');
+    if(c.tel)      rows.push('<a href="#" onclick="openTelMenu(this.dataset.tel,event)" data-tel="'+c.tel.replace(/\s/g,'')+'">📞 <b>'+escHtml(c.tel)+'</b></a>');
     if(c.email)    rows.push('<a target="_blank" href="mailto:'+c.email+'">✉️ <b>'+escHtml(c.email)+'</b></a>');
     if(c.adresse)  rows.push('<span style="grid-column:1/-1">📍 <b>'+escHtml(c.adresse)+'</b></span>');
     if(c.entreprise) rows.push('<span>🏢 <b>'+escHtml(c.entreprise)+'</b></span>');
@@ -7523,7 +7527,7 @@ function renderAppels() {
       +'<div class="appel-card-body">'
         +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">'
           +'<span style="font-size:18px;font-weight:900;color:var(--t1)">'+escHtml(a.nom)+'</span>'
-          +(a.tel?'<a href="#" onclick="openTelMenu('+a.tel.replace(/\s/g,'')+',event)" style="font-family:var(--mono);font-size:12px;color:var(--cyan)">📞 '+a.tel+'</a>':'')
+          +(a.tel?'<a href="#" onclick="openTelMenu(this.dataset.tel,event)" data-tel="'+a.tel.replace(/\s/g,'')+'" style="font-family:var(--mono);font-size:12px;color:var(--cyan)">📞 '+a.tel+'</a>':'')
         +'</div>'
         +(a.typeAppareil||a.marque?'<div style="font-size:12px;color:var(--t3);margin-bottom:6px">'+[a.typeAppareil,a.marque,a.modele].filter(Boolean).join(' · ')+'</div>':'')
         +(a.panne?'<div style="font-size:13px;color:var(--t2);margin-bottom:8px;padding:6px 10px;background:var(--s3);border-radius:7px">⚠️ '+escHtml(a.panne)+'</div>':'')
@@ -8133,6 +8137,7 @@ var _telMenuNumber = '';
 function openTelMenu(tel, event) {
   event && event.preventDefault();
   event && event.stopPropagation();
+  tel = String(tel || ''); // forcer string, éviter type number
   _telMenuNumber = tel;
   // Mobile : appel direct via tel:
   if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth <= 768) {
