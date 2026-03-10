@@ -2941,7 +2941,7 @@ function renderClients(list){
     const nb=DB.tickets.filter(function(t){return t.clientId===c.id;}).length;
     const telClean=c.tel?c.tel.replace(/\s/g,''):'';
     const telHtml=c.tel?'<a href="#" onclick="openTelMenu('+telClean+',event)" style="color:var(--cyan);font-family:var(--mono);text-decoration:none">📞 '+c.tel+'</a>':'—';
-    const mailHtml=c.email?'<a target="_blank" href="https://mail.google.com/mail/?view=cm&fs=1&to='+c.email+',event)" style="color:var(--purple);font-family:var(--mono);text-decoration:none">✉️ '+c.email+'</a>':'—';
+    const mailHtml=c.email?'<a target="_blank" href="mailto:'+c.email+'" style="color:var(--purple);font-family:var(--mono);text-decoration:none">✉️ '+c.email+'</a>':'—';
     return {c,nb,telHtml,mailHtml,telClean};
   });
   if(tb) tb.innerHTML=rows.map(function(r){
@@ -2950,7 +2950,7 @@ function renderClients(list){
       +'<td><span class="avatar">'+initials(c.nom+' '+(c.prenom||''))+'</span><strong>'+c.nom+' '+(c.prenom||'')+'</strong>'+(c.entreprise?'<br><span class="td-sm">🏢 '+c.entreprise+'</span>':'')+'</td>'
       +'<td>'+r.telHtml+'</td>'
       +'<td>'+r.mailHtml+'</td>'
-      +'<td>'+(c.adresse?'<a href="'+gpsLink(c.adresse)+'" target="_blank" rel="noopener" style="color:var(--cyan);text-decoration:none;font-size:12px">📍 '+c.adresse+'</a>':'—')+'</td>'
+      +'<td>'+(c.adresse?'<a href="#" onclick="openMap(\''+c.adresse+'\');return false;" style="color:var(--cyan);text-decoration:none;font-size:12px;cursor:pointer">📍 '+c.adresse+'</a>':'—')+'</td>'
       +'<td>'+(c.type==='entreprise'?'<span class="badge b-encours">🏢 Entreprise</span>':'<span class="badge b-livre">👤 Particulier</span>')+'</td>'
       +'<td style="text-align:center"><span class="tk-tag">'+nb+'</span></td>'
       +'<td><button class="btn btn-ghost btn-sm" onclick="showHistorique(this.dataset.cid)" data-cid="'+c.id+'">📋</button></td>'
@@ -2959,7 +2959,7 @@ function renderClients(list){
   }).join('');
   if(ml) ml.innerHTML=rows.map(function(r){
     var c=r.c; var nb=r.nb;
-    return '<div class="mcard">'      +'<div class="mcard-top">'        +'<span class="avatar">'+initials(c.nom+' '+(c.prenom||''))+'</span>'        +'<div style="flex:1;min-width:0">'          +'<div style="font-weight:700;font-size:15px">'+c.nom+' '+(c.prenom||'')+'</div>'          +(c.entreprise?'<div style="font-size:12px;color:var(--t2)">🏢 '+c.entreprise+'</div>':'')        +'</div>'        +'<span class="badge '+(c.type==='entreprise'?'b-encours':'b-livre')+',event)" style="flex-shrink:0">'+(c.type==='entreprise'?'Entreprise':'Particulier')+'</span>'      +'</div>'      +'<div class="mcard-body">'        +(c.tel?'<div>'+r.telHtml+'</div>':'')        +(c.email?'<div>'+r.mailHtml+'</div>':'')        +(c.adresse?'<div><a href="'+gpsLink(c.adresse)+'" target="_blank" style="color:var(--cyan);text-decoration:none;font-size:12px">📍 '+c.adresse+'</a></div>':'')        +'<div style="font-size:12px;color:var(--t2)">🎫 '+nb+' ticket'+(nb>1?'s':'')+'</div>'      +'</div>'      +'<div class="mcard-actions">'        +'<button class="btn btn-ghost btn-sm" onclick="showHistorique(\''+c.id+'\')">📋 Historique</button>'        +'<button class="btn btn-ghost btn-sm" onclick="editClient(\''+c.id+'\')">✏️ Modifier</button>'        +'<button class="btn btn-danger btn-sm" onclick="del(\'clients\',\''+c.id+'\')">🗑</button>'      +'</div>'    +'</div>';
+    return '<div class="mcard">'      +'<div class="mcard-top">'        +'<span class="avatar">'+initials(c.nom+' '+(c.prenom||''))+'</span>'        +'<div style="flex:1;min-width:0">'          +'<div style="font-weight:700;font-size:15px">'+c.nom+' '+(c.prenom||'')+'</div>'          +(c.entreprise?'<div style="font-size:12px;color:var(--t2)">🏢 '+c.entreprise+'</div>':'')        +'</div>'        +'<span class="badge '+(c.type==='entreprise'?'b-encours':'b-livre')+',event)" style="flex-shrink:0">'+(c.type==='entreprise'?'Entreprise':'Particulier')+'</span>'      +'</div>'      +'<div class="mcard-body">'        +(c.tel?'<div>'+r.telHtml+'</div>':'')        +(c.email?'<div>'+r.mailHtml+'</div>':'')        +(c.adresse?'<div><a href="#" onclick="openMap(\'' + c.adresse + '\');return false;" style="color:var(--cyan);text-decoration:none;font-size:12px;cursor:pointer">📍 ' + c.adresse + '</a></div>':'')        +'<div style="font-size:12px;color:var(--t2)">🎫 '+nb+' ticket'+(nb>1?'s':'')+'</div>'      +'</div>'      +'<div class="mcard-actions">'        +'<button class="btn btn-ghost btn-sm" onclick="showHistorique(\''+c.id+'\')">📋 Historique</button>'        +'<button class="btn btn-ghost btn-sm" onclick="editClient(\''+c.id+'\')">✏️ Modifier</button>'        +'<button class="btn btn-danger btn-sm" onclick="del(\'clients\',\''+c.id+'\')">🗑</button>'      +'</div>'    +'</div>';
   }).join('');
 }
 
@@ -4429,7 +4429,7 @@ function renderAgenda(){
         ? '<a href="#" onclick="openTelMenu('+telClean+',event)" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer;margin-right:6px">&#128222; '+c.tel+'</a>'
         : '';
       var mailHtml = c.email
-        ? '<a target="_blank" href="https://mail.google.com/mail/?view=cm&fs=1&to='+c.email+',event)" style="display:inline-flex;align-items:center;gap:5px;background:rgba(179,136,255,.1);border:1px solid rgba(179,136,255,.25);color:var(--purple);font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer">&#9993; '+c.email+'</a>'
+        ? '<a target="_blank" href="mailto:'+c.email+'" style="display:inline-flex;align-items:center;gap:5px;background:rgba(179,136,255,.1);border:1px solid rgba(179,136,255,.25);color:var(--purple);font-family:var(--mono);font-size:11px;padding:4px 9px;border-radius:6px;cursor:pointer">&#9993; '+c.email+'</a>'
         : '';
       return '<div style="padding:12px 10px;border-bottom:1px solid var(--border)">'
         +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'
@@ -4515,8 +4515,8 @@ function showHistorique(clientId){
     +'</div>'
     +'<div style="display:flex;flex-wrap:wrap;gap:8px">'
       +(c.tel?'<a href="#" onclick="openTelMenu('+telClean+',event)" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer">&#128222; '+c.tel+'</a>':'')
-      +(c.email?'<a target="_blank" href="https://mail.google.com/mail/?view=cm&fs=1&to='+c.email+',event)" style="display:inline-flex;align-items:center;gap:5px;background:rgba(179,136,255,.1);border:1px solid rgba(179,136,255,.25);color:var(--purple);font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer">&#9993; '+c.email+'</a>':'')
-      +(c.adresse?'<a href="'+gpsLink(c.adresse)+'" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);color:var(--cyan);font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:8px;text-decoration:none">📍 '+c.adresse+'</a>':'')
+      +(c.email?'<a target="_blank" href="mailto:'+c.email+'" style="display:inline-flex;align-items:center;gap:5px;background:rgba(179,136,255,.1);border:1px solid rgba(179,136,255,.25);color:var(--purple);font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer">&#9993; '+c.email+'</a>':'')
+      +(c.adresse?'<a href="#" onclick="openMap(\''+c.adresse+'\');return false;" style="display:inline-flex;align-items:center;gap:5px;background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);color:var(--cyan);font-family:var(--mono);font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer">📍 '+c.adresse+'</a>':'')
     +'</div>'
   +'</div>';
 
@@ -6356,6 +6356,19 @@ function renderPubCharts(stats, periode) {
 
 
 // ── GPS LINK ─────────────────────────────────────────────────────────
+function openMap(adresse) {
+  var enc = encodeURIComponent(adresse);
+  var url;
+  if (/Android/i.test(navigator.userAgent)) {
+    // geo: URI → Android propose le choix de l'appli de navigation
+    url = 'geo:0,0?q=' + enc;
+  } else if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+    url = 'maps://?q=' + enc;
+  } else {
+    url = 'https://www.google.com/maps/search/?api=1&query=' + enc;
+  }
+  window.location.href = url;
+}
 function gpsLink(adresse) {
   var enc = encodeURIComponent(adresse);
   // Sur mobile : geo: URI ouvre l'app GPS native (Android/iOS)
@@ -7089,7 +7102,7 @@ function appelSelectClient(c) {
     var lastFac = (DB.factures||[]).filter(function(f){ return f.clientId===c.id; }).slice(-1)[0];
     var rows = [];
     if(c.tel)      rows.push('<a href="#" onclick="openTelMenu('+c.tel.replace(/\s/g,'')+',event)">📞 <b>'+escHtml(c.tel)+'</b></a>');
-    if(c.email)    rows.push('<a target="_blank" href="https://mail.google.com/mail/?view=cm&fs=1&to='+c.email+'">✉️ <b>'+escHtml(c.email)+'</b></a>');
+    if(c.email)    rows.push('<a target="_blank" href="mailto:'+c.email+'">✉️ <b>'+escHtml(c.email)+'</b></a>');
     if(c.adresse)  rows.push('<span style="grid-column:1/-1">📍 <b>'+escHtml(c.adresse)+'</b></span>');
     if(c.entreprise) rows.push('<span>🏢 <b>'+escHtml(c.entreprise)+'</b></span>');
     if(lastTk)     rows.push('<span style="grid-column:1/-1">🎫 Dernier ticket : <b>'+escHtml(lastTk.probleme||'').substring(0,50)+'</b> <span style="color:var(--t3)">('+lastTk.date+')</span></span>');
@@ -8118,10 +8131,17 @@ init();
 <script>
 var _telMenuNumber = '';
 function openTelMenu(tel, event) {
+  event && event.preventDefault();
+  event && event.stopPropagation();
   _telMenuNumber = tel;
+  // Mobile : appel direct via tel:
+  if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || window.innerWidth <= 768) {
+    window.location.href = 'tel:' + tel.toString().replace(/[\s\-().+]/g,'');
+    return;
+  }
+  // Desktop : menu popup (Appeler / WhatsApp)
   var menu = document.getElementById('tel-quick-menu');
   menu.classList.add('open');
-  // Positionner le menu près du clic
   if (event) {
     var x = Math.min(event.clientX, window.innerWidth - 220);
     var y = Math.min(event.clientY, window.innerHeight - 160);
@@ -8132,9 +8152,7 @@ function openTelMenu(tel, event) {
     menu.style.top  = '50%';
     menu.style.transform = 'translate(-50%,-50%)';
   }
-  // Mettre à jour le label du bouton appel
   document.getElementById('tel-menu-call').querySelector('span').textContent = 'Appeler ' + tel;
-  event && event.stopPropagation();
 }
 function closeTelMenu() {
   var menu = document.getElementById('tel-quick-menu');
