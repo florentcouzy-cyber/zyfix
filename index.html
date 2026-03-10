@@ -1066,6 +1066,9 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
       <span class="bico">📋</span><span class="blbl">Devis</span>
       <span class="bcnt amber" id="bcnt-dv">0</span>
     </div>
+    <div class="bnav-item" data-bpage="factures">
+      <span class="bico">💰</span><span class="blbl">Factures</span>
+    </div>
     <div class="bnav-item" data-bpage="agenda">
       <span class="bico">📅</span><span class="blbl">Agenda</span>
       <span class="bcnt" id="bcnt-rdv" style="display:none">0</span>
@@ -1429,6 +1432,9 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
           <input type="number" id="pil-are-ca-mois" placeholder="auto depuis factures" oninput="renderPilotage()">
         </div>
         <div id="pil-are-result" style="margin-top:4px"></div>
+        <div style="margin-top:10px;text-align:right">
+          <button class="btn btn-primary btn-sm" onclick="pilSaveManual('are')" style="gap:6px">💾 Sauvegarder ARE</button>
+        </div>
       </div>
     </div>
 
@@ -1449,6 +1455,9 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
           <input type="number" id="pil-acre-ca" placeholder="auto depuis factures" oninput="renderPilotage()">
         </div>
         <div id="pil-acre-result" style="margin-top:4px"></div>
+        <div style="margin-top:10px;text-align:right">
+          <button class="btn btn-primary btn-sm" onclick="pilSaveManual('acre')" style="gap:6px">💾 Sauvegarder ACRE</button>
+        </div>
       </div>
     </div>
   </div>
@@ -4662,6 +4671,8 @@ var _ghSyncing = false;
 
 // ── Init ──────────────────────────────────────────
 window.addEventListener('load', function(){
+  // Toujours charger les paramètres pilotage (ARE/ACRE) depuis localStorage
+  try{ pilLoad(); }catch(e){}
   if(!GH_TOKEN){
     // Demander le token au premier lancement
     ghUpdateUI('non configuré');
@@ -4671,7 +4682,6 @@ window.addEventListener('load', function(){
   // Pull au chargement + sync auto toutes les 30 secondes
   ghPull(true);
   ghStartAutoSync();
-  pilLoad();
   try{ syncSourceSelect(); }catch(e){}
 });
 
@@ -5234,6 +5244,30 @@ function resetForfaitsDefaut() {
 // ── PARAMÈTRES PERSISTANTS ──────────────────────────────────────────
 var PILSettings = JSON.parse(localStorage.getItem('zyfix_pil') || '{}');
 
+function pilSaveManual(module) {
+  renderPilotage(); // sauvegarde via pilSave() + recalcule tout
+  // Feedback visuel sur le bouton
+  var btnId = module === 'are' ? 'pil-save-are' : 'pil-save-acre';
+  // Trouver le bouton par son onclick
+  var btns = document.querySelectorAll('.btn');
+  var btn = null;
+  btns.forEach(function(b) {
+    if (b.getAttribute('onclick') === "pilSaveManual('" + module + "')") btn = b;
+  });
+  if (btn) {
+    var orig = btn.innerHTML;
+    btn.innerHTML = '✅ Sauvegardé !';
+    btn.style.background = 'var(--green)';
+    btn.disabled = true;
+    setTimeout(function() {
+      btn.innerHTML = orig;
+      btn.style.background = '';
+      btn.disabled = false;
+    }, 2000);
+  }
+  showToast('💾 Paramètres ' + (module === 'are' ? 'ARE' : 'ACRE') + ' sauvegardés');
+}
+
 function pilSave() {
   var fields = ['pil-regime','pil-vl','pil-acre-active',
     'pil-are-mois','pil-are-droits','pil-are-debut','pil-are-ca-mois',
@@ -5250,12 +5284,18 @@ function pilLoad() {
   var fields = ['pil-regime','pil-vl','pil-acre-active',
     'pil-are-mois','pil-are-droits','pil-are-debut','pil-are-ca-mois',
     'pil-acre-creation','pil-acre-debut','pil-acre-ca','pil-obj-net','pil-periode'];
+  var anyLoaded = false;
   fields.forEach(function(id) {
     var el = document.getElementById(id);
     if (!el || PILSettings[id] === undefined) return;
     if (el.type === 'checkbox') el.checked = PILSettings[id];
     else el.value = PILSettings[id];
+    anyLoaded = true;
   });
+  // Recalculer l'affichage si des valeurs ont été restaurées
+  if (anyLoaded) {
+    try { renderPilotage(); } catch(e) {}
+  }
 }
 
 // ── HELPERS ──────────────────────────────────────────────────────────
@@ -7976,8 +8016,8 @@ function goto(name) {
 function _refreshCore() {
   var enRepair  = (DB.reparations||[]).filter(function(r){ return r.statut!=='terminé'&&r.statut!=='livré'; }).length;
   var devisAtt  = (DB.devis||[]).filter(function(d){ return d.statut==='en attente'||d.statut==='envoyé'; }).length;
-  var facEmises = (DB.factures||[]).filter(function(f){ return f.statut!=='payée'; }).length;
-  var caTotal   = (DB.factures||[]).filter(function(f){ return f.statut==='payée'; })
+  var facEmises = (DB.factures||[]).filter(function(f){ return f.statut!=='payee' && f.statut!=='encaisse'; }).length;
+  var caTotal   = (DB.factures||[]).filter(function(f){ return f.statut==='payee' || f.statut==='encaisse'; })
                    .reduce(function(s,f){ return s+(parseFloat(f.ttc)||0); },0);
   var el;
   if((el=document.getElementById('d-encours')))  el.textContent = enRepair;
