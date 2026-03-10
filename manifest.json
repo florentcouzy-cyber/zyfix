@@ -1,5 +1,5 @@
 {
-  "name": "ZyFix — Gestion Réparations IT",
+  "name": "ZyFix v2.0 — Gestion Réparations IT",
   "short_name": "ZyFix",
   "description": "Logiciel de gestion pour technicien informatique : tickets, clients, devis, factures, stock pièces.",
   "start_url": "./index.html",
