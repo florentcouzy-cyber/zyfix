@@ -1075,8 +1075,8 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
       <span class="bcnt" id="bcnt-rdv" style="display:none">0</span>
     </div>
     <div class="bnav-item" onclick="openAgentIA()" style="cursor:pointer">
-      <span class="bico" style="font-size:18px">🤖</span>
-      <span class="blbl">Agent IA</span>
+      <span class="bico" style="font-size:18px">🎙️</span>
+      <span class="blbl">Agent Vocal</span>
     </div>
     <div class="bnav-item" data-bpage="pub">
       <span class="bico">📣</span><span class="blbl">Pub</span>
@@ -1108,8 +1108,8 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
       <span class="ico">📞</span> Prise d'appel
     </div>
     <div class="nav-item" data-page="agent-ia" onclick="openAgentIA()" style="cursor:pointer">
-      <span class="nicon">🤖</span>
-      <span>Agent IA</span>
+      <span class="nicon">🎙️</span>
+      <span>Agent Vocal</span>
     </div>
     <div class="nav-item active" data-page="dashboard">
       <span class="ico">📊</span> Dashboard
@@ -1158,7 +1158,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
       </button>
       <div id="gdrive-status" style="font-size:10px;color:var(--t3);text-align:center;margin-top:4px;font-family:var(--mono)"></div>
       <button id="btn-drive-connect" onclick="openM('m-gdrive-setup')" style="display:none;width:100%;margin-top:6px;padding:6px;background:rgba(0,212,255,.15);border:1px solid rgba(0,212,255,.3);border-radius:8px;color:var(--cyan);font-size:11px;cursor:pointer;font-family:var(--mono)">🔄 Reconnecter Drive</button>
-      <button onclick="openAgentConfig()" style="width:100%;margin-top:4px;padding:6px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);border-radius:8px;color:var(--cyan);font-size:11px;cursor:pointer;font-family:var(--mono)">🤖 Configurer Agent IA</button>
+      <button onclick="openAgentConfig()" style="width:100%;margin-top:4px;padding:6px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);border-radius:8px;color:var(--cyan);font-size:11px;cursor:pointer;font-family:var(--mono)">🎙️ Configurer Agent Vocal</button>
     </div>
     ZyRAMGamer © 2026 — v1.0
   </div>
@@ -2120,106 +2120,89 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 
 </div>
 
-<!-- ════════ MODAL CONFIG AGENT IA ════════ -->
+<!-- ════════ MODAL CONFIG ELEVENLABS AGENT ════════ -->
 <div class="overlay" id="m-agent-config">
-  <div class="modal" style="max-width:520px">
+  <div class="modal" style="max-width:580px;max-height:90vh;overflow-y:auto">
     <div class="modal-head">
-      <div class="modal-title">🤖 Agent IA — Configuration</div>
+      <div class="modal-title">🎙️ Agent Vocal ElevenLabs — Configuration</div>
       <button class="modal-close" onclick="closeM('m-agent-config')">✕</button>
     </div>
     <div class="modal-body" style="display:flex;flex-direction:column;gap:14px">
 
-      <!-- Statut actuel -->
-      <div id="aia-config-status" style="padding:10px 14px;border-radius:8px;font-size:13px;background:rgba(255,100,100,.08);border:1px solid rgba(255,100,100,.2);color:#ff8080">
-        ⚠️ Non configuré — L'agent IA nécessite un proxy Cloudflare Worker
+      <!-- Statut -->
+      <div id="ela-config-status" style="padding:10px 14px;border-radius:8px;font-size:13px;background:rgba(255,100,100,.08);border:1px solid rgba(255,100,100,.2);color:#ff8080">
+        ⚠️ Non configuré — Renseigne ton Agent ID ElevenLabs
       </div>
 
-      <!-- Onglets : Worker (recommandé) ou Clé directe -->
-      <div style="display:flex;gap:0;border:1px solid rgba(255,255,255,.1);border-radius:8px;overflow:hidden">
-        <button id="aia-tab-worker" onclick="aiaConfigTab('worker')" style="flex:1;padding:8px;background:rgba(0,212,255,.15);border:none;color:var(--cyan);font-weight:700;cursor:pointer;font-size:13px">🌐 Worker Cloudflare</button>
-        <button id="aia-tab-direct" onclick="aiaConfigTab('direct')" style="flex:1;padding:8px;background:transparent;border:none;color:var(--t3);cursor:pointer;font-size:13px">🔑 Clé directe</button>
+      <!-- Section ElevenLabs -->
+      <div style="background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.2);border-radius:10px;padding:14px;font-size:12px;line-height:1.8;color:var(--t2)">
+        <strong style="color:#b39dff">📋 Setup ElevenLabs (5 min)</strong><br>
+        1. Va sur <a href="https://elevenlabs.io/app/conversational-ai" target="_blank" style="color:#b39dff">elevenlabs.io → Conversational AI</a><br>
+        2. Crée un agent → configure la voix et le prompt (voir ci-dessous)<br>
+        3. Dans l'agent → <strong>Webhooks</strong> → ajoute l'URL de ton webhook ZyFix<br>
+        4. Copie l'<strong>Agent ID</strong> et la <strong>clé API</strong> → colle ci-dessous<br>
+        5. Pour les appels téléphoniques : connecte <strong>Twilio</strong> dans ElevenLabs
       </div>
 
-      <!-- Panel Worker -->
-      <div id="aia-panel-worker">
-        <div style="background:rgba(0,212,255,.06);border:1px solid rgba(0,212,255,.15);border-radius:10px;padding:14px;font-size:12px;line-height:1.7;color:var(--t2);margin-bottom:10px">
-          <strong style="color:var(--cyan)">📋 Déployer le Worker (gratuit, 5 min)</strong><br>
-          1. Va sur <a href="https://workers.cloudflare.com" target="_blank" style="color:var(--cyan)">workers.cloudflare.com</a> → créer un compte gratuit<br>
-          2. Créer un Worker → coller le code ci-dessous<br>
-          3. Dans <strong>Settings → Variables</strong> : ajouter <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px">OPENAI_API_KEY</code> = ta clé OpenAI (sk-...)<br>
-          4. Copier l'URL du Worker (ex: <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px">https://zyfix-ai.xxx.workers.dev</code>)<br>
-          5. Coller l'URL ci-dessous et sauvegarder
-        </div>
-        <div class="fg">
-          <label>Code du Worker à copier</label>
-          <textarea id="aia-worker-code" readonly rows="5" style="font-family:var(--mono);font-size:11px;background:#080d14;border-color:rgba(0,212,255,.2);color:var(--cyan);resize:none" onclick="this.select()"
->export default {
-  async fetch(req, env) {
-    if (req.method === 'OPTIONS') return new Response(null, {headers:{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'*','Access-Control-Allow-Methods':'POST'}});
-    const body = await req.json();
-    // Convertir format Anthropic → OpenAI
-    const msgs = [];
-    if (body.system) msgs.push({role:'system', content: body.system});
-    (body.messages||[]).forEach(m => msgs.push(m));
-    const r = await fetch('https://api.openai.com/v1/chat/completions', {
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+env.OPENAI_API_KEY},
-      body: JSON.stringify({model: body.model||'gpt-4o-mini', max_tokens: body.max_tokens||600, messages: msgs})
-    });
-    const oai = await r.json();
-    // Reconvertir réponse OpenAI → format Anthropic (pour compatibilité ZyFix)
-    const text = oai.choices?.[0]?.message?.content || oai.error?.message || 'Erreur';
-    const data = {content:[{type:'text', text}]};
-    return new Response(JSON.stringify(data), {headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}});
-  }
-}</textarea>
-          <button onclick="navigator.clipboard.writeText(document.getElementById('aia-worker-code').value).then(function(){showToast('✅ Code copié !')})" style="margin-top:6px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);padding:6px 14px;border-radius:7px;cursor:pointer;font-size:12px">📋 Copier le code</button>
-        </div>
-        <div class="fg" style="margin-top:8px">
-          <label>URL du Worker Cloudflare</label>
-          <input id="aia-proxy-input" type="url" placeholder="https://zyfix-ai.xxx.workers.dev" style="font-family:var(--mono);font-size:13px">
-          <div style="font-size:11px;color:var(--t3);margin-top:4px">L'URL est stockée uniquement dans ton navigateur (localStorage)</div>
-        </div>
+      <!-- Agent ID -->
+      <div class="fg">
+        <label>Agent ID ElevenLabs</label>
+        <input id="ela-agent-id" type="text" placeholder="agent_xxxxxxxxxxxxxxxx" style="font-family:var(--mono);font-size:13px">
       </div>
 
-      <!-- Panel Direct (déconseillé) -->
-      <div id="aia-panel-direct" style="display:none">
-        <div style="background:rgba(255,180,0,.08);border:1px solid rgba(255,180,0,.2);border-radius:8px;padding:10px 14px;font-size:12px;color:#ffb400;margin-bottom:10px">
-          ⚠️ <strong>Déconseillé</strong> — La clé API sera visible dans le navigateur. Utilise seulement pour des tests.
+      <!-- Clé API -->
+      <div class="fg">
+        <label>Clé API ElevenLabs</label>
+        <input id="ela-api-key" type="password" placeholder="sk_xxxxxxxxxxxxxxxx" style="font-family:var(--mono);font-size:13px">
+        <div style="font-size:11px;color:var(--t3);margin-top:3px">Stockée uniquement dans ton navigateur (localStorage)</div>
+      </div>
+
+      <!-- URL Webhook -->
+      <div class="fg">
+        <label>URL Webhook ZyFix (à copier dans ElevenLabs)</label>
+        <div style="display:flex;gap:8px;align-items:center">
+          <input id="ela-webhook-url" type="text" readonly style="font-family:var(--mono);font-size:11px;background:#080d14;color:var(--cyan);flex:1" value="Non disponible — configure GitHub Sync d'abord">
+          <button onclick="navigator.clipboard.writeText(document.getElementById('ela-webhook-url').value).then(function(){showToast('✅ URL copiée!')})" style="background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);padding:8px 12px;border-radius:7px;cursor:pointer;font-size:12px;white-space:nowrap">📋 Copier</button>
         </div>
-        <div class="fg">
-          <label>Clé API OpenAI (sk-...)</label>
-          <input id="aia-key-input" type="password" placeholder="sk-xxxxxxxxxxxxxxxxxxxx (OpenAI)" style="font-family:var(--mono);font-size:13px">
-        </div>
+        <div style="font-size:11px;color:var(--t3);margin-top:3px">⚠️ ElevenLabs enverra les données collectées à cette URL pour créer le RDV dans ZyFix</div>
+      </div>
+
+      <!-- Prompt système à copier -->
+      <div class="fg">
+        <label>Prompt Système pour ElevenLabs (à copier dans ton agent)</label>
+        <textarea id="ela-system-prompt" readonly rows="7" onclick="this.select()"
+          style="font-family:var(--mono);font-size:11px;background:#080d14;border-color:rgba(139,92,246,.3);color:#b39dff;resize:none;line-height:1.5">Tu es Alex, l'assistant vocal de ZyFix, une entreprise de réparation informatique à Narbonne (11100). Tu réponds au téléphone pour prendre les rendez-vous.
+
+Collecte dans l'ordre : 1) Nom et prénom 2) Numéro de téléphone 3) Type d'appareil (PC fixe/portable, téléphone, tablette, imprimante) 4) Marque et modèle 5) Description du problème 6) Urgence (normal/urgent/express) 7) Prise en charge (atelier Narbonne / domicile / distance) 8) Si domicile : adresse.
+
+Propose ensuite un créneau disponible (lundi-vendredi 8h-18h). Confirme le récapitulatif.
+
+Si le client demande à parler à un humain, si le problème est complexe (récupération données, dégâts liquide), ou si tu ne comprends pas : dis que tu transfères et utilise l'outil "transfert_humain". Si le client veut juste un rappel : utilise l'outil "demande_rappel".
+
+Quand tout est confirmé : utilise l'outil "creer_rdv" avec toutes les informations collectées.
+
+Parle en français, sois professionnel et efficace. Maximum 2 phrases par réponse.</textarea>
+        <button onclick="navigator.clipboard.writeText(document.getElementById('ela-system-prompt').value).then(function(){showToast('✅ Prompt copié!')})" style="margin-top:6px;background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.3);color:#b39dff;padding:6px 14px;border-radius:7px;cursor:pointer;font-size:12px">📋 Copier le prompt</button>
+      </div>
+
+      <!-- Numéro Twilio -->
+      <div class="fg">
+        <label>Numéro Twilio (optionnel — pour appels téléphoniques)</label>
+        <input id="ela-twilio-num" type="tel" placeholder="+33XXXXXXXXX" style="font-family:var(--mono);font-size:13px">
+        <div style="font-size:11px;color:var(--t3);margin-top:3px">Configure Twilio dans ElevenLabs → Phone Numbers pour rediriger tes appels vers l'agent</div>
+      </div>
+
+      <!-- Numéro transfert humain -->
+      <div class="fg">
+        <label>Ton numéro (transfert humain)</label>
+        <input id="ela-transfer-num" type="tel" placeholder="+33XXXXXXXXX" style="font-family:var(--mono);font-size:13px">
+        <div style="font-size:11px;color:var(--t3);margin-top:3px">Numéro vers lequel l'agent redirige si transfert humain demandé</div>
       </div>
 
     </div>
     <div class="modal-foot">
       <button onclick="closeM('m-agent-config')" style="background:transparent;border-color:var(--border)">Annuler</button>
-      <button onclick="aiaSaveConfig()" style="background:var(--cyan);color:#000;font-weight:700">✅ Sauvegarder</button>
-    </div>
-  </div>
-</div>
-
-
-<!-- MODAL FORFAITS -->
-<div class="overlay" id="m-forfaits">
-  <div class="modal" style="max-width:500px">
-    <div class="modal-head">
-      <div class="modal-title">⚡ Gérer les forfaits</div>
-      <button class="modal-x" onclick="closeM('m-forfaits')">✕</button>
-    </div>
-    <div class="modal-body" style="padding:16px">
-      <div id="forfaits-edit-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;max-height:300px;overflow-y:auto"></div>
-      <div style="display:flex;gap:8px;align-items:center">
-        <input id="forfait-new-nom" placeholder="Nom du forfait" style="flex:1;padding:8px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--t1);font-family:var(--mono)">
-        <input id="forfait-new-prix" type="number" placeholder="Prix €" style="width:80px;padding:8px;background:var(--s2);border:1px solid var(--border);border-radius:8px;color:var(--t1);font-family:var(--mono)">
-        <button class="btn btn-primary btn-sm" onclick="addForfait()">+ Ajouter</button>
-      </div>
-    </div>
-    <div class="form-foot" style="justify-content:space-between">
-      <button class="btn btn-ghost btn-sm" onclick="resetForfaitsDefaut()" style="color:var(--amber);border-color:var(--amber)" title="Recharge les 31 forfaits ZyFix par défaut">↺ Réinitialiser par défaut</button>
-      <button class="btn btn-ghost" onclick="closeM('m-forfaits')">Fermer</button>
+      <button onclick="elaSaveConfig()" style="background:linear-gradient(135deg,#7c3aed,#9f67ff);border:none;color:#fff;font-weight:700">✅ Sauvegarder</button>
     </div>
   </div>
 </div>
@@ -8312,745 +8295,635 @@ document.addEventListener('click', function(e){
 });
 
 
+
 // ════════════════════════════════════════════════════════════════════════
-// AGENT IA — Prise de RDV automatique ZyFix
+// AGENT VOCAL ELEVENLABS — ZyFix Prise de RDV
+// Utilise ElevenLabs Conversational AI SDK
+// Webhook entrant → crée client/ticket/rdv automatiquement
+// ════════════════════════════════════════════════════════════════════════
 
-// URL du proxy Anthropic (configurable dans les settings ZyFix)
-// Valeur par défaut : worker Cloudflare gratuit partagé ZyFix
-var AIA_PROXY_URL = localStorage.getItem('zyfix_ai_proxy') || '';
-var AIA_API_KEY   = localStorage.getItem('zyfix_ai_key')   || '';
+// ── Config (stockée en localStorage) ────────────────────────────────────
+var ELA_AGENT_ID    = localStorage.getItem('zyfix_ela_agent_id')  || '';
+var ELA_API_KEY     = localStorage.getItem('zyfix_ela_api_key')   || '';
+var ELA_TWILIO_NUM  = localStorage.getItem('zyfix_ela_twilio')    || '';
+var ELA_TRANSFER_NUM= localStorage.getItem('zyfix_ela_transfer')  || '';
 
-function aiaGetApiEndpoint() {
-  // Proxy configuré en priorité (Worker Cloudflare)
-  if (AIA_PROXY_URL) return AIA_PROXY_URL;
-  // Sinon appel direct avec clé côté client (nécessite que la clé soit configurée)
-  return 'https://api.anthropic.com/v1/messages';
+// ── État de la session ────────────────────────────────────────────────────
+var _elaConversation = null;   // instance SDK ElevenLabs
+var _elaSession      = {};     // données collectées
+var _elaActive       = false;
+var _elaAudioCtx     = null;
+var _elaAnalyser     = null;
+var _elaAnimFrame    = null;
+
+// ── Charger le SDK ElevenLabs dynamiquement ──────────────────────────────
+function elaLoadSDK(cb) {
+  if (window.ElevenLabsClient || window._elaSDKLoaded) { cb(); return; }
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/@11labs/client@latest/dist/index.umd.js';
+  s.onload = function() {
+    window._elaSDKLoaded = true;
+    cb();
+  };
+  s.onerror = function() {
+    elaSetStatus('error', 'Erreur chargement SDK ElevenLabs');
+    elaAddTranscript('system', '❌ Impossible de charger le SDK ElevenLabs. Vérif connexion internet.');
+  };
+  document.head.appendChild(s);
 }
-// Utilise l'API Anthropic (claude-sonnet-4-20250514)
-// ════════════════════════════════════════════════════════════════════════
 
-var _aiaHistory     = [];   // historique messages API
-var _aiaSession     = {};   // données collectées en cours
-var _aiaActive      = false;
-var _aiaRecognition = null; // Web Speech API
-var _aiaListening   = false;
-
-// ── SYSTEM PROMPT ────────────────────────────────────────────────────────
-var AIA_SYSTEM = `Tu es Alex, l'assistant IA de ZyFix, une micro-entreprise de réparation informatique à Narbonne (Aude, 11100).
-Tu prends les appels et rendez-vous pour Florent, le technicien.
-
-TON RÔLE :
-1. Accueillir le client chaleureusement, te présenter brièvement
-2. Recueillir les informations nécessaires (dans cet ordre naturel) :
-   - Nom et prénom
-   - Numéro de téléphone
-   - Type d'appareil (PC fixe, PC portable, tablette, téléphone, imprimante, autre)
-   - Marque et modèle si possible
-   - Description du problème / de la panne
-   - Niveau d'urgence (normal / urgent / express)
-   - Type de prise en charge (atelier à Narbonne / domicile / assistance à distance)
-3. Si domicile : demander l'adresse
-4. Proposer un rendez-vous (je fournirai les créneaux disponibles dans le contexte)
-5. Confirmer le récapitulatif et remercier
-
-RÈGLES IMPORTANTES :
-- Parle en français, de façon naturelle et professionnelle mais accessible
-- Sois concis : 1-2 phrases max par réponse, avance dans la collecte
-- Si le client dit "humain", "parler à quelqu'un", "rappel", "trop compliqué" → réponds avec le tag [TRANSFERT]
-- Si tu ne comprends pas ou si le cas est complexe (récupération données critiques, dégâts liquide, panne électrique) → réponds avec le tag [TRANSFERT]
-- Quand TOUTES les infos sont collectées et le RDV confirmé → réponds avec le tag [COMPLET]
-- Quand le client veut juste un rappel → réponds avec le tag [RAPPEL]
-
-FORMAT JSON à insérer dans ta réponse (invisible pour le client, entre balises) :
-Après chaque message, si tu as collecté des nouvelles infos, ajoute :
-<data>{"nom":"...","tel":"...","appareil":"...","marque":"...","panne":"...","urgence":"normal|urgent|express","pec":"atelier|domicile|distance","adresse":"...","rdv":"YYYY-MM-DDTHH:MM","notes":"..."}</data>
-(n'inclure que les champs renseignés)
-
-CRÉNEAUX DISPONIBLES (fournis dynamiquement) :
-[CRENEAUX_PLACEHOLDER]
-
-Commence par te présenter et demander comment aider.`;
-
-// ── OUVRIR L'AGENT ────────────────────────────────────────────────────────
+// ── Ouvrir le modal ───────────────────────────────────────────────────────
 function openAgentIA() {
-  _aiaHistory = [];
-  _aiaSession = {};
-  _aiaActive  = true;
-
+  _elaSession = {};
   openM('m-agent-ia');
-
-  // Reset UI
-  document.getElementById('aia-chat').innerHTML = '';
-  document.getElementById('aia-recap-content').innerHTML = '';
-  document.getElementById('aia-recap').style.display = 'none';
-  document.getElementById('aia-footer-actions').style.display = 'none';
-  document.getElementById('aia-quick-actions').innerHTML = '';
-  document.getElementById('aia-transfer-btn').style.display = 'none';
-  document.getElementById('aia-input').value = '';
-  aiaSetStatus('thinking', 'Connexion à l\'agent IA...');
-
-  // Lancer le premier message de l'IA
-  setTimeout(aiaStart, 300);
+  document.getElementById('ela-transcript').innerHTML = '';
+  document.getElementById('ela-recap-content').innerHTML = '';
+  document.getElementById('ela-recap').style.display = 'none';
+  document.getElementById('ela-footer').style.display = 'none';
+  document.getElementById('ela-call-btn').style.display = 'inline-block';
+  document.getElementById('ela-end-btn').style.display = 'none';
+  elaSetStatus('idle', 'Prêt — clique sur "Démarrer l\'agent"');
+  elaSetOrb('idle');
+  // Afficher l'URL webhook dans la config
+  elaUpdateWebhookUrl();
 }
 
-// ── DÉMARRER LA SESSION ───────────────────────────────────────────────────
-function aiaStart() {
-  // Construire le system prompt avec les créneaux des 3 prochains jours
-  var slots = aiaGetAvailableSlots(3);
-  var slotsText = slots.map(function(d){
-    return d.date + ' : ' + (d.free.length ? d.free.join(', ') : 'complet');
-  }).join('\n');
-
-  var sys = AIA_SYSTEM.replace('[CRENEAUX_PLACEHOLDER]', slotsText || 'Aucun RDV planifié — toute la semaine est disponible 8h-18h');
-
-  // Appel initial : l'IA se présente
-  aiaCallAPI(sys, [{ role:'user', content:'[DÉBUT DE SESSION — présente-toi et commence la prise en charge]' }], function(msg, data) {
-    _aiaHistory.push({ role:'user', content:'[DÉBUT DE SESSION]' });
-    _aiaHistory.push({ role:'assistant', content: msg });
-    aiaAddMessage('ia', msg);
-    if (data) aiaUpdateSession(data);
-    aiaSetStatus('active', 'Session en cours');
-    document.getElementById('aia-transfer-btn').style.display = 'inline-block';
-    aiaSetQuickActions(['C\'est urgent', 'PC portable', 'PC fixe', 'À domicile', 'À distance', 'Parler à un humain']);
-  });
-}
-
-// ── ENVOYER UN MESSAGE ────────────────────────────────────────────────────
-function aiaSend() {
-  var input = document.getElementById('aia-input');
-  var msg = input.value.trim();
-  if (!msg || !_aiaActive) return;
-
-  input.value = '';
-  input.style.height = 'auto';
-  aiaAddMessage('user', msg);
-  aiaSetStatus('thinking', 'L\'IA réfléchit...');
-  document.getElementById('aia-send-btn').disabled = true;
-  document.getElementById('aia-quick-actions').innerHTML = '';
-
-  _aiaHistory.push({ role:'user', content: msg });
-
-  var slots = aiaGetAvailableSlots(3);
-  var slotsText = slots.map(function(d){
-    return d.date + ' : ' + (d.free.length ? d.free.join(', ') : 'complet');
-  }).join('\n');
-  var sys = AIA_SYSTEM.replace('[CRENEAUX_PLACEHOLDER]', slotsText || 'Semaine disponible 8h-18h');
-
-  aiaCallAPI(sys, _aiaHistory, function(aiMsg, data) {
-    _aiaHistory.push({ role:'assistant', content: aiMsg });
-    if (data) aiaUpdateSession(data);
-
-    // Détecter les tags spéciaux
-    if (aiMsg.indexOf('[TRANSFERT]') !== -1) {
-      aiaHandleTransfert(aiMsg);
-    } else if (aiMsg.indexOf('[COMPLET]') !== -1) {
-      aiaHandleComplet(aiMsg);
-    } else if (aiMsg.indexOf('[RAPPEL]') !== -1) {
-      aiaHandleRappel(aiMsg);
-    } else {
-      aiaAddMessage('ia', aiMsg);
-      aiaSetStatus('active', 'Session en cours');
-      document.getElementById('aia-send-btn').disabled = false;
-      aiaAutoQuickActions(aiMsg);
-    }
-  });
-}
-
-// ── APPEL API ANTHROPIC ───────────────────────────────────────────────────
-function aiaCallAPI(system, messages, callback) {
-  var endpoint = aiaGetApiEndpoint();
-
-  // Vérifier config
-  if (!endpoint) {
-    aiaAddMessage('system', '⚙️ Agent IA non configuré. Ouvre les Paramètres → Agent IA pour renseigner ton Worker Cloudflare ou ta clé Anthropic.');
-    aiaSetStatus('error', 'Non configuré');
-    document.getElementById('aia-send-btn').disabled = false;
+// ── Démarrer la session vocale ────────────────────────────────────────────
+function elaStartCall() {
+  if (!ELA_AGENT_ID) {
+    openAgentConfig();
+    showToast('⚙️ Configure ton Agent ID ElevenLabs d\'abord');
     return;
   }
+  elaLoadSDK(function() {
+    elaSetStatus('connecting', 'Connexion à l\'agent vocal...');
+    elaSetOrb('connecting');
+    document.getElementById('ela-call-btn').style.display = 'none';
+    document.getElementById('ela-end-btn').style.display = 'inline-block';
+    document.getElementById('ela-conversation-status').textContent = 'Connexion en cours...';
 
-  var headers = { 'Content-Type': 'application/json' };
-  // Si appel direct (pas de proxy), ajouter la clé API
-  if (endpoint.indexOf('api.anthropic.com') !== -1 && AIA_API_KEY) {
-    headers['x-api-key'] = AIA_API_KEY;
-    headers['anthropic-version'] = '2023-06-01';
-  }
+    try {
+      var EL = window.ElevenLabs || window.ElevenLabsClient;
+      if (!EL || !EL.Conversation) {
+        // Fallback : essayer le namespace global
+        EL = { Conversation: window.Conversation };
+      }
+      if (!EL || !EL.Conversation) {
+        throw new Error('SDK ElevenLabs non trouvé. Vérifie ta connexion.');
+      }
 
-  var payload = {
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 600,
-    system: system,
-    messages: messages
-  };
+      var config = {
+        agentId: ELA_AGENT_ID,
+        // Callbacks de session
+        onConnect: function(info) {
+          _elaActive = true;
+          elaSetStatus('active', 'Agent connecté — en écoute');
+          elaSetOrb('listening');
+          document.getElementById('ela-conversation-status').textContent = '🎙️ Agent vocal actif — parle naturellement';
+          elaAddTranscript('system', '✅ Session démarrée — Conversation ID : ' + (info.conversationId || '—').substring(0,12));
+          elaStartAudioViz();
+        },
+        onDisconnect: function() {
+          _elaActive = false;
+          elaSetStatus('idle', 'Session terminée');
+          elaSetOrb('idle');
+          document.getElementById('ela-call-btn').style.display = 'inline-block';
+          document.getElementById('ela-end-btn').style.display = 'none';
+          document.getElementById('ela-conversation-status').textContent = 'Session terminée';
+          elaStopAudioViz();
+          // Afficher le footer si des données ont été collectées
+          if (Object.keys(_elaSession).length > 0) {
+            document.getElementById('ela-footer').style.display = 'flex';
+          }
+        },
+        onMessage: function(msg) {
+          // msg : { source: 'user'|'ai', message: string }
+          var source = msg.source === 'user' ? 'user' : 'ia';
+          elaAddTranscript(source, msg.message);
+          if (source === 'ia') elaSetOrb('speaking');
+          else { elaSetOrb('listening'); }
+        },
+        onError: function(err) {
+          console.error('[ElevenLabs]', err);
+          elaSetStatus('error', 'Erreur : ' + (err.message || String(err)).substring(0,50));
+          elaAddTranscript('system', '⚠️ Erreur agent : ' + (err.message || String(err)).substring(0,80));
+        },
+        // Données dynamiques envoyées à l'agent (créneaux dispo)
+        dynamicVariables: elaGetDynamicVars(),
+      };
 
-  fetch(endpoint, {
-    method: 'POST',
-    headers: headers,
-    body: JSON.stringify(payload)
-  })
-  .then(function(r){
-    if (!r.ok) return r.text().then(function(t){ throw new Error('HTTP ' + r.status + ' — ' + t.slice(0,100)); });
-    return r.json();
-  })
-  .then(function(d){
-    var raw = (d.content && d.content[0] && d.content[0].text) ? d.content[0].text : '';
-    var dataObj = null;
-    var dataMatch = raw.match(/<data>([\s\S]*?)<\/data>/);
-    if (dataMatch) {
-      try { dataObj = JSON.parse(dataMatch[1]); } catch(e) {}
+      // Clé API si nécessaire (mode privé)
+      if (ELA_API_KEY) config.authorization = ELA_API_KEY;
+
+      _elaConversation = EL.Conversation.startSession(config);
+
+    } catch(e) {
+      console.error('[ElaStartCall]', e);
+      elaSetStatus('error', 'Erreur : ' + e.message);
+      elaAddTranscript('system', '❌ ' + e.message);
+      document.getElementById('ela-call-btn').style.display = 'inline-block';
+      document.getElementById('ela-end-btn').style.display = 'none';
     }
-    var clean = raw.replace(/<data>[\s\S]*?<\/data>/g, '').trim();
-    callback(clean, dataObj);
-  })
-  .catch(function(e){
-    console.error('[AgentIA] API error:', e);
-    // Message d'erreur avec guide de config
-    var msg = e.message || String(e);
-    if (msg.indexOf('CORS') !== -1 || msg.indexOf('fetch') !== -1 || msg.indexOf('Failed') !== -1) {
-      aiaAddMessage('system', '🔴 Erreur CORS — Configure un Worker Cloudflare dans Paramètres → Agent IA. Voir le guide intégré.');
-    } else {
-      aiaAddMessage('system', '⚠️ Erreur API : ' + msg.substring(0,80));
-    }
-    aiaSetStatus('error', 'Erreur');
-    document.getElementById('aia-send-btn').disabled = false;
   });
 }
 
-// ── GÉRER LES ÉTATS SPÉCIAUX ──────────────────────────────────────────────
-function aiaHandleTransfert(msg) {
-  var clean = msg.replace('[TRANSFERT]', '').trim();
-  aiaAddMessage('ia', clean || 'Je vous transfère vers notre technicien. Un instant...');
-  aiaAddMessage('system', '🔄 Transfert vers Florent — résumé de l\'appel généré.');
-  aiaSetStatus('transfer', 'Transfert en cours');
-  _aiaActive = false;
-  aiaShowTransfertUI();
+// ── Terminer la session ────────────────────────────────────────────────────
+function elaEndCall() {
+  if (_elaConversation && typeof _elaConversation.endSession === 'function') {
+    _elaConversation.endSession();
+  }
+  _elaActive = false;
+  elaStopAudioViz();
+  elaSetOrb('idle');
+  elaSetStatus('idle', 'Session terminée');
+  document.getElementById('ela-call-btn').style.display = 'inline-block';
+  document.getElementById('ela-end-btn').style.display = 'none';
+  if (Object.keys(_elaSession).length > 0) {
+    document.getElementById('ela-footer').style.display = 'flex';
+  }
 }
 
-function aiaHandleComplet(msg) {
-  var clean = msg.replace('[COMPLET]', '').trim();
-  aiaAddMessage('ia', clean || 'Parfait, votre rendez-vous est confirmé ! À bientôt.');
-  aiaSetStatus('done', 'Prise en charge complète');
-  _aiaActive = false;
-  document.getElementById('aia-footer-actions').style.display = 'flex';
-  document.getElementById('aia-send-btn').disabled = true;
+// ── Variables dynamiques pour l'agent ─────────────────────────────────────
+function elaGetDynamicVars() {
+  var slots = elaGetAvailableSlots(5);
+  var slotsText = slots.map(function(d){
+    return d.label + ' : ' + (d.free.length ? d.free.join(', ') : 'complet');
+  }).join(' | ');
+  return {
+    creneaux_disponibles: slotsText || 'Lundi-vendredi 8h-18h, toute la semaine disponible',
+    adresse_atelier: 'Narbonne, Aude (11100) — déplacement sur rdv',
+    technicien: 'Florent',
+    tel_transfert: ELA_TRANSFER_NUM || 'non configuré'
+  };
 }
 
-function aiaHandleRappel(msg) {
-  var clean = msg.replace('[RAPPEL]', '').trim();
-  aiaAddMessage('ia', clean || 'Pas de souci, je note votre demande de rappel !');
-  aiaSetStatus('recall', 'Demande de rappel');
-  _aiaActive = false;
-  aiaRappel();
+// ── Créneaux disponibles ───────────────────────────────────────────────────
+function elaGetAvailableSlots(nbDays) {
+  var slots = [];
+  var allSlots = ['08:00','09:00','10:00','11:00','14:00','15:00','16:00','17:00'];
+  var jFr = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+  for (var i = 0; i < nbDays + 7; i++) {
+    if (slots.length >= nbDays) break;
+    var d = new Date();
+    d.setDate(d.getDate() + i + 1);
+    var dow = d.getDay();
+    if (dow === 0 || dow === 6) continue;
+    var ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    var taken = (DB.rdv||[]).filter(function(r){ return r.date===ds; }).map(function(r){ return r.heure; });
+    var free = allSlots.filter(function(t){ return taken.indexOf(t) === -1; });
+    slots.push({ label: jFr[dow] + ' ' + ds, date: ds, free: free.slice(0,4) });
+  }
+  return slots;
 }
 
-// ── CRÉER TOUT DANS ZYFIX ─────────────────────────────────────────────────
-function aiaCreateAll() {
-  var s = _aiaSession;
+// ── WEBHOOK ENTRANT — ElevenLabs appelle cette fonction ───────────────────
+// ElevenLabs envoie un POST au webhook quand l'agent utilise un outil
+// On expose une URL publique via GitHub Pages (endpoint simulé avec Service Worker)
+// OU on traite via le postMessage si on détecte le payload
+
+function elaHandleWebhook(payload) {
+  // payload : { tool: 'creer_rdv'|'demande_rappel'|'transfert_humain', data: {...} }
+  console.log('[ElaWebhook]', payload);
+  var tool = payload.tool || payload.type;
+  var data = payload.data || payload;
+
+  if (tool === 'creer_rdv') {
+    elaUpdateSession(data);
+    elaCreateFromSession();
+    return { success: true, message: 'RDV créé dans ZyFix' };
+  }
+  if (tool === 'demande_rappel') {
+    elaUpdateSession(data);
+    elaRappel();
+    return { success: true, message: 'Demande de rappel enregistrée' };
+  }
+  if (tool === 'transfert_humain') {
+    elaUpdateSession(data);
+    elaTransfert();
+    return { success: true, message: 'Transfert enregistré' };
+  }
+  return { success: false, message: 'Outil inconnu: ' + tool };
+}
+
+// ── SERVICE WORKER WEBHOOK (écoute les POST entrants via GitHub Pages) ────
+function elaRegisterWebhookListener() {
+  // Sur GitHub Pages on ne peut pas avoir de backend.
+  // Solution : intercepter via BroadcastChannel (si ServiceWorker installé)
+  // OU via polling de localStorage (l'agent ElevenLabs peut stocker via URL params)
+  
+  // Approche 1 : écoute BroadcastChannel du Service Worker
+  if ('BroadcastChannel' in window) {
+    var bc = new BroadcastChannel('zyfix-webhook');
+    bc.onmessage = function(e) {
+      if (e.data && e.data.type === 'ela-webhook') {
+        var result = elaHandleWebhook(e.data.payload);
+        console.log('[ElaWebhook] Traité:', result);
+      }
+    };
+  }
+
+  // Approche 2 : Poll localStorage pour les payloads ElevenLabs
+  // (l'agent peut déclencher une URL avec les données en query params)
+  setInterval(function() {
+    var pending = localStorage.getItem('zyfix_ela_pending');
+    if (pending) {
+      try {
+        var payload = JSON.parse(pending);
+        localStorage.removeItem('zyfix_ela_pending');
+        elaHandleWebhook(payload);
+      } catch(e) {}
+    }
+  }, 2000);
+}
+
+// ── URL WEBHOOK PUBLIQUE (pour configuration ElevenLabs) ─────────────────
+function elaGetWebhookUrl() {
+  // URL GitHub Pages + paramètre trigger
+  var base = 'https://florentcouzy-cyber.github.io/zyfix/';
+  return base + '?ela_webhook=1';
+}
+
+function elaUpdateWebhookUrl() {
+  var el = document.getElementById('ela-webhook-url');
+  if (el) el.value = elaGetWebhookUrl();
+}
+
+// Détecter si la page est ouverte via le webhook ElevenLabs
+(function() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('ela_webhook')) {
+    var payload = {};
+    params.forEach(function(v, k) { if (k !== 'ela_webhook') payload[k] = v; });
+    // Stocker pour traitement
+    if (Object.keys(payload).length > 0) {
+      localStorage.setItem('zyfix_ela_pending', JSON.stringify(payload));
+    }
+  }
+})();
+
+// ── CRÉER DANS ZYFIX ───────────────────────────────────────────────────────
+function elaCreateFromSession() {
+  var s = _elaSession;
   if (!s.nom && !s.tel) { showToast('❌ Données insuffisantes (nom ou téléphone requis)'); return; }
 
-  var created = [];
   var now = Date.now();
+  var created = [];
 
-  // 1. CLIENT
-  var parts = (s.nom || 'Client').split(' ');
-  var clientObj = {
-    id: 'CL' + now,
-    nom: parts[0],
-    prenom: parts.slice(1).join(' '),
-    tel: s.tel || '',
-    email: s.email || '',
-    adresse: s.adresse || '',
-    type: 'particulier',
-    entreprise: '',
-    source: 'Agent IA',
-    sourceNote: 'Via agent vocal de prise de RDV',
-    date: today()
-  };
-  DB.clients.push(clientObj);
-  created.push('👤 Client : ' + clientObj.nom + ' ' + (clientObj.prenom||''));
+  // 1. CLIENT — chercher si existe déjà (par tel)
+  var clientObj = null;
+  if (s.tel) {
+    var telClean = s.tel.replace(/[\s\-().+]/g,'');
+    clientObj = (DB.clients||[]).find(function(c){
+      return c.tel && c.tel.replace(/[\s\-().+]/g,'') === telClean;
+    });
+  }
+  if (!clientObj) {
+    var parts = (s.nom||'Client').split(' ');
+    clientObj = {
+      id: 'CL'+now, nom: parts[0], prenom: parts.slice(1).join(' '),
+      tel: s.tel||'', email: s.email||'', adresse: s.adresse||'',
+      type: 'particulier', entreprise: '', source: 'Agent Vocal ElevenLabs',
+      sourceNote: 'Via agent vocal de prise de RDV automatique', date: today()
+    };
+    DB.clients.push(clientObj);
+    created.push('👤 Nouveau client : ' + clientObj.nom);
+  } else {
+    created.push('👤 Client existant : ' + clientObj.nom);
+    if (s.adresse && !clientObj.adresse) clientObj.adresse = s.adresse;
+  }
 
   // 2. TICKET
   CTR.tk++;
-  var tkId = 'TK' + CTR.tk;
+  var tkId = 'TK'+CTR.tk;
   var urgMap = { normal:'', urgent:' [URGENT]', express:' [EXPRESS]' };
   var pecMap = { atelier:'Atelier', domicile:'Domicile', distance:'À distance' };
   var ticket = {
-    id: tkId,
-    clientId: clientObj.id,
-    type: s.appareil || 'Appareil',
-    marque: s.marque || '',
-    modele: s.modele || '',
-    serie: '',
-    os: '',
-    probleme: (s.panne || 'À qualifier') + (urgMap[s.urgence] || ''),
-    statut: 'attente',
-    diag: '',
-    date: today(),
-    pec: pecMap[s.pec] || 'Atelier',
-    notes: '[Agent IA] ' + (s.notes || '')
+    id: tkId, clientId: clientObj.id,
+    type: s.appareil||'Appareil', marque: s.marque||'', modele: s.modele||'', serie:'', os:'',
+    probleme: (s.panne||'À qualifier') + (urgMap[s.urgence]||''),
+    statut: 'attente', diag: '', date: today(),
+    pec: pecMap[s.pec]||'Atelier',
+    notes: '[Agent Vocal ElevenLabs]\n' + (s.notes||'')
   };
   DB.tickets.unshift(ticket);
   created.push('🎫 Ticket : ' + tkId);
 
-  // 3. RDV (si date fournie)
+  // 3. RDV
   var rdvId = null;
-  if (s.rdv) {
+  if (s.rdv_date) {
     if (!DB.rdv) DB.rdv = [];
-    rdvId = 'RDV' + (now + 1);
+    rdvId = 'RDV'+(now+1);
     DB.rdv.push({
-      id: rdvId,
-      clientId: clientObj.id,
-      date: s.rdv.substring(0, 10),
-      heure: s.rdv.substring(11, 16),
-      motif: (pecMap[s.pec] || 'RDV') + ' — ' + (s.appareil || 'Appareil') + (s.marque ? ' ' + s.marque : '') + (s.panne ? ' : ' + s.panne.substring(0, 35) : ''),
-      notes: (s.pec === 'domicile' && s.adresse ? '📍 ' + s.adresse + '\n' : '') + '[Agent IA]\n' + (s.notes || ''),
+      id: rdvId, clientId: clientObj.id,
+      date: s.rdv_date, heure: s.rdv_heure||'09:00',
+      motif: (pecMap[s.pec]||'RDV')+' — '+(s.appareil||'Appareil')+(s.marque?' '+s.marque:'')+(s.panne?' : '+s.panne.substring(0,35):''),
+      notes: (s.pec==='domicile'&&s.adresse?'📍 '+s.adresse+'\n':'')+'[Agent Vocal]\n'+(s.notes||''),
       ticketId: tkId
     });
-    created.push('📅 RDV : ' + s.rdv.substring(0, 16).replace('T', ' '));
+    created.push('📅 RDV : '+s.rdv_date+(s.rdv_heure?' à '+s.rdv_heure:''));
+    _agendaDate = s.rdv_date;
   }
 
-  // 4. FICHE RÉPARATION brouillon si urgence ou domicile
-  if (s.urgence === 'urgent' || s.urgence === 'express' || s.pec === 'domicile') {
+  // 4. FICHE REP brouillon si urgence ou domicile
+  if (s.urgence==='urgent'||s.urgence==='express'||s.pec==='domicile') {
     if (!DB.reparations) DB.reparations = [];
     DB.reparations.push({
-      id: 'REP' + (now + 2),
-      num: 'R' + (1000 + DB.reparations.length),
-      clientId: clientObj.id,
-      ticketId: tkId,
-      dateEntree: today(),
-      dateSortie: '',
-      statut: 'recu',
-      urgence: s.urgence || 'normal',
-      typeAppareil: s.appareil || '',
-      marque: s.marque || '',
-      modele: s.modele || '',
-      serie: '', accessoires: '', etatVisuel: 'À vérifier',
-      panneDec: s.panne || '',
-      symptomes: '', diagnostic: '', actions: '', temps: 0,
-      resultat: '', tests: '', remarques: '[Agent IA] ' + (s.notes || ''),
-      risques: '', risquesSigne: false, garantie: '0',
-      checklist: {}, pieces: [], photos: [],
-      historique: [{ ts: nowTs(), msg: 'Fiche créée automatiquement via Agent IA vocal' }]
+      id:'REP'+(now+2), num:'R'+(1000+DB.reparations.length), clientId:clientObj.id,
+      ticketId:tkId, dateEntree:today(), dateSortie:'', statut:'recu', urgence:s.urgence||'normal',
+      typeAppareil:s.appareil||'', marque:s.marque||'', modele:s.modele||'', serie:'', accessoires:'',
+      etatVisuel:'À vérifier', panneDec:s.panne||'', symptomes:'', diagnostic:'', actions:'', temps:0,
+      resultat:'', tests:'', remarques:'[Agent Vocal ElevenLabs] '+(s.notes||''),
+      risques:'', risquesSigne:false, garantie:'0', checklist:{}, pieces:[], photos:[],
+      historique:[{ts:nowTs(), msg:'Fiche créée automatiquement via Agent Vocal ElevenLabs'}]
     });
-    created.push('🔩 Fiche réparation brouillon créée');
+    created.push('🔩 Fiche réparation brouillon');
   }
 
   // 5. APPEL lié
   if (!DB.appels) DB.appels = [];
   DB.appels.push({
-    id: 'AP' + now,
-    date: today(),
-    nom: s.nom || 'Client IA',
-    tel: s.tel || '',
-    clientId: clientObj.id,
-    typeAppareil: s.appareil || '',
-    marque: s.marque || '',
-    modele: s.modele || '',
-    panne: s.panne || '',
-    urgence: s.urgence || 'normal',
-    pec: s.pec || 'atelier',
-    qualification: 'prospect_chaud',
-    statut: s.rdv ? 'rdv_pris' : 'en_attente',
-    notes: '[Agent IA]\n' + aiaSessionToText(),
-    linkedTicket: tkId,
-    linkedRdv: rdvId,
-    brouillon: false
+    id:'AP'+now, date:today(), nom:s.nom||'Client IA', tel:s.tel||'',
+    clientId:clientObj.id, typeAppareil:s.appareil||'', marque:s.marque||'', modele:s.modele||'',
+    panne:s.panne||'', urgence:s.urgence||'normal', pec:s.pec||'atelier',
+    qualification:'prospect_chaud', statut:s.rdv_date?'rdv_pris':'en_attente',
+    notes:'[Agent Vocal ElevenLabs]\n'+elaSessionToText(),
+    linkedTicket:tkId, linkedRdv:rdvId, brouillon:false
   });
 
-  dbSave();
-  refreshAll();
-
-  // Fermer le modal et afficher le résumé
+  dbSave(); refreshAll();
   closeM('m-agent-ia');
-  showToast('✅ ' + created.join(' | '));
-
-  // Ouvrir la page appels
+  showToast('✅ '+created.join(' | '));
   setTimeout(function(){ _gotoCore('appels'); }, 300);
 }
 
-// ── TRANSFERT / RAPPEL ────────────────────────────────────────────────────
-function aiaShowTransfertUI() {
-  document.getElementById('aia-footer-actions').style.display = 'flex';
-  document.getElementById('aia-create-btn').innerHTML = '✅ Créer fiche + demande de rappel';
-  var quickDiv = document.getElementById('aia-quick-actions');
-  quickDiv.innerHTML = '<div style="font-size:12px;color:var(--amber);padding:6px 0">⚠️ Appel à transférer — résumé disponible ci-dessous</div>';
-}
-
-function aiaTransfert() {
-  // Générer un appel brouillon et afficher le résumé
+// ── TRANSFERT / RAPPEL ─────────────────────────────────────────────────────
+function elaTransfert() {
   if (!DB.appels) DB.appels = [];
-  var now = Date.now();
   DB.appels.push({
-    id: 'AP' + now,
-    date: today(),
-    nom: _aiaSession.nom || 'Client (appel transféré)',
-    tel: _aiaSession.tel || '',
-    typeAppareil: _aiaSession.appareil || '',
-    panne: _aiaSession.panne || '',
-    urgence: _aiaSession.urgence || 'normal',
-    qualification: 'prospect_chaud',
-    statut: 'a_rappeler',
-    notes: '📞 APPEL TRANSFÉRÉ — Agent IA\n\n' + aiaSessionToText() + '\n\n📝 Transcript :\n' + aiaGetTranscript(),
-    brouillon: true
+    id:'AP'+Date.now(), date:today(),
+    nom:_elaSession.nom||'Client (transfert vocal)',
+    tel:_elaSession.tel||'', typeAppareil:_elaSession.appareil||'', panne:_elaSession.panne||'',
+    urgence:_elaSession.urgence||'normal', qualification:'prospect_chaud', statut:'a_rappeler',
+    notes:'📞 TRANSFERT DEMANDÉ — Agent Vocal ElevenLabs\n\n'+elaSessionToText(),
+    brouillon:true
   });
-  dbSave();
-  refreshAll();
+  dbSave(); refreshAll();
   closeM('m-agent-ia');
-  showToast('📞 Demande de transfert enregistrée — fiche brouillon créée');
+  showToast('📞 Transfert enregistré — fiche brouillon créée dans Appels');
   setTimeout(function(){ _gotoCore('appels'); }, 300);
 }
 
-function aiaRappel() {
+function elaRappel() {
   if (!DB.appels) DB.appels = [];
-  var now = Date.now();
   DB.appels.push({
-    id: 'AP' + now,
-    date: today(),
-    nom: _aiaSession.nom || 'Client (rappel)',
-    tel: _aiaSession.tel || '',
-    typeAppareil: _aiaSession.appareil || '',
-    panne: _aiaSession.panne || '',
-    urgence: _aiaSession.urgence || 'normal',
-    qualification: 'prospect_chaud',
-    statut: 'a_rappeler',
-    notes: '📞 DEMANDE DE RAPPEL — Agent IA\n\n' + aiaSessionToText() + '\n\n📝 Transcript :\n' + aiaGetTranscript(),
-    brouillon: true
+    id:'AP'+Date.now(), date:today(),
+    nom:_elaSession.nom||'Client (rappel)',
+    tel:_elaSession.tel||'', typeAppareil:_elaSession.appareil||'', panne:_elaSession.panne||'',
+    urgence:_elaSession.urgence||'normal', qualification:'prospect_chaud', statut:'a_rappeler',
+    notes:'📞 DEMANDE DE RAPPEL — Agent Vocal ElevenLabs\n\n'+elaSessionToText(),
+    brouillon:true
   });
-  dbSave();
-  refreshAll();
+  dbSave(); refreshAll();
   closeM('m-agent-ia');
   showToast('📞 Demande de rappel enregistrée — fiche brouillon créée');
   setTimeout(function(){ _gotoCore('appels'); }, 300);
 }
 
-// ── CRÉNEAUX DISPONIBLES ──────────────────────────────────────────────────
-function aiaGetAvailableSlots(nbDays) {
-  var slots = [];
-  var allSlots = ['08:00','09:00','10:00','11:00','14:00','15:00','16:00','17:00'];
-  for (var i = 0; i < nbDays; i++) {
-    var d = new Date();
-    d.setDate(d.getDate() + i + 1); // à partir de demain
-    var dow = d.getDay();
-    if (dow === 0 || dow === 6) continue; // pas le week-end
-    var ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-    var taken = (DB.rdv||[]).filter(function(r){ return r.date === ds; }).map(function(r){ return r.heure; });
-    var free = allSlots.filter(function(t){ return taken.indexOf(t) === -1; });
-    var jFr = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
-    slots.push({ date: jFr[dow] + ' ' + ds, free: free.slice(0, 5) });
-  }
-  return slots;
-}
-
-// ── SESSION & UI ──────────────────────────────────────────────────────────
-function aiaUpdateSession(data) {
-  if (!data) return;
-  Object.keys(data).forEach(function(k) {
-    if (data[k] !== undefined && data[k] !== '') _aiaSession[k] = data[k];
-  });
-  aiaRenderRecap();
-}
-
-function aiaRenderRecap() {
-  var s = _aiaSession;
-  var items = [];
-  if (s.nom)      items.push({ icon:'👤', val: s.nom });
-  if (s.tel)      items.push({ icon:'📞', val: s.tel });
-  if (s.appareil) items.push({ icon:'💻', val: s.appareil });
-  if (s.marque)   items.push({ icon:'🏷️', val: s.marque + (s.modele?' '+s.modele:'') });
-  if (s.panne)    items.push({ icon:'⚠️', val: s.panne.substring(0,40) + (s.panne.length>40?'...':'') });
-  if (s.urgence && s.urgence !== 'normal') items.push({ icon:'🚨', val: s.urgence.toUpperCase() });
-  if (s.pec)      items.push({ icon:'📍', val: { atelier:'Atelier', domicile:'Domicile', distance:'À distance' }[s.pec] || s.pec });
-  if (s.rdv)      items.push({ icon:'📅', val: s.rdv.substring(0,16).replace('T',' ') });
-
-  if (!items.length) return;
-  document.getElementById('aia-recap').style.display = 'block';
-  document.getElementById('aia-recap-content').innerHTML = items.map(function(it){
-    return '<span style="background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);padding:3px 8px;border-radius:6px;font-size:11px;color:var(--t1)">' + it.icon + ' ' + escHtml(String(it.val)) + '</span>';
-  }).join('');
-}
-
-function aiaAddMessage(type, text) {
-  var chat = document.getElementById('aia-chat');
-  if (!chat) return;
-
-  // Nettoyer les tags techniques du texte affiché
-  var display = text.replace(/\[TRANSFERT\]|\[COMPLET\]|\[RAPPEL\]/g, '').trim();
-  if (!display) return;
-
-  var isIA = (type === 'ia');
-  var isSystem = (type === 'system');
-  var div = document.createElement('div');
-
-  if (isSystem) {
-    div.style.cssText = 'text-align:center;font-size:11px;color:var(--amber);padding:6px 12px;background:rgba(255,180,0,.07);border-radius:8px;border:1px solid rgba(255,180,0,.2)';
-    div.textContent = display;
-  } else {
-    div.style.cssText = 'display:flex;gap:10px;align-items:flex-start;' + (isIA ? '' : 'flex-direction:row-reverse');
-    var avatar = document.createElement('div');
-    avatar.style.cssText = 'width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:' + (isIA ? 'rgba(0,212,255,.15);border:1px solid rgba(0,212,255,.3)' : 'rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)');
-    avatar.textContent = isIA ? '🤖' : '👤';
-    var bubble = document.createElement('div');
-    bubble.style.cssText = 'max-width:80%;padding:10px 14px;border-radius:' + (isIA ? '4px 14px 14px 14px' : '14px 4px 14px 14px') + ';font-size:14px;line-height:1.5;' + (isIA ? 'background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.15);color:var(--t1)' : 'background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:var(--t1)');
-    bubble.textContent = display;
-    div.appendChild(avatar);
-    div.appendChild(bubble);
-  }
-
-  chat.appendChild(div);
-  chat.scrollTop = chat.scrollHeight;
-
-  // Animation d'apparition
-  div.style.opacity = '0';
-  div.style.transform = 'translateY(6px)';
-  div.style.transition = 'opacity .25s,transform .25s';
-  requestAnimationFrame(function(){
-    div.style.opacity = '1';
-    div.style.transform = 'translateY(0)';
-  });
-}
-
-function aiaSetStatus(state, label) {
-  var dot = document.getElementById('aia-status-dot');
-  var lbl = document.getElementById('aia-status-label');
-  if (lbl) lbl.textContent = label;
-  if (!dot) return;
-  var colors = { active:'#00ff88', thinking:'#ffb400', transfer:'#ff6b6b', done:'#00d4ff', recall:'#b3a0ff', error:'#ff4444', idle:'#666' };
-  dot.style.background = colors[state] || '#666';
-  if (state === 'thinking') {
-    dot.style.animation = 'pulse 1s infinite';
-  } else {
-    dot.style.animation = '';
-  }
-}
-
-function aiaSetQuickActions(actions) {
-  var div = document.getElementById('aia-quick-actions');
-  if (!div) return;
-  div.innerHTML = actions.map(function(a){
-    return '<button onclick="aiaQuickSend(this)" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--t2);padding:5px 10px;border-radius:8px;cursor:pointer;font-size:12px;transition:all .15s" onmouseover="this.style.borderColor=\'var(--cyan)\';this.style.color=\'var(--cyan)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,.1)\';this.style.color=\'var(--t2)\'">' + a + '</button>';
-  }).join('');
-}
-
-function aiaAutoQuickActions(aiMsg) {
-  var lower = aiMsg.toLowerCase();
-  var actions = [];
-  if (lower.indexOf('quel') !== -1 || lower.indexOf('type') !== -1 || lower.indexOf('appareil') !== -1) {
-    actions = ['PC portable', 'PC fixe', 'Téléphone', 'Tablette', 'Imprimante'];
-  } else if (lower.indexOf('marque') !== -1 || lower.indexOf('modèle') !== -1) {
-    actions = ['HP', 'Dell', 'Lenovo', 'Asus', 'Acer', 'Samsung', 'Apple'];
-  } else if (lower.indexOf('urgence') !== -1 || lower.indexOf('urgent') !== -1) {
-    actions = ['Normal (quelques jours)', 'Urgent (48h)', 'Express (aujourd\'hui)'];
-  } else if (lower.indexOf('prise en charge') !== -1 || lower.indexOf('déposer') !== -1 || lower.indexOf('atelier') !== -1) {
-    actions = ['Je dépose à l\'atelier', 'Intervention à domicile', 'Assistance à distance'];
-  } else if (lower.indexOf('créneau') !== -1 || lower.indexOf('rdv') !== -1 || lower.indexOf('rendez-vous') !== -1) {
-    // Proposer les prochains créneaux libres
-    var nextSlots = aiaGetAvailableSlots(2);
-    nextSlots.forEach(function(d){ if(d.free[0]) actions.push(d.date + ' à ' + d.free[0]); });
-  }
-  if (actions.length) aiaSetQuickActions(actions);
-  else {
-    aiaSetQuickActions(['Continuer', 'Parler à un humain', 'Demander un rappel']);
-    document.getElementById('aia-send-btn').disabled = false;
-  }
-}
-
-function aiaQuickSend(btn) {
-  var txt = btn.textContent;
-  // Parser les créneaux du style "Lun 2026-03-12 à 09:00"
-  var rdvMatch = txt.match(/(\d{4}-\d{2}-\d{2})\s+à\s+(\d{2}:\d{2})/);
-  if (rdvMatch) {
-    var inputEl = document.getElementById('aia-input');
-    inputEl.value = 'Je voudrais le ' + txt;
-    // Stocker directement le créneau dans la session
-    _aiaSession.rdv = rdvMatch[1] + 'T' + rdvMatch[2];
-  } else {
-    document.getElementById('aia-input').value = txt;
-  }
-  aiaSend();
-}
-
-// ── SAISIE VOCALE (Web Speech API) ────────────────────────────────────────
-function aiaVoice() {
-  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-    showToast('⚠️ Reconnaissance vocale non supportée sur ce navigateur');
-    return;
-  }
-  if (_aiaListening) {
-    if (_aiaRecognition) _aiaRecognition.stop();
-    return;
-  }
-  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  _aiaRecognition = new SR();
-  _aiaRecognition.lang = 'fr-FR';
-  _aiaRecognition.continuous = false;
-  _aiaRecognition.interimResults = false;
-  _aiaRecognition.onstart = function() {
-    _aiaListening = true;
-    document.getElementById('aia-voice-btn').style.background = 'rgba(255,80,80,.25)';
-    document.getElementById('aia-voice-btn').textContent = '🔴';
-  };
-  _aiaRecognition.onresult = function(e) {
-    var transcript = e.results[0][0].transcript;
-    document.getElementById('aia-input').value = transcript;
-    _aiaListening = false;
-    document.getElementById('aia-voice-btn').style.background = 'rgba(0,212,255,.1)';
-    document.getElementById('aia-voice-btn').textContent = '🎤';
-  };
-  _aiaRecognition.onerror = function() {
-    _aiaListening = false;
-    document.getElementById('aia-voice-btn').style.background = 'rgba(0,212,255,.1)';
-    document.getElementById('aia-voice-btn').textContent = '🎤';
-  };
-  _aiaRecognition.start();
-}
-
-// ── UTILITAIRES ────────────────────────────────────────────────────────────
-function aiaSessionToText() {
-  var s = _aiaSession;
-  var lines = [];
-  if (s.nom)      lines.push('Client : ' + s.nom);
-  if (s.tel)      lines.push('Tél : ' + s.tel);
-  if (s.appareil) lines.push('Appareil : ' + s.appareil + (s.marque?' '+s.marque:'') + (s.modele?' '+s.modele:''));
-  if (s.panne)    lines.push('Panne : ' + s.panne);
-  if (s.urgence)  lines.push('Urgence : ' + s.urgence);
-  if (s.pec)      lines.push('Prise en charge : ' + ({atelier:'Atelier',domicile:'Domicile',distance:'À distance'}[s.pec]||s.pec));
-  if (s.adresse)  lines.push('Adresse : ' + s.adresse);
-  if (s.rdv)      lines.push('RDV souhaité : ' + s.rdv.substring(0,16).replace('T',' '));
-  if (s.notes)    lines.push('Notes : ' + s.notes);
-  return lines.join('\n');
-}
-
-function aiaGetTranscript() {
-  return _aiaHistory.filter(function(m){ return m.role !== 'system'; })
-    .map(function(m){ return (m.role === 'user' ? '👤 ' : '🤖 ') + m.content.replace(/<data>[\s\S]*?<\/data>/g, '').trim(); })
-    .join('\n');
-}
-
-
-
-// ── CONFIG AGENT IA ──────────────────────────────────────────────────────
+// ── CONFIG ─────────────────────────────────────────────────────────────────
 function openAgentConfig() {
-  // Pré-remplir les valeurs sauvegardées
-  var proxyEl = document.getElementById('aia-proxy-input');
-  var keyEl   = document.getElementById('aia-key-input');
-  if (proxyEl) proxyEl.value = AIA_PROXY_URL || '';
-  if (keyEl)   keyEl.value   = AIA_API_KEY   || '';
-  // Mettre à jour le statut
-  aiaUpdateConfigStatus();
+  var f = function(id, val){ var el=document.getElementById(id); if(el) el.value=val||''; };
+  f('ela-agent-id', ELA_AGENT_ID);
+  f('ela-api-key', ELA_API_KEY);
+  f('ela-twilio-num', ELA_TWILIO_NUM);
+  f('ela-transfer-num', ELA_TRANSFER_NUM);
+  elaUpdateWebhookUrl();
+  elaUpdateConfigStatus();
   openM('m-agent-config');
 }
 
-function aiaConfigTab(tab) {
-  document.getElementById('aia-panel-worker').style.display = tab === 'worker' ? 'block' : 'none';
-  document.getElementById('aia-panel-direct').style.display = tab === 'direct' ? 'block' : 'none';
-  document.getElementById('aia-tab-worker').style.background  = tab === 'worker' ? 'rgba(0,212,255,.15)' : 'transparent';
-  document.getElementById('aia-tab-worker').style.color       = tab === 'worker' ? 'var(--cyan)' : 'var(--t3)';
-  document.getElementById('aia-tab-direct').style.background  = tab === 'direct' ? 'rgba(255,180,0,.1)' : 'transparent';
-  document.getElementById('aia-tab-direct').style.color       = tab === 'direct' ? '#ffb400' : 'var(--t3)';
-}
+function elaSaveConfig() {
+  var g = function(id){ return (document.getElementById(id)||{}).value||''; };
+  ELA_AGENT_ID     = g('ela-agent-id').trim();
+  ELA_API_KEY      = g('ela-api-key').trim();
+  ELA_TWILIO_NUM   = g('ela-twilio-num').trim();
+  ELA_TRANSFER_NUM = g('ela-transfer-num').trim();
 
-function aiaSaveConfig() {
-  var proxy = (document.getElementById('aia-proxy-input').value || '').trim();
-  var key   = (document.getElementById('aia-key-input').value   || '').trim();
-  if (proxy) {
-    AIA_PROXY_URL = proxy;
-    localStorage.setItem('zyfix_ai_proxy', proxy);
-  }
-  if (key) {
-    AIA_API_KEY = key;
-    localStorage.setItem('zyfix_ai_key', key);
-  }
-  if (!proxy && !key) {
-    showToast('⚠️ Renseigne une URL Worker ou une clé API'); return;
-  }
-  aiaUpdateConfigStatus();
+  if (!ELA_AGENT_ID) { showToast('⚠️ Agent ID requis'); return; }
+
+  localStorage.setItem('zyfix_ela_agent_id',  ELA_AGENT_ID);
+  localStorage.setItem('zyfix_ela_api_key',   ELA_API_KEY);
+  localStorage.setItem('zyfix_ela_twilio',    ELA_TWILIO_NUM);
+  localStorage.setItem('zyfix_ela_transfer',  ELA_TRANSFER_NUM);
+
+  elaUpdateConfigStatus();
   closeM('m-agent-config');
-  showToast('✅ Config Agent IA sauvegardée !');
+  showToast('✅ Config Agent Vocal sauvegardée !');
 }
 
-function aiaUpdateConfigStatus() {
-  var el = document.getElementById('aia-config-status');
+function elaUpdateConfigStatus() {
+  var el = document.getElementById('ela-config-status');
   if (!el) return;
-  if (AIA_PROXY_URL) {
-    el.style.background = 'rgba(0,200,120,.08)';
-    el.style.borderColor = 'rgba(0,200,120,.25)';
-    el.style.color = '#00c878';
-    el.textContent = '✅ Worker configuré : ' + AIA_PROXY_URL.replace('https://','').substring(0,40) + '...';
-  } else if (AIA_API_KEY) {
-    el.style.background = 'rgba(255,180,0,.08)';
-    el.style.borderColor = 'rgba(255,180,0,.25)';
-    el.style.color = '#ffb400';
-    el.textContent = '⚠️ Clé directe configurée (attention : visible dans le navigateur)';
+  if (ELA_AGENT_ID) {
+    el.style.cssText = 'padding:10px 14px;border-radius:8px;font-size:13px;background:rgba(0,200,120,.08);border:1px solid rgba(0,200,120,.25);color:#00c878';
+    el.textContent = '✅ Agent configuré : ' + ELA_AGENT_ID.substring(0,20) + '...';
   } else {
-    el.style.background = 'rgba(255,100,100,.08)';
-    el.style.borderColor = 'rgba(255,100,100,.2)';
-    el.style.color = '#ff8080';
-    el.textContent = '⚠️ Non configuré — L\'agent IA nécessite un Worker Cloudflare ou une clé Anthropic';
+    el.style.cssText = 'padding:10px 14px;border-radius:8px;font-size:13px;background:rgba(255,100,100,.08);border:1px solid rgba(255,100,100,.2);color:#ff8080';
+    el.textContent = '⚠️ Non configuré — Renseigne ton Agent ID ElevenLabs';
   }
 }
+
+// ── SESSION & UI ───────────────────────────────────────────────────────────
+function elaUpdateSession(data) {
+  if (!data) return;
+  Object.keys(data).forEach(function(k){ if(data[k]!==undefined&&data[k]!=='') _elaSession[k]=data[k]; });
+  elaRenderRecap();
+}
+
+function elaRenderRecap() {
+  var s = _elaSession;
+  var items = [];
+  if (s.nom)       items.push({icon:'👤', val:s.nom});
+  if (s.tel)       items.push({icon:'📞', val:s.tel});
+  if (s.appareil)  items.push({icon:'💻', val:s.appareil+(s.marque?' '+s.marque:'')});
+  if (s.panne)     items.push({icon:'⚠️', val:s.panne.substring(0,40)});
+  if (s.urgence && s.urgence!=='normal') items.push({icon:'🚨', val:s.urgence.toUpperCase()});
+  if (s.pec)       items.push({icon:'📍', val:{atelier:'Atelier',domicile:'Domicile',distance:'Distance'}[s.pec]||s.pec});
+  if (s.rdv_date)  items.push({icon:'📅', val:s.rdv_date+(s.rdv_heure?' '+s.rdv_heure:'')});
+  if (!items.length) return;
+  document.getElementById('ela-recap').style.display = 'block';
+  document.getElementById('ela-recap-content').innerHTML = items.map(function(it){
+    return '<span style="background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.25);padding:3px 8px;border-radius:6px;font-size:11px;color:#d4bbff">'+it.icon+' '+escHtml(String(it.val))+'</span>';
+  }).join('');
+}
+
+function elaAddTranscript(type, text) {
+  var div = document.getElementById('ela-transcript');
+  if (!div || !text) return;
+  var isIA = type==='ia', isSys = type==='system';
+  var el = document.createElement('div');
+  if (isSys) {
+    el.style.cssText='text-align:center;font-size:11px;color:var(--amber);padding:5px 10px;background:rgba(255,180,0,.06);border-radius:7px;border:1px solid rgba(255,180,0,.15)';
+    el.textContent=text;
+  } else {
+    el.style.cssText='display:flex;gap:8px;align-items:flex-start;'+(isIA?'':'flex-direction:row-reverse');
+    var av=document.createElement('div');
+    av.style.cssText='width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:'+(isIA?'rgba(139,92,246,.2);border:1px solid rgba(139,92,246,.35)':'rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)');
+    av.textContent=isIA?'🤖':'👤';
+    var bub=document.createElement('div');
+    bub.style.cssText='max-width:80%;padding:8px 12px;border-radius:'+(isIA?'4px 12px 12px 12px':'12px 4px 12px 12px')+';font-size:13px;line-height:1.5;'+(isIA?'background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.2);color:var(--t1)':'background:rgba(255,255,255,.05);color:var(--t1)');
+    bub.textContent=text;
+    el.appendChild(av); el.appendChild(bub);
+  }
+  el.style.opacity='0'; el.style.transform='translateY(5px)';
+  el.style.transition='opacity .2s,transform .2s';
+  div.appendChild(el);
+  div.scrollTop=div.scrollHeight;
+  requestAnimationFrame(function(){ el.style.opacity='1'; el.style.transform='translateY(0)'; });
+}
+
+function elaSetStatus(state, label) {
+  var dot=document.getElementById('ela-status-dot'), lbl=document.getElementById('ela-status-label');
+  if(lbl) lbl.textContent=label;
+  if(!dot) return;
+  var c={active:'#00ff88',connecting:'#ffb400',speaking:'#b39dff',listening:'#00d4ff',idle:'#555',error:'#ff4444'};
+  dot.style.background=c[state]||'#555';
+  dot.style.animation=(state==='connecting'||state==='active')?'pulse 1.2s infinite':'';
+}
+
+function elaSetOrb(state) {
+  var orb=document.getElementById('ela-orb');
+  if(!orb) return;
+  var styles={
+    idle:     'radial-gradient(circle,rgba(80,80,120,.4),rgba(20,20,40,.8))',
+    connecting:'radial-gradient(circle,rgba(255,180,0,.5),rgba(40,30,10,.8))',
+    listening: 'radial-gradient(circle,rgba(0,212,255,.5),rgba(0,40,60,.8))',
+    speaking:  'radial-gradient(circle,rgba(139,92,246,.7),rgba(30,10,60,.8))',
+    error:     'radial-gradient(circle,rgba(255,80,80,.5),rgba(40,10,10,.8))',
+  };
+  var glows={idle:'none',connecting:'0 0 40px rgba(255,180,0,.3)',listening:'0 0 40px rgba(0,212,255,.4)',speaking:'0 0 50px rgba(139,92,246,.6)',error:'0 0 30px rgba(255,80,80,.4)'};
+  var icons={idle:'🎙️',connecting:'⏳',listening:'👂',speaking:'🔊',error:'⚠️'};
+  orb.style.background=styles[state]||styles.idle;
+  orb.style.boxShadow=glows[state]||'none';
+  orb.textContent=icons[state]||'🎙️';
+  orb.style.transform=state==='speaking'?'scale(1.12)':'scale(1)';
+}
+
+// ── Visualiseur audio ──────────────────────────────────────────────────────
+function elaStartAudioViz() {
+  var canvas = document.getElementById('ela-audio-bar');
+  if (!canvas) return;
+  canvas.style.opacity = '0.8';
+  var ctx = canvas.getContext('2d');
+  var W = canvas.width, H = canvas.height;
+  var bars = 40;
+
+  function drawFrame() {
+    ctx.clearRect(0,0,W,H);
+    var barW = W/bars - 1;
+    for(var i=0;i<bars;i++){
+      var h = _elaActive ? (Math.sin(Date.now()/200+i*0.4)*0.5+0.5)*H*0.8 + H*0.1 : H*0.08;
+      var grad = ctx.createLinearGradient(0,H-h,0,H);
+      grad.addColorStop(0,'rgba(139,92,246,.9)');
+      grad.addColorStop(1,'rgba(0,212,255,.6)');
+      ctx.fillStyle=grad;
+      ctx.beginPath();
+      ctx.roundRect(i*(barW+1),H-h,barW,h,2);
+      ctx.fill();
+    }
+    _elaAnimFrame = requestAnimationFrame(drawFrame);
+  }
+  drawFrame();
+}
+
+function elaStopAudioViz() {
+  if (_elaAnimFrame) cancelAnimationFrame(_elaAnimFrame);
+  var canvas = document.getElementById('ela-audio-bar');
+  if (canvas) canvas.style.opacity='0';
+}
+
+// ── Utilitaires ────────────────────────────────────────────────────────────
+function elaSessionToText() {
+  var s=_elaSession, lines=[];
+  if(s.nom)       lines.push('Client : '+s.nom);
+  if(s.tel)       lines.push('Tél : '+s.tel);
+  if(s.appareil)  lines.push('Appareil : '+s.appareil+(s.marque?' '+s.marque:'')+(s.modele?' '+s.modele:''));
+  if(s.panne)     lines.push('Panne : '+s.panne);
+  if(s.urgence)   lines.push('Urgence : '+s.urgence);
+  if(s.pec)       lines.push('PEC : '+({atelier:'Atelier',domicile:'Domicile',distance:'À distance'}[s.pec]||s.pec));
+  if(s.adresse)   lines.push('Adresse : '+s.adresse);
+  if(s.rdv_date)  lines.push('RDV : '+s.rdv_date+(s.rdv_heure?' à '+s.rdv_heure:''));
+  if(s.notes)     lines.push('Notes : '+s.notes);
+  return lines.join('\n');
+}
+
+// Lancer l'écoute webhook au démarrage
+elaRegisterWebhookListener();
+
 
 </script>
 
 
 
 
+
+
 <!-- ════════════════════════════════════════════════════════════
-     MODAL AGENT IA VOCAL — Prise de RDV automatique
+     MODAL AGENT VOCAL ELEVENLABS
      ════════════════════════════════════════════════════════════ -->
 <div class="overlay" id="m-agent-ia" style="z-index:1400">
-  <div class="modal" style="max-width:620px;width:95vw;max-height:90vh;display:flex;flex-direction:column;padding:0;overflow:hidden">
+  <div class="modal" style="max-width:600px;width:95vw;max-height:92vh;display:flex;flex-direction:column;padding:0;overflow:hidden;border:1px solid rgba(139,92,246,.3)">
 
     <!-- Header -->
-    <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;background:linear-gradient(135deg,#0a1628,#091520);border-bottom:1px solid rgba(0,212,255,.2);flex-shrink:0">
-      <div id="aia-status-dot" style="width:10px;height:10px;border-radius:50%;background:#666;flex-shrink:0;transition:background .3s"></div>
+    <div style="display:flex;align-items:center;gap:12px;padding:14px 20px;background:linear-gradient(135deg,#0d0a1f,#130d2e);border-bottom:1px solid rgba(139,92,246,.25);flex-shrink:0">
+      <div id="ela-status-dot" style="width:10px;height:10px;border-radius:50%;background:#555;flex-shrink:0;transition:background .4s"></div>
       <div style="flex:1">
-        <div style="font-size:16px;font-weight:900;color:#fff">🤖 Agent IA — Prise de RDV</div>
-        <div id="aia-status-label" style="font-size:11px;color:var(--t3)">Prêt à démarrer</div>
+        <div style="font-size:15px;font-weight:900;color:#fff">🎙️ Agent Vocal ZyFix</div>
+        <div id="ela-status-label" style="font-size:11px;color:var(--t3)">ElevenLabs Conversational AI</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
-        <button id="aia-transfer-btn" onclick="aiaTransfert()" style="display:none;background:rgba(255,180,0,.15);border:1px solid rgba(255,180,0,.4);color:#ffb400;font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer">📞 Transférer</button>
-        <button class="modal-x" onclick="closeM('m-agent-ia')">✕</button>
+        <button id="ela-call-btn" onclick="elaStartCall()" style="background:linear-gradient(135deg,#7c3aed,#9f67ff);color:#fff;font-weight:700;font-size:13px;padding:8px 16px;border-radius:8px;cursor:pointer;border:none">
+          📞 Démarrer l'agent
+        </button>
+        <button id="ela-end-btn" onclick="elaEndCall()" style="display:none;background:rgba(255,80,80,.2);border:1px solid rgba(255,80,80,.4);color:#ff5050;font-size:13px;padding:8px 14px;border-radius:8px;cursor:pointer">
+          ⏹ Raccrocher
+        </button>
+        <button onclick="openAgentConfig()" style="background:rgba(139,92,246,.1);border:1px solid rgba(139,92,246,.3);color:#b39dff;font-size:12px;padding:8px 10px;border-radius:8px;cursor:pointer" title="Configuration">⚙️</button>
+        <button class="modal-x" onclick="elaEndCall();closeM('m-agent-ia')">✕</button>
       </div>
     </div>
 
-    <!-- Conversation -->
-    <div id="aia-chat" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;min-height:0;background:#080d14"></div>
+    <!-- Zone principale -->
+    <div style="flex:1;display:flex;flex-direction:column;overflow:hidden;background:#080c14">
 
-    <!-- Récap données collectées -->
-    <div id="aia-recap" style="display:none;padding:12px 16px;background:rgba(0,212,255,.05);border-top:1px solid rgba(0,212,255,.15);font-size:12px;color:var(--t2);flex-shrink:0">
-      <div style="font-size:11px;color:var(--cyan);font-weight:700;margin-bottom:6px">📋 Données collectées</div>
-      <div id="aia-recap-content" style="display:flex;flex-wrap:wrap;gap:6px"></div>
-    </div>
-
-    <!-- Input utilisateur -->
-    <div style="padding:12px 16px;background:#0a0f18;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0">
-      <div style="display:flex;gap:8px;align-items:flex-end">
-        <textarea id="aia-input" placeholder="Simuler la réponse du client..." rows="2"
-          style="flex:1;background:#111827;border:1px solid rgba(255,255,255,.1);color:#fff;padding:10px 12px;border-radius:10px;font-size:14px;resize:none;font-family:inherit;outline:none"
-          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();aiaSend()}"
-          oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
-        <div style="display:flex;flex-direction:column;gap:6px">
-          <button onclick="aiaSend()" id="aia-send-btn"
-            style="background:var(--cyan);color:#000;font-weight:700;padding:10px 16px;border-radius:10px;cursor:pointer;font-size:14px;white-space:nowrap">
-            Envoyer
-          </button>
-          <button onclick="aiaVoice()" id="aia-voice-btn"
-            style="background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);padding:8px;border-radius:10px;cursor:pointer;font-size:16px" title="Saisie vocale">
-            🎤
-          </button>
+      <!-- Visualiseur audio + statut conversation -->
+      <div style="padding:24px 20px 16px;display:flex;flex-direction:column;align-items:center;gap:12px;border-bottom:1px solid rgba(255,255,255,.05)">
+        <!-- Orbe animé -->
+        <div id="ela-orb" style="width:80px;height:80px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.4),rgba(30,20,60,.8));border:2px solid rgba(139,92,246,.3);display:flex;align-items:center;justify-content:center;font-size:32px;transition:all .3s;box-shadow:0 0 30px rgba(139,92,246,.15)">
+          🎙️
         </div>
+        <div id="ela-conversation-status" style="font-size:13px;color:var(--t3);text-align:center">
+          Lance l'agent pour démarrer une session vocale
+        </div>
+        <!-- Barre audio (canvas) -->
+        <canvas id="ela-audio-bar" width="300" height="32" style="border-radius:8px;opacity:0;transition:opacity .3s"></canvas>
       </div>
-      <!-- Actions rapides -->
-      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px" id="aia-quick-actions"></div>
+
+      <!-- Transcript conversation -->
+      <div id="ela-transcript" style="flex:1;overflow-y:auto;padding:12px 16px;display:flex;flex-direction:column;gap:8px;min-height:120px;max-height:240px"></div>
+
+      <!-- Recap données collectées -->
+      <div id="ela-recap" style="display:none;padding:10px 16px;background:rgba(139,92,246,.05);border-top:1px solid rgba(139,92,246,.15)">
+        <div style="font-size:11px;color:#b39dff;font-weight:700;margin-bottom:6px">📋 Données collectées</div>
+        <div id="ela-recap-content" style="display:flex;flex-wrap:wrap;gap:5px"></div>
+      </div>
     </div>
 
-    <!-- Footer actions -->
-    <div id="aia-footer-actions" style="display:none;padding:12px 16px;background:#080d14;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0">
-      <button onclick="aiaCreateAll()" id="aia-create-btn"
-        style="flex:1;background:linear-gradient(135deg,var(--cyan),#0095b3);color:#000;font-weight:800;padding:12px;border-radius:10px;cursor:pointer;font-size:14px">
-        ✅ Créer client + ticket + RDV
+    <!-- Footer actions (visible après RDV confirmé ou transfert) -->
+    <div id="ela-footer" style="display:none;padding:12px 16px;background:#0a0e18;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0">
+      <button id="ela-create-btn" onclick="elaCreateFromSession()" style="flex:1;background:linear-gradient(135deg,#7c3aed,#9f67ff);color:#fff;font-weight:800;padding:11px;border-radius:10px;cursor:pointer;font-size:13px;border:none">
+        ✅ Créer dans ZyFix
       </button>
-      <button onclick="aiaRappel()"
-        style="background:rgba(255,180,0,.15);border:1px solid rgba(255,180,0,.4);color:#ffb400;padding:12px 16px;border-radius:10px;cursor:pointer;font-size:13px">
+      <button onclick="elaRappel()" style="background:rgba(255,180,0,.12);border:1px solid rgba(255,180,0,.3);color:#ffb400;padding:11px 14px;border-radius:10px;cursor:pointer;font-size:12px">
         📞 Rappel
       </button>
     </div>
