@@ -2139,9 +2139,18 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
         <strong style="color:#b39dff">📋 Setup ElevenLabs (5 min)</strong><br>
         1. Va sur <a href="https://elevenlabs.io/app/conversational-ai" target="_blank" style="color:#b39dff">elevenlabs.io → Conversational AI</a><br>
         2. Crée un agent → configure la voix et le prompt (voir ci-dessous)<br>
-        3. Dans l'agent → <strong>Webhooks</strong> → ajoute l'URL de ton webhook ZyFix<br>
+        3. Dans l'agent → <strong>Outils</strong> → ajoute <code>creer_rdv</code>, <code>demande_rappel</code>, <code>create_ticket</code><br>
+        &nbsp;&nbsp;&nbsp;→ <strong>Webhook URL</strong> : ton Worker + <code>/webhook</code><br>
         4. Copie l'<strong>Agent ID</strong> et la <strong>clé API</strong> → colle ci-dessous<br>
-        5. Pour les appels téléphoniques : connecte <strong>Twilio</strong> dans ElevenLabs
+        5. Pour transfert humain : utilise l'outil système <strong>transfer_to_number</strong> (natif ElevenLabs+Twilio)<br>
+        6. Pour les appels téléphoniques : connecte <strong>Twilio</strong> dans ElevenLabs → Phone Numbers
+      </div>
+
+      <!-- Worker URL -->
+      <div class="fg">
+        <label>URL Worker Cloudflare ZyFix</label>
+        <input id="ela-worker-url" type="url" placeholder="https://zyfix-worker.xxx.workers.dev" style="font-family:var(--mono);font-size:13px">
+        <div style="font-size:11px;color:var(--t3);margin-top:3px">Sert à la fois de proxy IA (<code>/ai</code>) et de webhook ElevenLabs (<code>/webhook</code>)</div>
       </div>
 
       <!-- Agent ID -->
@@ -8305,6 +8314,14 @@ document.addEventListener('click', function(e){
 // ── Config (stockée en localStorage) ────────────────────────────────────
 var ELA_AGENT_ID    = localStorage.getItem('zyfix_ela_agent_id')  || '';
 var ELA_API_KEY     = localStorage.getItem('zyfix_ela_api_key')   || '';
+var ELA_WORKER_URL  = localStorage.getItem('zyfix_ela_worker')    || '';
+
+// ── Proxy endpoint (utilisé par recherche pièces + agent chat fallback) ──────
+function aiaGetApiEndpoint() {
+  if (ELA_WORKER_URL) return ELA_WORKER_URL + '/ai';
+  if (typeof AIA_PROXY_URL !== 'undefined' && AIA_PROXY_URL) return AIA_PROXY_URL;
+  return 'https://api.anthropic.com/v1/messages';
+}
 var ELA_TWILIO_NUM  = localStorage.getItem('zyfix_ela_twilio')    || '';
 var ELA_TRANSFER_NUM= localStorage.getItem('zyfix_ela_transfer')  || '';
 
@@ -8507,40 +8524,41 @@ function elaHandleWebhook(payload) {
 
 // ── SERVICE WORKER WEBHOOK (écoute les POST entrants via GitHub Pages) ────
 function elaRegisterWebhookListener() {
-  // Sur GitHub Pages on ne peut pas avoir de backend.
-  // Solution : intercepter via BroadcastChannel (si ServiceWorker installé)
-  // OU via polling de localStorage (l'agent ElevenLabs peut stocker via URL params)
-  
-  // Approche 1 : écoute BroadcastChannel du Service Worker
-  if ('BroadcastChannel' in window) {
-    var bc = new BroadcastChannel('zyfix-webhook');
-    bc.onmessage = function(e) {
-      if (e.data && e.data.type === 'ela-webhook') {
-        var result = elaHandleWebhook(e.data.payload);
-        console.log('[ElaWebhook] Traité:', result);
-      }
-    };
-  }
-
-  // Approche 2 : Poll localStorage pour les payloads ElevenLabs
-  // (l'agent peut déclencher une URL avec les données en query params)
+  // Polling du Worker Cloudflare KV toutes les 3 secondes
+  // Le Worker reçoit les POST d'ElevenLabs (/webhook) et les stocke en KV
+  // ZyFix poll (/poll) pour récupérer les events en attente
+  var _elaLastPoll = 0;
   setInterval(function() {
-    var pending = localStorage.getItem('zyfix_ela_pending');
-    if (pending) {
-      try {
-        var payload = JSON.parse(pending);
-        localStorage.removeItem('zyfix_ela_pending');
-        elaHandleWebhook(payload);
-      } catch(e) {}
-    }
-  }, 2000);
+    var workerUrl = ELA_WORKER_URL;
+    if (!workerUrl || !document.getElementById('m-agent-ia') || 
+        !document.getElementById('m-agent-ia').classList.contains('open')) return;
+    // Ne pas poll trop souvent
+    var now = Date.now();
+    if (now - _elaLastPoll < 2800) return;
+    _elaLastPoll = now;
+    fetch(workerUrl + '/poll')
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (d.events && d.events.length > 0) {
+          d.events.forEach(function(ev){
+            console.log('[ElaWebhook] Event reçu:', ev.tool);
+            var result = elaHandleWebhook(ev);
+            // Acquitter
+            fetch(workerUrl + '/ack', {
+              method: 'POST',
+              headers: {'Content-Type':'application/json'},
+              body: JSON.stringify({eventId: ev.id})
+            }).catch(function(){});
+          });
+        }
+      })
+      .catch(function(e){ /* silencieux */ });
+  }, 3000);
 }
 
 // ── URL WEBHOOK PUBLIQUE (pour configuration ElevenLabs) ─────────────────
 function elaGetWebhookUrl() {
-  // URL GitHub Pages + paramètre trigger
-  var base = 'https://florentcouzy-cyber.github.io/zyfix/';
-  return base + '?ela_webhook=1';
+  return ELA_WORKER_URL ? ELA_WORKER_URL + '/webhook' : '— Worker non configuré —';
 }
 
 function elaUpdateWebhookUrl() {
@@ -8548,18 +8566,7 @@ function elaUpdateWebhookUrl() {
   if (el) el.value = elaGetWebhookUrl();
 }
 
-// Détecter si la page est ouverte via le webhook ElevenLabs
-(function() {
-  var params = new URLSearchParams(window.location.search);
-  if (params.get('ela_webhook')) {
-    var payload = {};
-    params.forEach(function(v, k) { if (k !== 'ela_webhook') payload[k] = v; });
-    // Stocker pour traitement
-    if (Object.keys(payload).length > 0) {
-      localStorage.setItem('zyfix_ela_pending', JSON.stringify(payload));
-    }
-  }
-})();
+// Webhook géré par polling Worker Cloudflare
 
 // ── CRÉER DANS ZYFIX ───────────────────────────────────────────────────────
 function elaCreateFromSession() {
@@ -8692,6 +8699,7 @@ function elaRappel() {
 // ── CONFIG ─────────────────────────────────────────────────────────────────
 function openAgentConfig() {
   var f = function(id, val){ var el=document.getElementById(id); if(el) el.value=val||''; };
+  f('ela-worker-url', ELA_WORKER_URL);
   f('ela-agent-id', ELA_AGENT_ID);
   f('ela-api-key', ELA_API_KEY);
   f('ela-twilio-num', ELA_TWILIO_NUM);
@@ -8703,6 +8711,7 @@ function openAgentConfig() {
 
 function elaSaveConfig() {
   var g = function(id){ return (document.getElementById(id)||{}).value||''; };
+  ELA_WORKER_URL   = g('ela-worker-url').trim().replace(/\/+$/, '');
   ELA_AGENT_ID     = g('ela-agent-id').trim();
   ELA_API_KEY      = g('ela-api-key').trim();
   ELA_TWILIO_NUM   = g('ela-twilio-num').trim();
@@ -8710,6 +8719,7 @@ function elaSaveConfig() {
 
   if (!ELA_AGENT_ID) { showToast('⚠️ Agent ID requis'); return; }
 
+  if (ELA_WORKER_URL) localStorage.setItem('zyfix_ela_worker', ELA_WORKER_URL);
   localStorage.setItem('zyfix_ela_agent_id',  ELA_AGENT_ID);
   localStorage.setItem('zyfix_ela_api_key',   ELA_API_KEY);
   localStorage.setItem('zyfix_ela_twilio',    ELA_TWILIO_NUM);
@@ -8723,12 +8733,16 @@ function elaSaveConfig() {
 function elaUpdateConfigStatus() {
   var el = document.getElementById('ela-config-status');
   if (!el) return;
-  if (ELA_AGENT_ID) {
+  var hasWorker = !!ELA_WORKER_URL, hasAgent = !!ELA_AGENT_ID;
+  if (hasWorker && hasAgent) {
     el.style.cssText = 'padding:10px 14px;border-radius:8px;font-size:13px;background:rgba(0,200,120,.08);border:1px solid rgba(0,200,120,.25);color:#00c878';
-    el.textContent = '✅ Agent configuré : ' + ELA_AGENT_ID.substring(0,20) + '...';
+    el.textContent = '✅ Worker + Agent configurés — ' + ELA_WORKER_URL.replace('https://','').substring(0,35) + '...';
+  } else if (hasAgent && !hasWorker) {
+    el.style.cssText = 'padding:10px 14px;border-radius:8px;font-size:13px;background:rgba(255,180,0,.08);border:1px solid rgba(255,180,0,.25);color:#ffb400';
+    el.textContent = '⚠️ Agent ID OK — Worker manquant (webhook / proxy IA non fonctionnel)';
   } else {
     el.style.cssText = 'padding:10px 14px;border-radius:8px;font-size:13px;background:rgba(255,100,100,.08);border:1px solid rgba(255,100,100,.2);color:#ff8080';
-    el.textContent = '⚠️ Non configuré — Renseigne ton Agent ID ElevenLabs';
+    el.textContent = '⚠️ Non configuré — Renseigne ton Worker URL et Agent ID ElevenLabs';
   }
 }
 
@@ -8932,4 +8946,232 @@ elaRegisterWebhookListener();
 
 
 </body>
-</html>
+</html>// ═══════════════════════════════════════════════════════════════
+// ZyFix Worker Cloudflare — v1.0
+// Rôles :
+//   1. Proxy IA (OpenAI ou Anthropic) → résout le CORS depuis GitHub Pages
+//   2. Webhook ElevenLabs → reçoit les appels outils creer_rdv / demande_rappel
+//      et les stocke dans KV pour polling par ZyFix PWA
+// ═══════════════════════════════════════════════════════════════
+
+// Variables d'environnement à configurer dans Cloudflare :
+//   OPENAI_API_KEY   → clé OpenAI (sk-...)
+//   WEBHOOK_SECRET   → secret partagé avec ElevenLabs (optionnel)
+//   (le KV namespace "ZYFIX_KV" doit être lié au Worker)
+
+const CORS = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': '*',
+  'Access-Control-Allow-Methods': 'GET,POST,OPTIONS'
+};
+
+export default {
+  async fetch(req, env) {
+    const url = new URL(req.url);
+
+    // ── Preflight CORS ─────────────────────────────────────────
+    if (req.method === 'OPTIONS') {
+      return new Response(null, { headers: CORS });
+    }
+
+    // ── Route : /ai  → Proxy OpenAI (depuis ZyFix PWA) ─────────
+    if (url.pathname === '/ai') {
+      return handleAI(req, env);
+    }
+
+    // ── Route : /webhook  → Webhook ElevenLabs outils ──────────
+    if (url.pathname === '/webhook') {
+      return handleWebhook(req, env);
+    }
+
+    // ── Route : /poll  → Polling ZyFix PWA (récupérer events) ──
+    if (url.pathname === '/poll') {
+      return handlePoll(req, env);
+    }
+
+    // ── Route : /ack  → ZyFix confirme avoir traité un event ───
+    if (url.pathname === '/ack') {
+      return handleAck(req, env);
+    }
+
+    return new Response(JSON.stringify({ status: 'ZyFix Worker OK', version: '1.0' }), {
+      headers: { ...CORS, 'Content-Type': 'application/json' }
+    });
+  }
+};
+
+// ── 1. PROXY IA (OpenAI) ────────────────────────────────────────────────────
+async function handleAI(req, env) {
+  try {
+    const body = await req.json();
+
+    // Convertir format Anthropic → OpenAI
+    const msgs = [];
+    if (body.system) msgs.push({ role: 'system', content: body.system });
+    (body.messages || []).forEach(m => msgs.push(m));
+
+    const r = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + env.OPENAI_API_KEY
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        max_tokens: body.max_tokens || 600,
+        messages: msgs
+      })
+    });
+
+    const oai = await r.json();
+    const text = oai.choices?.[0]?.message?.content || oai.error?.message || 'Erreur';
+
+    // Restituer au format Anthropic (compatible ZyFix)
+    return new Response(JSON.stringify({ content: [{ type: 'text', text }] }), {
+      headers: { ...CORS, 'Content-Type': 'application/json' }
+    });
+
+  } catch (e) {
+    return new Response(JSON.stringify({ error: e.message }), {
+      status: 500, headers: { ...CORS, 'Content-Type': 'application/json' }
+    });
+  }
+}
+
+// ── 2. WEBHOOK ELEVENLABS ────────────────────────────────────────────────────
+// ElevenLabs POST : { type, data: { ... } }  ou format tool_call
+async function handleWebhook(req, env) {
+  try {
+    const body = await req.json();
+    console.log('[Webhook] Reçu:', JSON.stringify(body).substring(0, 200));
+
+    // Parser le payload ElevenLabs
+    // Format ElevenLabs tool call :
+    // { type: "tool_call", tool: { name: "creer_rdv", parameters: {...} } }
+    // OU format simplifié custom
+    let tool, data;
+
+    if (body.type === 'tool_call' && body.tool) {
+      tool = body.tool.name;
+      data = body.tool.parameters || body.tool.input || {};
+    } else if (body.tool) {
+      tool = body.tool;
+      data = body.data || body;
+    } else {
+      // Tentative de détection automatique
+      tool = body.type || body.action || 'unknown';
+      data = body;
+    }
+
+    // Valider
+    const allowedTools = ['creer_rdv', 'demande_rappel', 'create_ticket', 'transfert_humain'];
+    if (!allowedTools.includes(tool)) {
+      return new Response(JSON.stringify({
+        error: 'Outil inconnu: ' + tool,
+        allowed: allowedTools
+      }), { status: 400, headers: { ...CORS, 'Content-Type': 'application/json' } });
+    }
+
+    // Stocker dans KV pour polling par ZyFix PWA
+    if (env.ZYFIX_KV) {
+      const eventId = 'evt_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+      const event = {
+        id: eventId,
+        tool,
+        data,
+        ts: new Date().toISOString(),
+        processed: false
+      };
+      // Stocker 1h (3600s)
+      await env.ZYFIX_KV.put(eventId, JSON.stringify(event), { expirationTtl: 3600 });
+
+      // Maintenir une liste des event IDs récents
+      let ids = [];
+      try { ids = JSON.parse(await env.ZYFIX_KV.get('__pending_ids') || '[]'); } catch(e) {}
+      ids.push(eventId);
+      // Garder max 50 IDs
+      if (ids.length > 50) ids = ids.slice(-50);
+      await env.ZYFIX_KV.put('__pending_ids', JSON.stringify(ids), { expirationTtl: 3600 });
+
+      return new Response(JSON.stringify({ success: true, eventId, tool }), {
+        headers: { ...CORS, 'Content-Type': 'application/json' }
+      });
+    }
+
+    // Fallback sans KV : répondre avec l'event (pas de stockage)
+    return new Response(JSON.stringify({ success: true, tool, data, warning: 'KV non configuré — event non persisté' }), {
+      headers: { ...CORS, 'Content-Type': 'application/json' }
+    });
+
+  } catch (e) {
+    return new Response(JSON.stringify({ error: e.message }), {
+      status: 500, headers: { ...CORS, 'Content-Type': 'application/json' }
+    });
+  }
+}
+
+// ── 3. POLL — ZyFix PWA récupère les events en attente ─────────────────────
+async function handlePoll(req, env) {
+  if (!env.ZYFIX_KV) {
+    return new Response(JSON.stringify({ events: [], warning: 'KV non configuré' }), {
+      headers: { ...CORS, 'Content-Type': 'application/json' }
+    });
+  }
+
+  try {
+    const ids = JSON.parse(await env.ZYFIX_KV.get('__pending_ids') || '[]');
+    const events = [];
+    for (const id of ids) {
+      const raw = await env.ZYFIX_KV.get(id);
+      if (raw) {
+        const ev = JSON.parse(raw);
+        if (!ev.processed) events.push(ev);
+      }
+    }
+    return new Response(JSON.stringify({ events }), {
+      headers: { ...CORS, 'Content-Type': 'application/json' }
+    });
+  } catch (e) {
+    return new Response(JSON.stringify({ events: [], error: e.message }), {
+      headers: { ...CORS, 'Content-Type': 'application/json' }
+    });
+  }
+}
+
+// ── 4. ACK — ZyFix confirme avoir traité un event ───────────────────────────
+async function handleAck(req, env) {
+  if (!env.ZYFIX_KV) {
+    return new Response(JSON.stringify({ ok: true }), {
+      headers: { ...CORS, 'Content-Type': 'application/json' }
+    });
+  }
+
+  try {
+    const { eventId } = await req.json();
+    if (!eventId) return new Response(JSON.stringify({ error: 'eventId requis' }), {
+      status: 400, headers: { ...CORS, 'Content-Type': 'application/json' }
+    });
+
+    // Marquer comme traité
+    const raw = await env.ZYFIX_KV.get(eventId);
+    if (raw) {
+      const ev = JSON.parse(raw);
+      ev.processed = true;
+      await env.ZYFIX_KV.put(eventId, JSON.stringify(ev), { expirationTtl: 300 }); // expire dans 5 min
+    }
+
+    // Retirer de la liste des IDs en attente
+    let ids = [];
+    try { ids = JSON.parse(await env.ZYFIX_KV.get('__pending_ids') || '[]'); } catch(e) {}
+    ids = ids.filter(id => id !== eventId);
+    await env.ZYFIX_KV.put('__pending_ids', JSON.stringify(ids), { expirationTtl: 3600 });
+
+    return new Response(JSON.stringify({ ok: true, eventId }), {
+      headers: { ...CORS, 'Content-Type': 'application/json' }
+    });
+  } catch (e) {
+    return new Response(JSON.stringify({ error: e.message }), {
+      status: 500, headers: { ...CORS, 'Content-Type': 'application/json' }
+    });
+  }
+}>
