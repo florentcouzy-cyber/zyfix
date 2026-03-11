@@ -2126,7 +2126,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
       </div>
     </div>
     <div class="form-foot" style="justify-content:space-between">
-      <button class="btn btn-ghost btn-sm" onclick="resetForfaitsDefaut()" style="color:var(--amber);border-color:var(--amber)" title="Recharge les 26 forfaits ZyFix par défaut">↺ Réinitialiser par défaut</button>
+      <button class="btn btn-ghost btn-sm" onclick="resetForfaitsDefaut()" style="color:var(--amber);border-color:var(--amber)" title="Recharge les 31 forfaits ZyFix par défaut">↺ Réinitialiser par défaut</button>
       <button class="btn btn-ghost" onclick="closeM('m-forfaits')">Fermer</button>
     </div>
   </div>
@@ -5233,8 +5233,8 @@ function toggleFactureTVA() {
 }
 
 function resetForfaitsDefaut() {
-  showConfirm('Recharger les 26 forfaits ZyFix par défaut ? Tes forfaits personnalisés seront perdus.', function() {
-    FORFAITS = JSON.parse(JSON.stringify(FORFAITS_DEFAULT));
+  showConfirm('Recharger les 31 forfaits ZyFix par défaut ? Tes forfaits personnalisés seront perdus.', function() {
+    FORFAITS = FORFAITS_DEFAULT_LIST();
     saveForfaits();
     renderForfaitsEdit();
     renderDrawer();
@@ -7822,30 +7822,18 @@ function fillPieceFromSearch(idx) {
 // FORFAITS — DONNÉES COMPLÈTES + RENDU CARTES COLORÉES
 // ════════════════════════════════════════════════════════════════
 
-var FORFAITS = JSON.parse(localStorage.getItem('zyfix_forfaits') || 'null') || [
-  /* ── Diagnostics ─────────────────────────────────────── */
-  { cat:'Diagnostics', nom:'Diagnostic rapide',   prixTTC:19,  desc:'Évaluation rapide du problème' },
-  { cat:'Diagnostics', nom:'Diagnostic complet',  prixTTC:49,  desc:'Diagnostic approfondi matériel + logiciel' },
-  { cat:'Diagnostics', nom:'Diagnostic avancé',   prixTTC:69,  desc:'Rapport détaillé + préconisations' },
-  /* ── Réinstallation Système ───────────────────────────── */
-  { cat:'Réinstallation Système', nom:'Réinstallation Windows',             prixTTC:49,  desc:'Réinstall propre Windows 10/11' },
-  { cat:'Réinstallation Système', nom:'Réinstallation & sauveeg. données',  prixTTC:69,  desc:'Réinstall + sauvegarde et transfert données' },
-  { cat:'Réinstallation Système', nom:'Nettoyage & Optimisation',           prixTTC:39,  desc:'Nettoyage logiciel, optimisation démarrage' },
-  /* ── Dépannage Matériel ───────────────────────────────── */
-  { cat:'Dépannage Matériel', nom:'Remplacement écran',    prixTTC:79,  desc:'Remplacement dalle (hors pièce)' },
-  { cat:'Dépannage Matériel', nom:'Remplacement batterie', prixTTC:49,  desc:'Remplacement batterie (hors pièce)' },
-  { cat:'Dépannage Matériel', nom:'Changement carte mère', prixTTC:69,  desc:'Remplacement carte mère (hors pièce)' },
-  /* ── Intervention à Domicile ─────────────────────────── */
-  { cat:'Intervention à Domicile', nom:'Déplacement',        prixTTC:29,  desc:'Frais déplacement zone Narbonne' },
-  { cat:'Intervention à Domicile', nom:'Support à distance', prixTTC:49,  desc:'Prise en main à distance 1h' },
-  { cat:'Intervention à Domicile', nom:'Montage PC',         prixTTC:59,  desc:'Montage + câblage composants' },
-  /* ── Services PC Gamer ───────────────────────────────── */
-  { cat:'Services PC Gamer', nom:'Nettoyage PC gamer',  prixTTC:69,  desc:'Dépoussiérage + pâte thermique + optimisation' },
-  { cat:'Services PC Gamer', nom:'Pack Montage Gamer',  prixTTC:99,  desc:'Montage complet + OS + drivers gaming' },
-  /* ── Packs Malware ───────────────────────────────────── */
-  { cat:'Packs Malware', nom:'Pack Transfert & reparation virus', prixTTC:99,  desc:'Désinfection + transfert + réinstall' },
-  { cat:'Packs Malware', nom:'Pack Malware Complet',              prixTTC:49,  desc:'Suppression malware + protection + rapport' }
-];
+var FORFAITS = (function() {
+  var stored = JSON.parse(localStorage.getItem('zyfix_forfaits') || 'null');
+  // Forcer reset si version ancienne (prix différents ou catégories obsolètes)
+  if (stored && stored.length > 0) {
+    var obsolete = ['Intervention à Domicile','Services PC Gamer','Packs Malware'];
+    if (obsolete.indexOf(stored[0].cat) !== -1 || (stored[0].nom === 'Diagnostic rapide' && stored[0].prixTTC < 29)) {
+      localStorage.removeItem('zyfix_forfaits');
+      stored = null;
+    }
+  }
+  return stored || FORFAITS_DEFAULT_LIST();
+})();
 
 function saveForfaits() {
   localStorage.setItem('zyfix_forfaits', JSON.stringify(FORFAITS));
@@ -7856,35 +7844,64 @@ function resetForfaitsAdded(prefix) {
   window._forfaitsAdded[prefix] = {};
 }
 
-// Config visuelle des catégories (comme sur la capture)
+// Config visuelle des catégories
 var FORFAIT_CATS_CONFIG = {
   'Diagnostics':             { color:'#c0392b', gradient:'linear-gradient(135deg,#c0392b,#e74c3c)', icon:'🔍', textColor:'#fff' },
+  'Logiciel & Sécurité':     { color:'#d4ac0d', gradient:'linear-gradient(135deg,#b7950b,#f39c12)', icon:'🔐', textColor:'#fff' },
   'Réinstallation Système':  { color:'#d4ac0d', gradient:'linear-gradient(135deg,#b7950b,#f1c40f)', icon:'🔄', textColor:'#fff' },
   'Dépannage Matériel':      { color:'#c0392b', gradient:'linear-gradient(135deg,#a93226,#e74c3c)', icon:'🛠️', textColor:'#fff' },
-  'Intervention à Domicile': { color:'#1a5276', gradient:'linear-gradient(135deg,#1a5276,#2980b9)', icon:'🏠', textColor:'#fff' },
-  'Services PC Gamer':       { color:'#784212', gradient:'linear-gradient(135deg,#6e2f0a,#e67e22)', icon:'🎮', textColor:'#fff' },
-  'Packs Malware':           { color:'#d4ac0d', gradient:'linear-gradient(135deg,#b7950b,#f39c12)', icon:'🔐', textColor:'#fff' }
+  'Intervention & Distance': { color:'#1a5276', gradient:'linear-gradient(135deg,#1a5276,#2980b9)', icon:'🏠', textColor:'#fff' },
+  'Montage & Gaming':        { color:'#784212', gradient:'linear-gradient(135deg,#6e2f0a,#e67e22)', icon:'🎮', textColor:'#fff' },
+  'Services & Config':       { color:'#1d6a5e', gradient:'linear-gradient(135deg,#1d6a5e,#1abc9c)', icon:'⚙️', textColor:'#fff' }
 };
 
 
 function FORFAITS_DEFAULT_LIST() {
   return [
-    { cat:'Diagnostics', nom:'Diagnostic rapide',   prixTTC:19  },
-    { cat:'Diagnostics', nom:'Diagnostic complet',  prixTTC:49  },
-    { cat:'Diagnostics', nom:'Diagnostic avancé',   prixTTC:69  },
-    { cat:'Réinstallation Système', nom:'Réinstallation Windows',            prixTTC:49  },
-    { cat:'Réinstallation Système', nom:'Réinstallation & sauveeg. données', prixTTC:69  },
-    { cat:'Réinstallation Système', nom:'Nettoyage & Optimisation',          prixTTC:39  },
-    { cat:'Dépannage Matériel', nom:'Remplacement écran',    prixTTC:79 },
-    { cat:'Dépannage Matériel', nom:'Remplacement batterie', prixTTC:49 },
-    { cat:'Dépannage Matériel', nom:'Changement carte mère', prixTTC:69 },
-    { cat:'Intervention à Domicile', nom:'Déplacement',        prixTTC:29 },
-    { cat:'Intervention à Domicile', nom:'Support à distance', prixTTC:49 },
-    { cat:'Intervention à Domicile', nom:'Montage PC',         prixTTC:59 },
-    { cat:'Services PC Gamer', nom:'Nettoyage PC gamer',  prixTTC:69 },
-    { cat:'Services PC Gamer', nom:'Pack Montage Gamer',  prixTTC:99 },
-    { cat:'Packs Malware', nom:'Pack Transfert & reparation virus', prixTTC:99 },
-    { cat:'Packs Malware', nom:'Pack Malware Complet',              prixTTC:49 }
+    // ── Diagnostics ──
+    { cat:'Diagnostics', nom:'Diagnostic rapide',   prixTTC:29 },
+    { cat:'Diagnostics', nom:'Diagnostic complet',  prixTTC:49 },
+    { cat:'Diagnostics', nom:'Diagnostic avancé',   prixTTC:69 },
+
+    // ── Logiciel & Sécurité ──
+    { cat:'Logiciel & Sécurité', nom:'Nettoyage logiciel',   prixTTC:39 },
+    { cat:'Logiciel & Sécurité', nom:'Optimisation PC',      prixTTC:49 },
+    { cat:'Logiciel & Sécurité', nom:'Désinfection virus',   prixTTC:59 },
+
+    // ── Réinstallation Système ──
+    { cat:'Réinstallation Système', nom:'Réinstallation Windows',                    prixTTC:79  },
+    { cat:'Réinstallation Système', nom:'Réinstallation + config',                   prixTTC:99  },
+    { cat:'Réinstallation Système', nom:'Sauvegarde simple',                         prixTTC:29  },
+    { cat:'Réinstallation Système', nom:'Transfert données',                         prixTTC:49  },
+    { cat:'Réinstallation Système', nom:'Sauvegarde + réinstallation + restauration',prixTTC:119 },
+
+    // ── Dépannage Matériel ──
+    { cat:'Dépannage Matériel', nom:'Remplacement SSD/HDD',        prixTTC:39 },
+    { cat:'Dépannage Matériel', nom:'RAM / composant simple',      prixTTC:25 },
+    { cat:'Dépannage Matériel', nom:'Pâte thermique + nettoyage',  prixTTC:49 },
+    { cat:'Dépannage Matériel', nom:'Clonage SSD',                 prixTTC:69 },
+    { cat:'Dépannage Matériel', nom:'Nettoyage interne tour',      prixTTC:39 },
+    { cat:'Dépannage Matériel', nom:'Mise à jour BIOS',            prixTTC:29 },
+
+    // ── Intervention & Distance ──
+    { cat:'Intervention & Distance', nom:'Déplacement',               prixTTC:15 },
+    { cat:'Intervention & Distance', nom:'Intervention domicile 1 h', prixTTC:69 },
+    { cat:'Intervention & Distance', nom:'Assistance distance 30 min',prixTTC:25 },
+    { cat:'Intervention & Distance', nom:'Assistance distance 1 h',   prixTTC:39 },
+
+    // ── Montage & Gaming ──
+    { cat:'Montage & Gaming', nom:'Montage PC',                    prixTTC:79  },
+    { cat:'Montage & Gaming', nom:'Montage + BIOS + tests',        prixTTC:99  },
+    { cat:'Montage & Gaming', nom:'Montage + système + drivers',   prixTTC:129 },
+    { cat:'Montage & Gaming', nom:'Optimisation gaming',           prixTTC:49  },
+
+    // ── Services & Config ──
+    { cat:'Services & Config', nom:'Installation imprimante',      prixTTC:29 },
+    { cat:'Services & Config', nom:'Configuration Wi-Fi / box',    prixTTC:49 },
+    { cat:'Services & Config', nom:'Installation PC neuf',         prixTTC:59 },
+    { cat:'Services & Config', nom:'Récupération données simple',  prixTTC:89 },
+    { cat:'Services & Config', nom:'Devis assurance',              prixTTC:49 },
+    { cat:'Services & Config', nom:'Supplément urgence',           prixTTC:25 }
   ];
 }
 
@@ -7904,11 +7921,12 @@ function renderForfaits(prefix) {
   /* Map catégorie → classe CSS + config */
   var CAT_MAP = {
     'Diagnostics':             { cls:'fcc-diag',      dot:'fcc-dot-red',  icon:'🔍', iconBg:'rgba(255,255,255,.25)' },
+    'Logiciel & Sécurité':     { cls:'fcc-malware',   dot:'fcc-dot-yel',  icon:'🔐', iconBg:'rgba(255,255,255,.25)' },
     'Réinstallation Système':  { cls:'fcc-reinstall', dot:'fcc-dot-yel',  icon:'🔄', iconBg:'rgba(255,255,255,.25)' },
     'Dépannage Matériel':      { cls:'fcc-materiel',  dot:'fcc-dot-pink', icon:'🛠️', iconBg:'rgba(255,255,255,.25)' },
-    'Intervention à Domicile': { cls:'fcc-domicile',  dot:'fcc-dot-blue', icon:'🏠', iconBg:'rgba(255,255,255,.25)' },
-    'Services PC Gamer':       { cls:'fcc-gamer',     dot:'fcc-dot-ora',  icon:'🎮', iconBg:'rgba(255,255,255,.25)' },
-    'Packs Malware':           { cls:'fcc-malware',   dot:'fcc-dot-yel',  icon:'🔐', iconBg:'rgba(255,255,255,.25)' }
+    'Intervention & Distance': { cls:'fcc-domicile',  dot:'fcc-dot-blue', icon:'🏠', iconBg:'rgba(255,255,255,.25)' },
+    'Montage & Gaming':        { cls:'fcc-gamer',     dot:'fcc-dot-ora',  icon:'🎮', iconBg:'rgba(255,255,255,.25)' },
+    'Services & Config':       { cls:'fcc-default',   dot:'fcc-dot-blue', icon:'⚙️', iconBg:'rgba(255,255,255,.25)' }
   };
   var DEF = { cls:'fcc-default', dot:'fcc-dot-blue', icon:'⚡', iconBg:'rgba(255,255,255,.25)' };
 
