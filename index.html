@@ -805,6 +805,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
   font-weight: 800 !important;
 }
 .bnav-call .bico { color:var(--cyan) !important; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
 
 .qual-pill {
   padding:5px 12px; border-radius:20px; font-size:12px; font-weight:700;
@@ -1073,6 +1074,10 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
       <span class="bico">📅</span><span class="blbl">Agenda</span>
       <span class="bcnt" id="bcnt-rdv" style="display:none">0</span>
     </div>
+    <div class="bnav-item" onclick="openAgentIA()" style="cursor:pointer">
+      <span class="bico" style="font-size:18px">🤖</span>
+      <span class="blbl">Agent IA</span>
+    </div>
     <div class="bnav-item" data-bpage="pub">
       <span class="bico">📣</span><span class="blbl">Pub</span>
     </div>
@@ -1101,6 +1106,10 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
     <div class="nav-sec">Principal</div>
     <div class="nav-item nav-call" data-page="appels">
       <span class="ico">📞</span> Prise d'appel
+    </div>
+    <div class="nav-item" data-page="agent-ia" onclick="openAgentIA()" style="cursor:pointer">
+      <span class="nicon">🤖</span>
+      <span>Agent IA</span>
     </div>
     <div class="nav-item active" data-page="dashboard">
       <span class="ico">📊</span> Dashboard
@@ -8212,8 +8221,652 @@ document.addEventListener('click', function(e){
     closeTelMenu();
   }
 });
+
+
+// ════════════════════════════════════════════════════════════════════════
+// AGENT IA — Prise de RDV automatique ZyFix
+// Utilise l'API Anthropic (claude-sonnet-4-20250514)
+// ════════════════════════════════════════════════════════════════════════
+
+var _aiaHistory     = [];   // historique messages API
+var _aiaSession     = {};   // données collectées en cours
+var _aiaActive      = false;
+var _aiaRecognition = null; // Web Speech API
+var _aiaListening   = false;
+
+// ── SYSTEM PROMPT ────────────────────────────────────────────────────────
+var AIA_SYSTEM = `Tu es Alex, l'assistant IA de ZyFix, une micro-entreprise de réparation informatique à Narbonne (Aude, 11100).
+Tu prends les appels et rendez-vous pour Florent, le technicien.
+
+TON RÔLE :
+1. Accueillir le client chaleureusement, te présenter brièvement
+2. Recueillir les informations nécessaires (dans cet ordre naturel) :
+   - Nom et prénom
+   - Numéro de téléphone
+   - Type d'appareil (PC fixe, PC portable, tablette, téléphone, imprimante, autre)
+   - Marque et modèle si possible
+   - Description du problème / de la panne
+   - Niveau d'urgence (normal / urgent / express)
+   - Type de prise en charge (atelier à Narbonne / domicile / assistance à distance)
+3. Si domicile : demander l'adresse
+4. Proposer un rendez-vous (je fournirai les créneaux disponibles dans le contexte)
+5. Confirmer le récapitulatif et remercier
+
+RÈGLES IMPORTANTES :
+- Parle en français, de façon naturelle et professionnelle mais accessible
+- Sois concis : 1-2 phrases max par réponse, avance dans la collecte
+- Si le client dit "humain", "parler à quelqu'un", "rappel", "trop compliqué" → réponds avec le tag [TRANSFERT]
+- Si tu ne comprends pas ou si le cas est complexe (récupération données critiques, dégâts liquide, panne électrique) → réponds avec le tag [TRANSFERT]
+- Quand TOUTES les infos sont collectées et le RDV confirmé → réponds avec le tag [COMPLET]
+- Quand le client veut juste un rappel → réponds avec le tag [RAPPEL]
+
+FORMAT JSON à insérer dans ta réponse (invisible pour le client, entre balises) :
+Après chaque message, si tu as collecté des nouvelles infos, ajoute :
+<data>{"nom":"...","tel":"...","appareil":"...","marque":"...","panne":"...","urgence":"normal|urgent|express","pec":"atelier|domicile|distance","adresse":"...","rdv":"YYYY-MM-DDTHH:MM","notes":"..."}</data>
+(n'inclure que les champs renseignés)
+
+CRÉNEAUX DISPONIBLES (fournis dynamiquement) :
+[CRENEAUX_PLACEHOLDER]
+
+Commence par te présenter et demander comment aider.`;
+
+// ── OUVRIR L'AGENT ────────────────────────────────────────────────────────
+function openAgentIA() {
+  _aiaHistory = [];
+  _aiaSession = {};
+  _aiaActive  = true;
+
+  openM('m-agent-ia');
+
+  // Reset UI
+  document.getElementById('aia-chat').innerHTML = '';
+  document.getElementById('aia-recap-content').innerHTML = '';
+  document.getElementById('aia-recap').style.display = 'none';
+  document.getElementById('aia-footer-actions').style.display = 'none';
+  document.getElementById('aia-quick-actions').innerHTML = '';
+  document.getElementById('aia-transfer-btn').style.display = 'none';
+  document.getElementById('aia-input').value = '';
+  aiaSetStatus('thinking', 'Connexion à l\'agent IA...');
+
+  // Lancer le premier message de l'IA
+  setTimeout(aiaStart, 300);
+}
+
+// ── DÉMARRER LA SESSION ───────────────────────────────────────────────────
+function aiaStart() {
+  // Construire le system prompt avec les créneaux des 3 prochains jours
+  var slots = aiaGetAvailableSlots(3);
+  var slotsText = slots.map(function(d){
+    return d.date + ' : ' + (d.free.length ? d.free.join(', ') : 'complet');
+  }).join('\n');
+
+  var sys = AIA_SYSTEM.replace('[CRENEAUX_PLACEHOLDER]', slotsText || 'Aucun RDV planifié — toute la semaine est disponible 8h-18h');
+
+  // Appel initial : l'IA se présente
+  aiaCallAPI(sys, [{ role:'user', content:'[DÉBUT DE SESSION — présente-toi et commence la prise en charge]' }], function(msg, data) {
+    _aiaHistory.push({ role:'user', content:'[DÉBUT DE SESSION]' });
+    _aiaHistory.push({ role:'assistant', content: msg });
+    aiaAddMessage('ia', msg);
+    if (data) aiaUpdateSession(data);
+    aiaSetStatus('active', 'Session en cours');
+    document.getElementById('aia-transfer-btn').style.display = 'inline-block';
+    aiaSetQuickActions(['C\'est urgent', 'PC portable', 'PC fixe', 'À domicile', 'À distance', 'Parler à un humain']);
+  });
+}
+
+// ── ENVOYER UN MESSAGE ────────────────────────────────────────────────────
+function aiaSend() {
+  var input = document.getElementById('aia-input');
+  var msg = input.value.trim();
+  if (!msg || !_aiaActive) return;
+
+  input.value = '';
+  input.style.height = 'auto';
+  aiaAddMessage('user', msg);
+  aiaSetStatus('thinking', 'L\'IA réfléchit...');
+  document.getElementById('aia-send-btn').disabled = true;
+  document.getElementById('aia-quick-actions').innerHTML = '';
+
+  _aiaHistory.push({ role:'user', content: msg });
+
+  var slots = aiaGetAvailableSlots(3);
+  var slotsText = slots.map(function(d){
+    return d.date + ' : ' + (d.free.length ? d.free.join(', ') : 'complet');
+  }).join('\n');
+  var sys = AIA_SYSTEM.replace('[CRENEAUX_PLACEHOLDER]', slotsText || 'Semaine disponible 8h-18h');
+
+  aiaCallAPI(sys, _aiaHistory, function(aiMsg, data) {
+    _aiaHistory.push({ role:'assistant', content: aiMsg });
+    if (data) aiaUpdateSession(data);
+
+    // Détecter les tags spéciaux
+    if (aiMsg.indexOf('[TRANSFERT]') !== -1) {
+      aiaHandleTransfert(aiMsg);
+    } else if (aiMsg.indexOf('[COMPLET]') !== -1) {
+      aiaHandleComplet(aiMsg);
+    } else if (aiMsg.indexOf('[RAPPEL]') !== -1) {
+      aiaHandleRappel(aiMsg);
+    } else {
+      aiaAddMessage('ia', aiMsg);
+      aiaSetStatus('active', 'Session en cours');
+      document.getElementById('aia-send-btn').disabled = false;
+      aiaAutoQuickActions(aiMsg);
+    }
+  });
+}
+
+// ── APPEL API ANTHROPIC ───────────────────────────────────────────────────
+function aiaCallAPI(system, messages, callback) {
+  fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 600,
+      system: system,
+      messages: messages
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(d){
+    var raw = (d.content && d.content[0] && d.content[0].text) ? d.content[0].text : '';
+    // Extraire le JSON data si présent
+    var dataObj = null;
+    var dataMatch = raw.match(/<data>([\s\S]*?)<\/data>/);
+    if (dataMatch) {
+      try { dataObj = JSON.parse(dataMatch[1]); } catch(e) {}
+    }
+    // Nettoyer le message visible (retirer le bloc <data>...)
+    var clean = raw.replace(/<data>[\s\S]*?<\/data>/g, '').trim();
+    callback(clean, dataObj);
+  })
+  .catch(function(e){
+    console.error('[AgentIA] API error:', e);
+    aiaAddMessage('system', '⚠️ Erreur de connexion à l\'agent IA. ' + e.message);
+    aiaSetStatus('error', 'Erreur API');
+    document.getElementById('aia-send-btn').disabled = false;
+  });
+}
+
+// ── GÉRER LES ÉTATS SPÉCIAUX ──────────────────────────────────────────────
+function aiaHandleTransfert(msg) {
+  var clean = msg.replace('[TRANSFERT]', '').trim();
+  aiaAddMessage('ia', clean || 'Je vous transfère vers notre technicien. Un instant...');
+  aiaAddMessage('system', '🔄 Transfert vers Florent — résumé de l\'appel généré.');
+  aiaSetStatus('transfer', 'Transfert en cours');
+  _aiaActive = false;
+  aiaShowTransfertUI();
+}
+
+function aiaHandleComplet(msg) {
+  var clean = msg.replace('[COMPLET]', '').trim();
+  aiaAddMessage('ia', clean || 'Parfait, votre rendez-vous est confirmé ! À bientôt.');
+  aiaSetStatus('done', 'Prise en charge complète');
+  _aiaActive = false;
+  document.getElementById('aia-footer-actions').style.display = 'flex';
+  document.getElementById('aia-send-btn').disabled = true;
+}
+
+function aiaHandleRappel(msg) {
+  var clean = msg.replace('[RAPPEL]', '').trim();
+  aiaAddMessage('ia', clean || 'Pas de souci, je note votre demande de rappel !');
+  aiaSetStatus('recall', 'Demande de rappel');
+  _aiaActive = false;
+  aiaRappel();
+}
+
+// ── CRÉER TOUT DANS ZYFIX ─────────────────────────────────────────────────
+function aiaCreateAll() {
+  var s = _aiaSession;
+  if (!s.nom && !s.tel) { showToast('❌ Données insuffisantes (nom ou téléphone requis)'); return; }
+
+  var created = [];
+  var now = Date.now();
+
+  // 1. CLIENT
+  var parts = (s.nom || 'Client').split(' ');
+  var clientObj = {
+    id: 'CL' + now,
+    nom: parts[0],
+    prenom: parts.slice(1).join(' '),
+    tel: s.tel || '',
+    email: s.email || '',
+    adresse: s.adresse || '',
+    type: 'particulier',
+    entreprise: '',
+    source: 'Agent IA',
+    sourceNote: 'Via agent vocal de prise de RDV',
+    date: today()
+  };
+  DB.clients.push(clientObj);
+  created.push('👤 Client : ' + clientObj.nom + ' ' + (clientObj.prenom||''));
+
+  // 2. TICKET
+  CTR.tk++;
+  var tkId = 'TK' + CTR.tk;
+  var urgMap = { normal:'', urgent:' [URGENT]', express:' [EXPRESS]' };
+  var pecMap = { atelier:'Atelier', domicile:'Domicile', distance:'À distance' };
+  var ticket = {
+    id: tkId,
+    clientId: clientObj.id,
+    type: s.appareil || 'Appareil',
+    marque: s.marque || '',
+    modele: s.modele || '',
+    serie: '',
+    os: '',
+    probleme: (s.panne || 'À qualifier') + (urgMap[s.urgence] || ''),
+    statut: 'attente',
+    diag: '',
+    date: today(),
+    pec: pecMap[s.pec] || 'Atelier',
+    notes: '[Agent IA] ' + (s.notes || '')
+  };
+  DB.tickets.unshift(ticket);
+  created.push('🎫 Ticket : ' + tkId);
+
+  // 3. RDV (si date fournie)
+  var rdvId = null;
+  if (s.rdv) {
+    if (!DB.rdv) DB.rdv = [];
+    rdvId = 'RDV' + (now + 1);
+    DB.rdv.push({
+      id: rdvId,
+      clientId: clientObj.id,
+      date: s.rdv.substring(0, 10),
+      heure: s.rdv.substring(11, 16),
+      motif: (pecMap[s.pec] || 'RDV') + ' — ' + (s.appareil || 'Appareil') + (s.marque ? ' ' + s.marque : '') + (s.panne ? ' : ' + s.panne.substring(0, 35) : ''),
+      notes: (s.pec === 'domicile' && s.adresse ? '📍 ' + s.adresse + '\n' : '') + '[Agent IA]\n' + (s.notes || ''),
+      ticketId: tkId
+    });
+    created.push('📅 RDV : ' + s.rdv.substring(0, 16).replace('T', ' '));
+  }
+
+  // 4. FICHE RÉPARATION brouillon si urgence ou domicile
+  if (s.urgence === 'urgent' || s.urgence === 'express' || s.pec === 'domicile') {
+    if (!DB.reparations) DB.reparations = [];
+    DB.reparations.push({
+      id: 'REP' + (now + 2),
+      num: 'R' + (1000 + DB.reparations.length),
+      clientId: clientObj.id,
+      ticketId: tkId,
+      dateEntree: today(),
+      dateSortie: '',
+      statut: 'recu',
+      urgence: s.urgence || 'normal',
+      typeAppareil: s.appareil || '',
+      marque: s.marque || '',
+      modele: s.modele || '',
+      serie: '', accessoires: '', etatVisuel: 'À vérifier',
+      panneDec: s.panne || '',
+      symptomes: '', diagnostic: '', actions: '', temps: 0,
+      resultat: '', tests: '', remarques: '[Agent IA] ' + (s.notes || ''),
+      risques: '', risquesSigne: false, garantie: '0',
+      checklist: {}, pieces: [], photos: [],
+      historique: [{ ts: nowTs(), msg: 'Fiche créée automatiquement via Agent IA vocal' }]
+    });
+    created.push('🔩 Fiche réparation brouillon créée');
+  }
+
+  // 5. APPEL lié
+  if (!DB.appels) DB.appels = [];
+  DB.appels.push({
+    id: 'AP' + now,
+    date: today(),
+    nom: s.nom || 'Client IA',
+    tel: s.tel || '',
+    clientId: clientObj.id,
+    typeAppareil: s.appareil || '',
+    marque: s.marque || '',
+    modele: s.modele || '',
+    panne: s.panne || '',
+    urgence: s.urgence || 'normal',
+    pec: s.pec || 'atelier',
+    qualification: 'prospect_chaud',
+    statut: s.rdv ? 'rdv_pris' : 'en_attente',
+    notes: '[Agent IA]\n' + aiaSessionToText(),
+    linkedTicket: tkId,
+    linkedRdv: rdvId,
+    brouillon: false
+  });
+
+  dbSave();
+  refreshAll();
+
+  // Fermer le modal et afficher le résumé
+  closeM('m-agent-ia');
+  showToast('✅ ' + created.join(' | '));
+
+  // Ouvrir la page appels
+  setTimeout(function(){ _gotoCore('appels'); }, 300);
+}
+
+// ── TRANSFERT / RAPPEL ────────────────────────────────────────────────────
+function aiaShowTransfertUI() {
+  document.getElementById('aia-footer-actions').style.display = 'flex';
+  document.getElementById('aia-create-btn').innerHTML = '✅ Créer fiche + demande de rappel';
+  var quickDiv = document.getElementById('aia-quick-actions');
+  quickDiv.innerHTML = '<div style="font-size:12px;color:var(--amber);padding:6px 0">⚠️ Appel à transférer — résumé disponible ci-dessous</div>';
+}
+
+function aiaTransfert() {
+  // Générer un appel brouillon et afficher le résumé
+  if (!DB.appels) DB.appels = [];
+  var now = Date.now();
+  DB.appels.push({
+    id: 'AP' + now,
+    date: today(),
+    nom: _aiaSession.nom || 'Client (appel transféré)',
+    tel: _aiaSession.tel || '',
+    typeAppareil: _aiaSession.appareil || '',
+    panne: _aiaSession.panne || '',
+    urgence: _aiaSession.urgence || 'normal',
+    qualification: 'prospect_chaud',
+    statut: 'a_rappeler',
+    notes: '📞 APPEL TRANSFÉRÉ — Agent IA\n\n' + aiaSessionToText() + '\n\n📝 Transcript :\n' + aiaGetTranscript(),
+    brouillon: true
+  });
+  dbSave();
+  refreshAll();
+  closeM('m-agent-ia');
+  showToast('📞 Demande de transfert enregistrée — fiche brouillon créée');
+  setTimeout(function(){ _gotoCore('appels'); }, 300);
+}
+
+function aiaRappel() {
+  if (!DB.appels) DB.appels = [];
+  var now = Date.now();
+  DB.appels.push({
+    id: 'AP' + now,
+    date: today(),
+    nom: _aiaSession.nom || 'Client (rappel)',
+    tel: _aiaSession.tel || '',
+    typeAppareil: _aiaSession.appareil || '',
+    panne: _aiaSession.panne || '',
+    urgence: _aiaSession.urgence || 'normal',
+    qualification: 'prospect_chaud',
+    statut: 'a_rappeler',
+    notes: '📞 DEMANDE DE RAPPEL — Agent IA\n\n' + aiaSessionToText() + '\n\n📝 Transcript :\n' + aiaGetTranscript(),
+    brouillon: true
+  });
+  dbSave();
+  refreshAll();
+  closeM('m-agent-ia');
+  showToast('📞 Demande de rappel enregistrée — fiche brouillon créée');
+  setTimeout(function(){ _gotoCore('appels'); }, 300);
+}
+
+// ── CRÉNEAUX DISPONIBLES ──────────────────────────────────────────────────
+function aiaGetAvailableSlots(nbDays) {
+  var slots = [];
+  var allSlots = ['08:00','09:00','10:00','11:00','14:00','15:00','16:00','17:00'];
+  for (var i = 0; i < nbDays; i++) {
+    var d = new Date();
+    d.setDate(d.getDate() + i + 1); // à partir de demain
+    var dow = d.getDay();
+    if (dow === 0 || dow === 6) continue; // pas le week-end
+    var ds = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    var taken = (DB.rdv||[]).filter(function(r){ return r.date === ds; }).map(function(r){ return r.heure; });
+    var free = allSlots.filter(function(t){ return taken.indexOf(t) === -1; });
+    var jFr = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
+    slots.push({ date: jFr[dow] + ' ' + ds, free: free.slice(0, 5) });
+  }
+  return slots;
+}
+
+// ── SESSION & UI ──────────────────────────────────────────────────────────
+function aiaUpdateSession(data) {
+  if (!data) return;
+  Object.keys(data).forEach(function(k) {
+    if (data[k] !== undefined && data[k] !== '') _aiaSession[k] = data[k];
+  });
+  aiaRenderRecap();
+}
+
+function aiaRenderRecap() {
+  var s = _aiaSession;
+  var items = [];
+  if (s.nom)      items.push({ icon:'👤', val: s.nom });
+  if (s.tel)      items.push({ icon:'📞', val: s.tel });
+  if (s.appareil) items.push({ icon:'💻', val: s.appareil });
+  if (s.marque)   items.push({ icon:'🏷️', val: s.marque + (s.modele?' '+s.modele:'') });
+  if (s.panne)    items.push({ icon:'⚠️', val: s.panne.substring(0,40) + (s.panne.length>40?'...':'') });
+  if (s.urgence && s.urgence !== 'normal') items.push({ icon:'🚨', val: s.urgence.toUpperCase() });
+  if (s.pec)      items.push({ icon:'📍', val: { atelier:'Atelier', domicile:'Domicile', distance:'À distance' }[s.pec] || s.pec });
+  if (s.rdv)      items.push({ icon:'📅', val: s.rdv.substring(0,16).replace('T',' ') });
+
+  if (!items.length) return;
+  document.getElementById('aia-recap').style.display = 'block';
+  document.getElementById('aia-recap-content').innerHTML = items.map(function(it){
+    return '<span style="background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);padding:3px 8px;border-radius:6px;font-size:11px;color:var(--t1)">' + it.icon + ' ' + escHtml(String(it.val)) + '</span>';
+  }).join('');
+}
+
+function aiaAddMessage(type, text) {
+  var chat = document.getElementById('aia-chat');
+  if (!chat) return;
+
+  // Nettoyer les tags techniques du texte affiché
+  var display = text.replace(/\[TRANSFERT\]|\[COMPLET\]|\[RAPPEL\]/g, '').trim();
+  if (!display) return;
+
+  var isIA = (type === 'ia');
+  var isSystem = (type === 'system');
+  var div = document.createElement('div');
+
+  if (isSystem) {
+    div.style.cssText = 'text-align:center;font-size:11px;color:var(--amber);padding:6px 12px;background:rgba(255,180,0,.07);border-radius:8px;border:1px solid rgba(255,180,0,.2)';
+    div.textContent = display;
+  } else {
+    div.style.cssText = 'display:flex;gap:10px;align-items:flex-start;' + (isIA ? '' : 'flex-direction:row-reverse');
+    var avatar = document.createElement('div');
+    avatar.style.cssText = 'width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;background:' + (isIA ? 'rgba(0,212,255,.15);border:1px solid rgba(0,212,255,.3)' : 'rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1)');
+    avatar.textContent = isIA ? '🤖' : '👤';
+    var bubble = document.createElement('div');
+    bubble.style.cssText = 'max-width:80%;padding:10px 14px;border-radius:' + (isIA ? '4px 14px 14px 14px' : '14px 4px 14px 14px') + ';font-size:14px;line-height:1.5;' + (isIA ? 'background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.15);color:var(--t1)' : 'background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);color:var(--t1)');
+    bubble.textContent = display;
+    div.appendChild(avatar);
+    div.appendChild(bubble);
+  }
+
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+
+  // Animation d'apparition
+  div.style.opacity = '0';
+  div.style.transform = 'translateY(6px)';
+  div.style.transition = 'opacity .25s,transform .25s';
+  requestAnimationFrame(function(){
+    div.style.opacity = '1';
+    div.style.transform = 'translateY(0)';
+  });
+}
+
+function aiaSetStatus(state, label) {
+  var dot = document.getElementById('aia-status-dot');
+  var lbl = document.getElementById('aia-status-label');
+  if (lbl) lbl.textContent = label;
+  if (!dot) return;
+  var colors = { active:'#00ff88', thinking:'#ffb400', transfer:'#ff6b6b', done:'#00d4ff', recall:'#b3a0ff', error:'#ff4444', idle:'#666' };
+  dot.style.background = colors[state] || '#666';
+  if (state === 'thinking') {
+    dot.style.animation = 'pulse 1s infinite';
+  } else {
+    dot.style.animation = '';
+  }
+}
+
+function aiaSetQuickActions(actions) {
+  var div = document.getElementById('aia-quick-actions');
+  if (!div) return;
+  div.innerHTML = actions.map(function(a){
+    return '<button onclick="aiaQuickSend(this)" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--t2);padding:5px 10px;border-radius:8px;cursor:pointer;font-size:12px;transition:all .15s" onmouseover="this.style.borderColor=\'var(--cyan)\';this.style.color=\'var(--cyan)\'" onmouseout="this.style.borderColor=\'rgba(255,255,255,.1)\';this.style.color=\'var(--t2)\'">' + a + '</button>';
+  }).join('');
+}
+
+function aiaAutoQuickActions(aiMsg) {
+  var lower = aiMsg.toLowerCase();
+  var actions = [];
+  if (lower.indexOf('quel') !== -1 || lower.indexOf('type') !== -1 || lower.indexOf('appareil') !== -1) {
+    actions = ['PC portable', 'PC fixe', 'Téléphone', 'Tablette', 'Imprimante'];
+  } else if (lower.indexOf('marque') !== -1 || lower.indexOf('modèle') !== -1) {
+    actions = ['HP', 'Dell', 'Lenovo', 'Asus', 'Acer', 'Samsung', 'Apple'];
+  } else if (lower.indexOf('urgence') !== -1 || lower.indexOf('urgent') !== -1) {
+    actions = ['Normal (quelques jours)', 'Urgent (48h)', 'Express (aujourd\'hui)'];
+  } else if (lower.indexOf('prise en charge') !== -1 || lower.indexOf('déposer') !== -1 || lower.indexOf('atelier') !== -1) {
+    actions = ['Je dépose à l\'atelier', 'Intervention à domicile', 'Assistance à distance'];
+  } else if (lower.indexOf('créneau') !== -1 || lower.indexOf('rdv') !== -1 || lower.indexOf('rendez-vous') !== -1) {
+    // Proposer les prochains créneaux libres
+    var nextSlots = aiaGetAvailableSlots(2);
+    nextSlots.forEach(function(d){ if(d.free[0]) actions.push(d.date + ' à ' + d.free[0]); });
+  }
+  if (actions.length) aiaSetQuickActions(actions);
+  else {
+    aiaSetQuickActions(['Continuer', 'Parler à un humain', 'Demander un rappel']);
+    document.getElementById('aia-send-btn').disabled = false;
+  }
+}
+
+function aiaQuickSend(btn) {
+  var txt = btn.textContent;
+  // Parser les créneaux du style "Lun 2026-03-12 à 09:00"
+  var rdvMatch = txt.match(/(\d{4}-\d{2}-\d{2})\s+à\s+(\d{2}:\d{2})/);
+  if (rdvMatch) {
+    var inputEl = document.getElementById('aia-input');
+    inputEl.value = 'Je voudrais le ' + txt;
+    // Stocker directement le créneau dans la session
+    _aiaSession.rdv = rdvMatch[1] + 'T' + rdvMatch[2];
+  } else {
+    document.getElementById('aia-input').value = txt;
+  }
+  aiaSend();
+}
+
+// ── SAISIE VOCALE (Web Speech API) ────────────────────────────────────────
+function aiaVoice() {
+  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+    showToast('⚠️ Reconnaissance vocale non supportée sur ce navigateur');
+    return;
+  }
+  if (_aiaListening) {
+    if (_aiaRecognition) _aiaRecognition.stop();
+    return;
+  }
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  _aiaRecognition = new SR();
+  _aiaRecognition.lang = 'fr-FR';
+  _aiaRecognition.continuous = false;
+  _aiaRecognition.interimResults = false;
+  _aiaRecognition.onstart = function() {
+    _aiaListening = true;
+    document.getElementById('aia-voice-btn').style.background = 'rgba(255,80,80,.25)';
+    document.getElementById('aia-voice-btn').textContent = '🔴';
+  };
+  _aiaRecognition.onresult = function(e) {
+    var transcript = e.results[0][0].transcript;
+    document.getElementById('aia-input').value = transcript;
+    _aiaListening = false;
+    document.getElementById('aia-voice-btn').style.background = 'rgba(0,212,255,.1)';
+    document.getElementById('aia-voice-btn').textContent = '🎤';
+  };
+  _aiaRecognition.onerror = function() {
+    _aiaListening = false;
+    document.getElementById('aia-voice-btn').style.background = 'rgba(0,212,255,.1)';
+    document.getElementById('aia-voice-btn').textContent = '🎤';
+  };
+  _aiaRecognition.start();
+}
+
+// ── UTILITAIRES ────────────────────────────────────────────────────────────
+function aiaSessionToText() {
+  var s = _aiaSession;
+  var lines = [];
+  if (s.nom)      lines.push('Client : ' + s.nom);
+  if (s.tel)      lines.push('Tél : ' + s.tel);
+  if (s.appareil) lines.push('Appareil : ' + s.appareil + (s.marque?' '+s.marque:'') + (s.modele?' '+s.modele:''));
+  if (s.panne)    lines.push('Panne : ' + s.panne);
+  if (s.urgence)  lines.push('Urgence : ' + s.urgence);
+  if (s.pec)      lines.push('Prise en charge : ' + ({atelier:'Atelier',domicile:'Domicile',distance:'À distance'}[s.pec]||s.pec));
+  if (s.adresse)  lines.push('Adresse : ' + s.adresse);
+  if (s.rdv)      lines.push('RDV souhaité : ' + s.rdv.substring(0,16).replace('T',' '));
+  if (s.notes)    lines.push('Notes : ' + s.notes);
+  return lines.join('\n');
+}
+
+function aiaGetTranscript() {
+  return _aiaHistory.filter(function(m){ return m.role !== 'system'; })
+    .map(function(m){ return (m.role === 'user' ? '👤 ' : '🤖 ') + m.content.replace(/<data>[\s\S]*?<\/data>/g, '').trim(); })
+    .join('\n');
+}
+
+
 </script>
 
+
+
+
+<!-- ════════════════════════════════════════════════════════════
+     MODAL AGENT IA VOCAL — Prise de RDV automatique
+     ════════════════════════════════════════════════════════════ -->
+<div class="overlay" id="m-agent-ia" style="z-index:1400">
+  <div class="modal" style="max-width:620px;width:95vw;max-height:90vh;display:flex;flex-direction:column;padding:0;overflow:hidden">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:center;gap:12px;padding:16px 20px;background:linear-gradient(135deg,#0a1628,#091520);border-bottom:1px solid rgba(0,212,255,.2);flex-shrink:0">
+      <div id="aia-status-dot" style="width:10px;height:10px;border-radius:50%;background:#666;flex-shrink:0;transition:background .3s"></div>
+      <div style="flex:1">
+        <div style="font-size:16px;font-weight:900;color:#fff">🤖 Agent IA — Prise de RDV</div>
+        <div id="aia-status-label" style="font-size:11px;color:var(--t3)">Prêt à démarrer</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button id="aia-transfer-btn" onclick="aiaTransfert()" style="display:none;background:rgba(255,180,0,.15);border:1px solid rgba(255,180,0,.4);color:#ffb400;font-size:12px;padding:6px 12px;border-radius:8px;cursor:pointer">📞 Transférer</button>
+        <button class="modal-x" onclick="closeM('m-agent-ia')">✕</button>
+      </div>
+    </div>
+
+    <!-- Conversation -->
+    <div id="aia-chat" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;min-height:0;background:#080d14"></div>
+
+    <!-- Récap données collectées -->
+    <div id="aia-recap" style="display:none;padding:12px 16px;background:rgba(0,212,255,.05);border-top:1px solid rgba(0,212,255,.15);font-size:12px;color:var(--t2);flex-shrink:0">
+      <div style="font-size:11px;color:var(--cyan);font-weight:700;margin-bottom:6px">📋 Données collectées</div>
+      <div id="aia-recap-content" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+    </div>
+
+    <!-- Input utilisateur -->
+    <div style="padding:12px 16px;background:#0a0f18;border-top:1px solid rgba(255,255,255,.06);flex-shrink:0">
+      <div style="display:flex;gap:8px;align-items:flex-end">
+        <textarea id="aia-input" placeholder="Simuler la réponse du client..." rows="2"
+          style="flex:1;background:#111827;border:1px solid rgba(255,255,255,.1);color:#fff;padding:10px 12px;border-radius:10px;font-size:14px;resize:none;font-family:inherit;outline:none"
+          onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();aiaSend()}"
+          oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px'"></textarea>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button onclick="aiaSend()" id="aia-send-btn"
+            style="background:var(--cyan);color:#000;font-weight:700;padding:10px 16px;border-radius:10px;cursor:pointer;font-size:14px;white-space:nowrap">
+            Envoyer
+          </button>
+          <button onclick="aiaVoice()" id="aia-voice-btn"
+            style="background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);color:var(--cyan);padding:8px;border-radius:10px;cursor:pointer;font-size:16px" title="Saisie vocale">
+            🎤
+          </button>
+        </div>
+      </div>
+      <!-- Actions rapides -->
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px" id="aia-quick-actions"></div>
+    </div>
+
+    <!-- Footer actions -->
+    <div id="aia-footer-actions" style="display:none;padding:12px 16px;background:#080d14;border-top:1px solid rgba(255,255,255,.06);display:flex;gap:8px;flex-wrap:wrap;flex-shrink:0">
+      <button onclick="aiaCreateAll()" id="aia-create-btn"
+        style="flex:1;background:linear-gradient(135deg,var(--cyan),#0095b3);color:#000;font-weight:800;padding:12px;border-radius:10px;cursor:pointer;font-size:14px">
+        ✅ Créer client + ticket + RDV
+      </button>
+      <button onclick="aiaRappel()"
+        style="background:rgba(255,180,0,.15);border:1px solid rgba(255,180,0,.4);color:#ffb400;padding:12px 16px;border-radius:10px;cursor:pointer;font-size:13px">
+        📞 Rappel
+      </button>
+    </div>
+  </div>
+</div>
 
 
 </body>
