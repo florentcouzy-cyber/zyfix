@@ -4711,7 +4711,7 @@ function ghPush(silent){
   _ghPendingPush = false;
   var ts = new Date().toISOString();
   localStorage.setItem('zyfix_last_save', ts);
-  var content = btoa(unescape(encodeURIComponent(JSON.stringify({ DB: DB, CTR: CTR, saved: ts }))));
+  var content = btoa(unescape(encodeURIComponent(JSON.stringify({ DB: DB, CTR: CTR, PIL: PILSettings, saved: ts }))));
 
   // Toujours refetch le SHA frais juste avant PUT pour éviter 409
   fetch(ghApiUrl() + '?t=' + Date.now(), { headers: ghHeaders() })
@@ -4795,6 +4795,12 @@ function ghPull(silent){
         if(!DB.factures) DB.factures = [];
         if(!DB.stock) DB.stock = [];
         CTR = remote.CTR || CTR;
+        // Restaurer PILSettings si présent dans le remote
+        if (remote.PIL && typeof remote.PIL === 'object') {
+          PILSettings = remote.PIL;
+          try{ localStorage.setItem('zyfix_pil', JSON.stringify(PILSettings)); }catch(e){}
+          try{ pilLoad(); }catch(e){}
+        }
         try{ localStorage.setItem('zyfix', JSON.stringify(DB)); }catch(e){}
         try{ localStorage.setItem('zyfix_ctr', JSON.stringify(CTR)); }catch(e){}
         try{ localStorage.setItem('zyfix_last_save', remote.saved); }catch(e){}
@@ -5265,7 +5271,12 @@ function pilSaveManual(module) {
       btn.disabled = false;
     }, 2000);
   }
-  showToast('💾 Paramètres ' + (module === 'are' ? 'ARE' : 'ACRE') + ' sauvegardés');
+  showToast('💾 Paramètres ' + (module === 'are' ? 'ARE' : 'ACRE') + ' sauvegardés'+(GH_TOKEN?' — Sync GitHub ↑':''));
+  // Mettre à jour le label du bouton GitHub Sync
+  if (typeof ghUpdateUI === 'function') {
+    var now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+    ghUpdateUI('↑ PIL ' + now);
+  }
 }
 
 function pilSave() {
@@ -5278,6 +5289,8 @@ function pilSave() {
     PILSettings[id] = el.type === 'checkbox' ? el.checked : el.value;
   });
   localStorage.setItem('zyfix_pil', JSON.stringify(PILSettings));
+  // Synchroniser vers GitHub
+  if (typeof ghPush === 'function' && GH_TOKEN) { setTimeout(function(){ ghPush(true); }, 200); }
 }
 
 function pilLoad() {
