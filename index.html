@@ -2146,7 +2146,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
           <strong style="color:var(--cyan)">📋 Déployer le Worker (gratuit, 5 min)</strong><br>
           1. Va sur <a href="https://workers.cloudflare.com" target="_blank" style="color:var(--cyan)">workers.cloudflare.com</a> → créer un compte gratuit<br>
           2. Créer un Worker → coller le code ci-dessous<br>
-          3. Dans <strong>Settings → Variables</strong> : ajouter <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px">ANTHROPIC_API_KEY</code> = ta clé<br>
+          3. Dans <strong>Settings → Variables</strong> : ajouter <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px">OPENAI_API_KEY</code> = ta clé OpenAI (sk-...)<br>
           4. Copier l'URL du Worker (ex: <code style="background:rgba(255,255,255,.08);padding:1px 5px;border-radius:4px">https://zyfix-ai.xxx.workers.dev</code>)<br>
           5. Coller l'URL ci-dessous et sauvegarder
         </div>
@@ -2157,8 +2157,19 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
   async fetch(req, env) {
     if (req.method === 'OPTIONS') return new Response(null, {headers:{'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'*','Access-Control-Allow-Methods':'POST'}});
     const body = await req.json();
-    const r = await fetch('https://api.anthropic.com/v1/messages', {method:'POST',headers:{'Content-Type':'application/json','x-api-key':env.ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01'},body:JSON.stringify(body)});
-    const data = await r.json();
+    // Convertir format Anthropic → OpenAI
+    const msgs = [];
+    if (body.system) msgs.push({role:'system', content: body.system});
+    (body.messages||[]).forEach(m => msgs.push(m));
+    const r = await fetch('https://api.openai.com/v1/chat/completions', {
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+env.OPENAI_API_KEY},
+      body: JSON.stringify({model: body.model||'gpt-4o-mini', max_tokens: body.max_tokens||600, messages: msgs})
+    });
+    const oai = await r.json();
+    // Reconvertir réponse OpenAI → format Anthropic (pour compatibilité ZyFix)
+    const text = oai.choices?.[0]?.message?.content || oai.error?.message || 'Erreur';
+    const data = {content:[{type:'text', text}]};
     return new Response(JSON.stringify(data), {headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}});
   }
 }</textarea>
@@ -2177,8 +2188,8 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
           ⚠️ <strong>Déconseillé</strong> — La clé API sera visible dans le navigateur. Utilise seulement pour des tests.
         </div>
         <div class="fg">
-          <label>Clé API Anthropic (sk-ant-...)</label>
-          <input id="aia-key-input" type="password" placeholder="sk-ant-xxxxxxxxxxxxxxxxxxxx" style="font-family:var(--mono);font-size:13px">
+          <label>Clé API OpenAI (sk-...)</label>
+          <input id="aia-key-input" type="password" placeholder="sk-xxxxxxxxxxxxxxxxxxxx (OpenAI)" style="font-family:var(--mono);font-size:13px">
         </div>
       </div>
 
