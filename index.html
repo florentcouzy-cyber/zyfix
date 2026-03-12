@@ -5122,15 +5122,28 @@ async function syncAgentVocal(){
       done++;
     });
 
+    // Marquer immédiatement l'état local comme plus récent que GitHub
+    // pour éviter qu'un pull auto n'écrase les imports avant le push.
+    var syncTs = new Date().toISOString();
+    try{ localStorage.setItem('zyfix_last_save', syncTs); }catch(e){}
+    try{ window._lastPullTs = syncTs; }catch(e){}
+
     localStorage.setItem('zyfix', JSON.stringify(DB));
     localStorage.setItem(importedKey, JSON.stringify(Array.from(imported)));
 
+    // Utiliser le pipeline normal ZyFix : persistance locale + push GitHub auto
+    if(typeof dbSave === 'function'){
+      dbSave();
+    } else {
+      try{ localStorage.setItem('zyfix', JSON.stringify(DB)); }catch(e){}
+      try{ localStorage.setItem('zyfix_last_save', syncTs); }catch(e){}
+      if(done > 0 && typeof ghPush === 'function'){
+        ghPush(true);
+      }
+    }
+
     if(typeof renderAppels === 'function') renderAppels();
     if(typeof refreshAll === 'function') refreshAll();
-
-    if(done > 0 && typeof ghPush === 'function'){
-      ghPush(true);
-    }
 
     if(btn) btn.textContent = done ? ('✅ ' + done + ' appel(s) importé(s)') : '✓ Aucun nouvel appel';
     setTimeout(function(){
