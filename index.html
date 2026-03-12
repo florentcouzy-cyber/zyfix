@@ -1159,8 +1159,8 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
       <div id="gdrive-status" style="font-size:10px;color:var(--t3);text-align:center;margin-top:4px;font-family:var(--mono)"></div>
       <button id="btn-drive-connect" onclick="openM('m-gdrive-setup')" style="display:none;width:100%;margin-top:6px;padding:6px;background:rgba(0,212,255,.15);border:1px solid rgba(0,212,255,.3);border-radius:8px;color:var(--cyan);font-size:11px;cursor:pointer;font-family:var(--mono)">🔄 Reconnecter Drive</button>
       <button onclick="syncAgentVocalNow()" id="btn-agent-sync" style="width:100%;margin-top:8px;background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.35);color:#b794f6;border-radius:8px;padding:8px 12px;font-family:Syne,sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
-        <span id="agent-sync-label">🎙️ Sync Agent Vocal</span>
-      </button>
+  <span id="agent-sync-label">🎙️ Sync Agent Vocal</span>
+</button>
       <button onclick="openAgentConfig()" style="width:100%;margin-top:4px;padding:6px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);border-radius:8px;color:var(--cyan);font-size:11px;cursor:pointer;font-family:var(--mono)">🎙️ Configurer Agent Vocal</button>
     </div>
     ZyRAMGamer © 2026 — v1.0
@@ -4937,8 +4937,8 @@ function ghSyncNow(){
 
 function syncAgentVocalNow(){
   try {
-    var worker = ELA_WORKER_URL || '';
-    var agentId = ELA_AGENT_ID || '';
+    var worker = localStorage.getItem('ELA_WORKER_URL') || '';
+    var agentId = localStorage.getItem('ELA_AGENT_ID') || '';
 
     if(!worker || !agentId){
       openAgentConfig();
@@ -4953,7 +4953,7 @@ function syncAgentVocalNow(){
 }
 
 async function syncAgentVocal(){
-  var worker = (ELA_WORKER_URL || '').replace(/\/+$/, '');
+  var worker = (localStorage.getItem('ELA_WORKER_URL') || '').replace(/\/+$/, '');
   var importedKey = 'zyfix_agent_imported_ids';
 
   if(!worker){
@@ -4969,15 +4969,19 @@ async function syncAgentVocal(){
     var res = await fetch(worker + '/poll');
     var data = await res.json();
 
-    if(!data || !data.ok || !Array.isArray(data.events)) {
+    if(!data || !data.ok || !Array.isArray(data.events)){
       throw new Error('Réponse /poll invalide');
     }
 
-    if(!window.DB) window.DB = {};
+    if(typeof DB !== 'object' || !DB) DB = {};
     if(!Array.isArray(DB.clients)) DB.clients = [];
     if(!Array.isArray(DB.tickets)) DB.tickets = [];
     if(!Array.isArray(DB.rdv)) DB.rdv = [];
     if(!Array.isArray(DB.appels)) DB.appels = [];
+    if(!Array.isArray(DB.devis)) DB.devis = [];
+    if(!Array.isArray(DB.factures)) DB.factures = [];
+    if(!Array.isArray(DB.stock)) DB.stock = [];
+    if(!Array.isArray(DB.reparations)) DB.reparations = [];
 
     var imported = new Set(JSON.parse(localStorage.getItem(importedKey) || '[]'));
     var done = 0;
@@ -4985,8 +4989,8 @@ async function syncAgentVocal(){
     function todayStr(){
       var d = new Date();
       var y = d.getFullYear();
-      var m = String(d.getMonth() + 1).padStart(2, '0');
-      var day = String(d.getDate()).padStart(2, '0');
+      var m = String(d.getMonth()+1).padStart(2,'0');
+      var day = String(d.getDate()).padStart(2,'0');
       return y + '-' + m + '-' + day;
     }
 
@@ -5012,7 +5016,7 @@ async function syncAgentVocal(){
 
       if(!client){
         client = {
-          id: 'CL' + Date.now() + Math.floor(Math.random() * 1000),
+          id: 'CL' + Date.now() + Math.floor(Math.random()*1000),
           nom: p.nom || fullName,
           prenom: p.prenom || '',
           telephone: phone,
@@ -5026,8 +5030,9 @@ async function syncAgentVocal(){
 
       var officialName = [client.prenom, client.nom].filter(Boolean).join(' ').trim() || client.nom || fullName;
       var clientId = client.id;
-      var ticketId = 'TK' + Date.now() + Math.floor(Math.random() * 1000);
+      var ticketId = 'TK' + Date.now() + Math.floor(Math.random()*1000);
       var rdvId = '';
+      var repId = '';
 
       if(tool === 'creer_rdv'){
         DB.tickets.push({
@@ -5043,7 +5048,7 @@ async function syncAgentVocal(){
           note: p.resume || ''
         });
 
-        rdvId = 'RDV' + Date.now() + Math.floor(Math.random() * 1000);
+        rdvId = 'RDV' + Date.now() + Math.floor(Math.random()*1000);
         DB.rdv.push({
           id: rdvId,
           clientId: clientId,
@@ -5089,7 +5094,7 @@ async function syncAgentVocal(){
       }
 
       DB.appels.push({
-        id: 'CALL' + Date.now() + Math.floor(Math.random() * 1000),
+        id: 'CALL' + Date.now() + Math.floor(Math.random()*1000),
         eventId: ev.id,
         clientId: clientId,
         nom: officialName,
@@ -5108,7 +5113,7 @@ async function syncAgentVocal(){
         pec: p.prise_en_charge || 'atelier',
         linkedTicket: ticketId,
         linkedRdv: rdvId,
-        linkedRep: '',
+        linkedRep: repId,
         source: 'agent_vocal',
         resume: p.resume || ''
       });
@@ -5121,11 +5126,17 @@ async function syncAgentVocal(){
     localStorage.setItem(importedKey, JSON.stringify(Array.from(imported)));
 
     if(typeof renderAppels === 'function') renderAppels();
+    if(typeof refreshAll === 'function') refreshAll();
+
+    if(done > 0 && typeof ghPush === 'function'){
+      ghPush(true);
+    }
 
     if(btn) btn.textContent = done ? ('✅ ' + done + ' appel(s) importé(s)') : '✓ Aucun nouvel appel';
     setTimeout(function(){
       if(btn) btn.textContent = oldText || '🎙️ Sync Agent Vocal';
     }, 2500);
+
   } catch(e){
     console.error('syncAgentVocal error', e);
     if(btn) btn.textContent = '⚠️ Erreur sync';
