@@ -4937,8 +4937,8 @@ function ghSyncNow(){
 
 function syncAgentVocalNow(){
   try {
-    var worker = localStorage.getItem('ELA_WORKER_URL') || '';
-    var agentId = localStorage.getItem('ELA_AGENT_ID') || '';
+    var worker = localStorage.getItem('ELA_WORKER_URL') || localStorage.getItem('zyfix_ela_worker') || '';
+    var agentId = localStorage.getItem('ELA_AGENT_ID') || localStorage.getItem('zyfix_ela_agent_id') || '';
 
     if(!worker || !agentId){
       openAgentConfig();
@@ -4953,7 +4953,7 @@ function syncAgentVocalNow(){
 }
 
 async function syncAgentVocal(){
-  var worker = (localStorage.getItem('ELA_WORKER_URL') || '').replace(/\/+$/, '');
+  var worker = (localStorage.getItem('ELA_WORKER_URL') || localStorage.getItem('zyfix_ela_worker') || '').replace(/\/+$/, '');
   var importedKey = 'zyfix_agent_imported_ids';
 
   if(!worker){
@@ -4998,6 +4998,37 @@ async function syncAgentVocal(){
       if(tool === 'demande_rappel') return 'client_existant';
       if(urgence === 'urgent' || urgence === 'express') return 'urgence';
       return 'info_simple';
+    }
+
+    function normalizeHeureFR(val){
+      val = String(val || '').trim().toLowerCase();
+      if(!val) return '';
+      var m = val.match(/(\d{1,2})(?:h|:)?\s*(\d{1,2})?/i);
+      if(!m) return val;
+      var hh = String(parseInt(m[1],10)).padStart(2,'0');
+      var mm = String(m[2] ? parseInt(m[2],10) : 0).padStart(2,'0');
+      return hh + ':' + mm;
+    }
+
+    function normalizeDateFR(val){
+      val = String(val || '').trim().toLowerCase();
+      if(!val) return '';
+      if(/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+      var moisMap = {
+        'janvier':'01','fevrier':'02','février':'02','mars':'03','avril':'04','mai':'05','juin':'06',
+        'juillet':'07','aout':'08','août':'08','septembre':'09','octobre':'10','novembre':'11','decembre':'12','décembre':'12'
+      };
+      var cleaned = val.replace(/,/g,' ').replace(/\s+/g,' ').trim();
+      var m = cleaned.match(/(?:lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche\s+)?(\d{1,2})\s+([a-zéûôîàùç]+)\s+(\d{4})/i)
+           || cleaned.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if(!m) return '';
+      if(cleaned.indexOf('/') !== -1) {
+        return m[3] + '-' + String(parseInt(m[2],10)).padStart(2,'0') + '-' + String(parseInt(m[1],10)).padStart(2,'0');
+      }
+      var day = String(parseInt(m[1],10)).padStart(2,'0');
+      var month = moisMap[m[2]] || '';
+      var year = m[3];
+      return month ? (year + '-' + month + '-' + day) : '';
     }
 
     data.events.forEach(function(ev){
@@ -5048,20 +5079,26 @@ async function syncAgentVocal(){
           note: p.resume || ''
         });
 
-        rdvId = 'RDV' + Date.now() + Math.floor(Math.random()*1000);
-        DB.rdv.push({
-          id: rdvId,
-          clientId: clientId,
-          clientNom: officialName,
-          telephone: phone,
-          date: p.date_souhaitee || 'non précisé',
-          heure: p.heure_souhaitee || 'non précisé',
-          type: p.prise_en_charge || 'atelier',
-          adresse: p.adresse || '',
-          probleme: p.probleme || 'non précisé',
-          source: 'agent_vocal',
-          statut: 'à confirmer'
-        });
+        var rdvDateNorm = normalizeDateFR(p.date_souhaitee);
+        var rdvHeureNorm = normalizeHeureFR(p.heure_souhaitee);
+        if(rdvDateNorm){
+          rdvId = 'RDV' + Date.now() + Math.floor(Math.random()*1000);
+          DB.rdv.push({
+            id: rdvId,
+            clientId: clientId,
+            clientNom: officialName,
+            telephone: phone,
+            date: rdvDateNorm,
+            heure: rdvHeureNorm || '',
+            type: p.prise_en_charge || 'atelier',
+            adresse: p.adresse || '',
+            probleme: p.probleme || 'non précisé',
+            motif: 'RDV agent vocal',
+            notes: p.resume || '',
+            source: 'agent_vocal',
+            statut: 'à confirmer'
+          });
+        }
       }
 
       if(tool === 'demande_rappel'){
@@ -5104,7 +5141,7 @@ async function syncAgentVocal(){
         panne: p.probleme || p.resume || 'non précisé',
         notes: p.resume || '',
         adresse: p.adresse || '',
-        rdvDate: tool === 'creer_rdv' ? [p.date_souhaitee, p.heure_souhaitee].filter(Boolean).join(' ').trim() : '',
+        rdvDate: tool === 'creer_rdv' ? [normalizeDateFR(p.date_souhaitee), normalizeHeureFR(p.heure_souhaitee)].filter(Boolean).join(' ').trim() : '',
         typeAppareil: p.type_appareil || '',
         urgence: p.urgence || 'normal',
         qualification: qualFromTool(tool, p.urgence || 'normal'),
@@ -5131,19 +5168,20 @@ async function syncAgentVocal(){
     localStorage.setItem('zyfix', JSON.stringify(DB));
     localStorage.setItem(importedKey, JSON.stringify(Array.from(imported)));
 
-    // Utiliser le pipeline normal ZyFix : persistance locale + push GitHub auto
+    // Utiliser le pipeline normal ZyFix : persistance locale + push GitHub explicite
     if(typeof dbSave === 'function'){
       dbSave();
     } else {
       try{ localStorage.setItem('zyfix', JSON.stringify(DB)); }catch(e){}
       try{ localStorage.setItem('zyfix_last_save', syncTs); }catch(e){}
-      if(done > 0 && typeof ghPush === 'function'){
-        ghPush(true);
-      }
     }
 
     if(typeof renderAppels === 'function') renderAppels();
     if(typeof refreshAll === 'function') refreshAll();
+
+    if(done > 0 && typeof ghPush === 'function'){
+      ghPush(true);
+    }
 
     if(btn) btn.textContent = done ? ('✅ ' + done + ' appel(s) importé(s)') : '✓ Aucun nouvel appel';
     setTimeout(function(){
@@ -8539,9 +8577,9 @@ document.addEventListener('click', function(e){
 // ════════════════════════════════════════════════════════════════════════
 
 // ── Config (stockée en localStorage) ────────────────────────────────────
-var ELA_AGENT_ID    = localStorage.getItem('zyfix_ela_agent_id')  || '';
+var ELA_AGENT_ID    = localStorage.getItem('zyfix_ela_agent_id')  || localStorage.getItem('ELA_AGENT_ID') || '';
 var ELA_API_KEY     = localStorage.getItem('zyfix_ela_api_key')   || '';
-var ELA_WORKER_URL  = localStorage.getItem('zyfix_ela_worker')    || '';
+var ELA_WORKER_URL  = localStorage.getItem('zyfix_ela_worker')    || localStorage.getItem('ELA_WORKER_URL') || '';
 
 // ── Proxy endpoint (utilisé par recherche pièces + agent chat fallback) ──────
 function aiaGetApiEndpoint() {
@@ -8946,11 +8984,15 @@ function elaSaveConfig() {
 
   if (!ELA_AGENT_ID) { showToast('⚠️ Agent ID requis'); return; }
 
-  if (ELA_WORKER_URL) localStorage.setItem('zyfix_ela_worker', ELA_WORKER_URL);
+  if (ELA_WORKER_URL) {
+    localStorage.setItem('zyfix_ela_worker', ELA_WORKER_URL);
+    localStorage.setItem('ELA_WORKER_URL', ELA_WORKER_URL);
+  }
   localStorage.setItem('zyfix_ela_agent_id',  ELA_AGENT_ID);
   localStorage.setItem('zyfix_ela_api_key',   ELA_API_KEY);
   localStorage.setItem('zyfix_ela_twilio',    ELA_TWILIO_NUM);
   localStorage.setItem('zyfix_ela_transfer',  ELA_TRANSFER_NUM);
+  localStorage.setItem('ELA_AGENT_ID', ELA_AGENT_ID);
 
   elaUpdateConfigStatus();
   closeM('m-agent-config');
