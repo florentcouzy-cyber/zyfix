@@ -4937,10 +4937,17 @@ function ghSyncNow(){
 
 function syncAgentVocalNow(){
   try {
-    var worker = localStorage.getItem('ELA_WORKER_URL') || localStorage.getItem('zyfix_ela_worker') || '';
-    var agentId = localStorage.getItem('ELA_AGENT_ID') || localStorage.getItem('zyfix_ela_agent_id') || '';
+    var worker =
+      localStorage.getItem('zyfix_ela_worker') ||
+      localStorage.getItem('ELA_WORKER_URL') ||
+      ELA_WORKER_URL || '';
+    var agentId =
+      localStorage.getItem('zyfix_ela_agent_id') ||
+      localStorage.getItem('ELA_AGENT_ID') ||
+      ELA_AGENT_ID || '';
 
-    if(!worker || !agentId){
+    if(!worker){
+      console.warn('Worker non configuré');
       openAgentConfig();
       return;
     }
@@ -4953,10 +4960,15 @@ function syncAgentVocalNow(){
 }
 
 async function syncAgentVocal(){
-  var worker = (localStorage.getItem('ELA_WORKER_URL') || localStorage.getItem('zyfix_ela_worker') || '').replace(/\/+$/, '');
+  var worker = (
+    localStorage.getItem('zyfix_ela_worker') ||
+    localStorage.getItem('ELA_WORKER_URL') ||
+    ELA_WORKER_URL || ''
+  ).replace(/\/+$/, '');
   var importedKey = 'zyfix_agent_imported_ids';
 
   if(!worker){
+    console.warn('Worker non configuré');
     openAgentConfig();
     return;
   }
@@ -5000,40 +5012,51 @@ async function syncAgentVocal(){
       return 'info_simple';
     }
 
-    function cleanText(v){
-      return (v || '').toString().trim();
-    }
-
-    function isMissing(v){
-      var s = cleanText(v).toLowerCase();
-      return !s || s === 'non précisé' || s === 'non precise' || s === 'non-renseigné' || s === 'non renseigne' || s === 'inconnu';
-    }
-
-    function normalizePhone(v){
-      return cleanText(v).replace(/\s+/g,'');
-    }
-
-    function parseFrenchDate(str){
-      var s = cleanText(str).toLowerCase();
-      if(!s) return '';
-      s = s.normalize('NFD').replace(/[̀-ͯ]/g, '');
-      s = s.replace(/[,]/g, ' ').replace(/\s+/g, ' ');
-      s = s.replace(/^(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\s+/, '');
-      var m = s.match(/(\d{1,2})\s+(janvier|fevrier|mars|avril|mai|juin|juillet|aout|septembre|octobre|novembre|decembre)\s+(\d{4})/);
-      if(!m) return '';
-      var months = {janvier:'01',fevrier:'02',mars:'03',avril:'04',mai:'05',juin:'06',juillet:'07',aout:'08',septembre:'09',octobre:'10',novembre:'11',decembre:'12'};
-      return m[3] + '-' + months[m[2]] + '-' + String(parseInt(m[1],10)).padStart(2,'0');
-    }
-
-    function parseFrenchTime(str){
-      var s = cleanText(str).toLowerCase();
-      if(!s) return '';
-      s = s.replace(/\s+/g,'');
-      var m = s.match(/^(\d{1,2})(?:h|:)?(\d{0,2})$/);
+    function normalizeHeureFR(val){
+      val = String(val || '').trim().toLowerCase();
+      if(!val) return '';
+      var m = val.match(/(\d{1,2})(?:h|:)?\s*(\d{1,2})?/i);
       if(!m) return '';
       var hh = String(parseInt(m[1],10)).padStart(2,'0');
-      var mm = m[2] ? String(parseInt(m[2],10)).padStart(2,'0') : '00';
+      var mm = String(m[2] ? parseInt(m[2],10) : 0).padStart(2,'0');
       return hh + ':' + mm;
+    }
+
+    function normalizeDateFR(val){
+      val = String(val || '').trim().toLowerCase();
+      if(!val) return '';
+      if(/^\d{4}-\d{2}-\d{2}$/.test(val)) return val;
+
+      var now = new Date();
+      var currentYear = now.getFullYear();
+      var moisMap = {
+        'janvier':'01','fevrier':'02','février':'02','mars':'03','avril':'04','mai':'05','juin':'06',
+        'juillet':'07','aout':'08','août':'08','septembre':'09','octobre':'10','novembre':'11','decembre':'12','décembre':'12'
+      };
+      var cleaned = val.replace(/,/g,' ').replace(/\s+/g,' ').trim();
+
+      if(cleaned === "aujourd'hui") return todayStr();
+      if(cleaned.indexOf('apres-demain') !== -1 || cleaned.indexOf('après-demain') !== -1){
+        var d2 = new Date(now); d2.setDate(d2.getDate()+2);
+        return d2.getFullYear() + '-' + String(d2.getMonth()+1).padStart(2,'0') + '-' + String(d2.getDate()).padStart(2,'0');
+      }
+      if(cleaned.indexOf('demain') !== -1){
+        var d1 = new Date(now); d1.setDate(d1.getDate()+1);
+        return d1.getFullYear() + '-' + String(d1.getMonth()+1).padStart(2,'0') + '-' + String(d1.getDate()).padStart(2,'0');
+      }
+
+      var m = cleaned.match(/(?:lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche\s+)?(\d{1,2})\s+([a-zéûôîàùç]+)(?:\s+(\d{4}))?/i)
+           || cleaned.match(/(\d{1,2})\/(\d{1,2})(?:\/(\d{4}))?/) 
+           || cleaned.match(/(\d{1,2})-(\d{1,2})(?:-(\d{4}))?/);
+      if(!m) return '';
+      if(cleaned.indexOf('/') !== -1 || cleaned.indexOf('-') !== -1) {
+        var yearNum = m[3] ? parseInt(m[3],10) : currentYear;
+        return yearNum + '-' + String(parseInt(m[2],10)).padStart(2,'0') + '-' + String(parseInt(m[1],10)).padStart(2,'0');
+      }
+      var day = String(parseInt(m[1],10)).padStart(2,'0');
+      var month = moisMap[m[2]] || '';
+      var year = m[3] || String(currentYear);
+      return month ? (year + '-' + month + '-' + day) : '';
     }
 
     data.events.forEach(function(ev){
@@ -5044,18 +5067,10 @@ async function syncAgentVocal(){
       if(['creer_rdv','demande_rappel','create_ticket'].indexOf(tool) === -1) return;
 
       var fullName = [p.prenom, p.nom].filter(Boolean).join(' ').trim() || p.nom || 'Client vocal';
-      var phone = cleanText(p.telephone || 'non précisé');
-      var phoneNorm = normalizePhone(phone);
-      var pec = cleanText(p.prise_en_charge || 'atelier') || 'atelier';
-      var adresse = cleanText(p.adresse || '');
-      var dateIso = parseFrenchDate(p.date_souhaitee || '');
-      var heureIso = parseFrenchTime(p.heure_souhaitee || '');
-      var rdvIso = (dateIso && heureIso) ? (dateIso + 'T' + heureIso) : '';
-      var canCreateDomicileRdv = !(pec === 'domicile' && isMissing(adresse));
-      var canCreateAgendaRdv = !!(dateIso && heureIso && (pec !== 'domicile' || canCreateDomicileRdv));
+      var phone = p.telephone || 'non précisé';
 
       var client = DB.clients.find(function(c){
-        return normalizePhone(c.tel || c.telephone || '') === phoneNorm;
+        return (c.tel || c.telephone || '') === phone;
       });
 
       if(!client){
@@ -5077,10 +5092,9 @@ async function syncAgentVocal(){
       var ticketId = 'TK' + Date.now() + Math.floor(Math.random()*1000);
       var rdvId = '';
       var repId = '';
-      var ticketNote = cleanText(p.resume || '');
-      if(pec === 'domicile' && isMissing(adresse)) {
-        ticketNote = (ticketNote ? ticketNote + ' ' : '') + '[Adresse domicile à confirmer]';
-      }
+      var dateIso = normalizeDateFR(p.date_souhaitee || '');
+      var heureIso = normalizeHeureFR(p.heure_souhaitee || '');
+      var rdvIso = (dateIso && heureIso) ? (dateIso + 'T' + heureIso) : (dateIso ? (dateIso + 'T09:00') : '');
 
       if(tool === 'creer_rdv'){
         DB.tickets.push({
@@ -5091,30 +5105,25 @@ async function syncAgentVocal(){
           marqueModele: p.marque_modele || '',
           probleme: p.probleme || 'non précisé',
           urgence: p.urgence || 'normal',
-          statut: canCreateAgendaRdv ? 'nouveau' : 'attente',
+          statut: 'nouveau',
           source: 'agent_vocal',
-          note: ticketNote
+          note: p.resume || ''
         });
 
-        if (canCreateAgendaRdv) {
-          rdvId = 'RDV' + Date.now() + Math.floor(Math.random()*1000);
-          DB.rdv.push({
-            id: rdvId,
-            clientId: clientId,
-            clientNom: officialName,
-            telephone: phone,
-            date: dateIso,
-            heure: heureIso,
-            type: pec || 'atelier',
-            adresse: adresse,
-            probleme: p.probleme || 'non précisé',
-            motif: (pec === 'domicile' ? 'Intervention domicile' : pec === 'distance' ? 'Assistance à distance' : 'Rendez-vous atelier') + ' — ' + (p.type_appareil || 'Appareil') + (p.marque_modele ? ' ' + p.marque_modele : ''),
-            notes: (pec === 'domicile' && adresse ? '📍 ' + adresse + '\n' : '') + ticketNote,
-            source: 'agent_vocal',
-            statut: 'à confirmer',
-            ticketId: ticketId
-          });
-        }
+        rdvId = 'RDV' + Date.now() + Math.floor(Math.random()*1000);
+        DB.rdv.push({
+          id: rdvId,
+          clientId: clientId,
+          clientNom: officialName,
+          telephone: phone,
+          date: dateIso || 'non précisé',
+          heure: heureIso || 'non précisé',
+          type: p.prise_en_charge || 'atelier',
+          adresse: p.adresse || '',
+          probleme: p.probleme || 'non précisé',
+          source: 'agent_vocal',
+          statut: 'à confirmer'
+        });
       }
 
       if(tool === 'demande_rappel'){
@@ -5127,7 +5136,7 @@ async function syncAgentVocal(){
           urgence: p.urgence || 'normal',
           statut: 'rappel à faire',
           source: 'agent_vocal',
-          note: ticketNote
+          note: p.resume || ''
         });
       }
 
@@ -5142,11 +5151,11 @@ async function syncAgentVocal(){
           urgence: p.urgence || 'normal',
           statut: 'nouveau',
           source: 'agent_vocal',
-          note: ticketNote
+          note: p.resume || ''
         });
       }
 
-      DB.appels.unshift({
+      DB.appels.push({
         id: 'CALL' + Date.now() + Math.floor(Math.random()*1000),
         eventId: ev.id,
         clientId: clientId,
@@ -5155,16 +5164,15 @@ async function syncAgentVocal(){
         marque: (p.marque_modele || '').split(' ')[0] || (p.type_appareil || ''),
         modele: (p.marque_modele || '').split(' ').slice(1).join(' ') || '',
         panne: p.probleme || p.resume || 'non précisé',
-        notes: ticketNote,
-        adresse: adresse,
+        notes: p.resume || '',
+        adresse: p.adresse || '',
         rdvDate: tool === 'creer_rdv' ? rdvIso : '',
         typeAppareil: p.type_appareil || '',
         urgence: p.urgence || 'normal',
         qualification: qualFromTool(tool, p.urgence || 'normal'),
         statut: 'traite',
         date: todayStr(),
-        heure: (new Date()).toTimeString().slice(0,5),
-        pec: pec,
+        pec: p.prise_en_charge || 'atelier',
         linkedTicket: ticketId,
         linkedRdv: rdvId,
         linkedRep: repId,
@@ -5176,9 +5184,8 @@ async function syncAgentVocal(){
       done++;
     });
 
+    localStorage.setItem('zyfix', JSON.stringify(DB));
     localStorage.setItem(importedKey, JSON.stringify(Array.from(imported)));
-    if(typeof dbSave === 'function') dbSave();
-    else localStorage.setItem('zyfix', JSON.stringify(DB));
 
     if(typeof renderAppels === 'function') renderAppels();
     if(typeof refreshAll === 'function') refreshAll();
@@ -8581,9 +8588,9 @@ document.addEventListener('click', function(e){
 // ════════════════════════════════════════════════════════════════════════
 
 // ── Config (stockée en localStorage) ────────────────────────────────────
-var ELA_AGENT_ID    = localStorage.getItem('zyfix_ela_agent_id')  || localStorage.getItem('ELA_AGENT_ID') || '';
+var ELA_AGENT_ID    = localStorage.getItem('zyfix_ela_agent_id')  || '';
 var ELA_API_KEY     = localStorage.getItem('zyfix_ela_api_key')   || '';
-var ELA_WORKER_URL  = localStorage.getItem('zyfix_ela_worker')    || localStorage.getItem('ELA_WORKER_URL') || '';
+var ELA_WORKER_URL  = localStorage.getItem('zyfix_ela_worker')    || '';
 
 // ── Proxy endpoint (utilisé par recherche pièces + agent chat fallback) ──────
 function aiaGetApiEndpoint() {
@@ -8988,11 +8995,15 @@ function elaSaveConfig() {
 
   if (!ELA_AGENT_ID) { showToast('⚠️ Agent ID requis'); return; }
 
-  if (ELA_WORKER_URL) localStorage.setItem('zyfix_ela_worker', ELA_WORKER_URL);
+  if (ELA_WORKER_URL) {
+    localStorage.setItem('zyfix_ela_worker', ELA_WORKER_URL);
+    localStorage.setItem('ELA_WORKER_URL', ELA_WORKER_URL);
+  }
   localStorage.setItem('zyfix_ela_agent_id',  ELA_AGENT_ID);
   localStorage.setItem('zyfix_ela_api_key',   ELA_API_KEY);
   localStorage.setItem('zyfix_ela_twilio',    ELA_TWILIO_NUM);
   localStorage.setItem('zyfix_ela_transfer',  ELA_TRANSFER_NUM);
+  localStorage.setItem('ELA_AGENT_ID', ELA_AGENT_ID);
 
   elaUpdateConfigStatus();
   closeM('m-agent-config');
