@@ -4940,12 +4940,15 @@ function syncAgentVocalNow(){
     var worker = localStorage.getItem('ELA_WORKER_URL') || '';
     var agentId = localStorage.getItem('ELA_AGENT_ID') || '';
 
-    if(!worker || !agentId){
+    if(!worker){
+      console.warn('Worker non configuré');
       openAgentConfig();
       return;
     }
 
+    // lancer directement la sync (même si agentId vide pour éviter ouverture config)
     syncAgentVocal();
+
   } catch(e){
     console.error('syncAgentVocalNow error', e);
     alert('Erreur sync agent vocal');
