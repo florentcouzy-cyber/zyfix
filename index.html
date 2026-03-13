@@ -5109,8 +5109,7 @@ async function syncAgentVocal(){
             adresse: adresse,
             probleme: p.probleme || 'non précisé',
             motif: (pec === 'domicile' ? 'Intervention domicile' : pec === 'distance' ? 'Assistance à distance' : 'Rendez-vous atelier') + ' — ' + (p.type_appareil || 'Appareil') + (p.marque_modele ? ' ' + p.marque_modele : ''),
-            notes: (pec === 'domicile' && adresse ? '📍 ' + adresse + '
-' : '') + ticketNote,
+            notes: (pec === 'domicile' && adresse ? '📍 ' + adresse + '\n' : '') + ticketNote,
             source: 'agent_vocal',
             statut: 'à confirmer',
             ticketId: ticketId
