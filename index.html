@@ -4937,8 +4937,14 @@ function ghSyncNow(){
 
 function syncAgentVocalNow(){
   try {
-    var worker = localStorage.getItem('ELA_WORKER_URL') || '';
-    var agentId = localStorage.getItem('ELA_AGENT_ID') || '';
+    var worker =
+      localStorage.getItem('zyfix_ela_worker') ||
+      localStorage.getItem('ELA_WORKER_URL') ||
+      ELA_WORKER_URL || '';
+    var agentId =
+      localStorage.getItem('zyfix_ela_agent_id') ||
+      localStorage.getItem('ELA_AGENT_ID') ||
+      ELA_AGENT_ID || '';
 
     if(!worker){
       console.warn('Worker non configuré');
@@ -4946,9 +4952,7 @@ function syncAgentVocalNow(){
       return;
     }
 
-    // lancer directement la sync (même si agentId vide pour éviter ouverture config)
     syncAgentVocal();
-
   } catch(e){
     console.error('syncAgentVocalNow error', e);
     alert('Erreur sync agent vocal');
@@ -4956,10 +4960,15 @@ function syncAgentVocalNow(){
 }
 
 async function syncAgentVocal(){
-  var worker = (localStorage.getItem('ELA_WORKER_URL') || '').replace(/\/+$/, '');
+  var worker = (
+    localStorage.getItem('zyfix_ela_worker') ||
+    localStorage.getItem('ELA_WORKER_URL') ||
+    ELA_WORKER_URL || ''
+  ).replace(/\/+$/, '');
   var importedKey = 'zyfix_agent_imported_ids';
 
   if(!worker){
+    console.warn('Worker non configuré');
     openAgentConfig();
     return;
   }
@@ -8986,11 +8995,15 @@ function elaSaveConfig() {
 
   if (!ELA_AGENT_ID) { showToast('⚠️ Agent ID requis'); return; }
 
-  if (ELA_WORKER_URL) localStorage.setItem('zyfix_ela_worker', ELA_WORKER_URL);
+  if (ELA_WORKER_URL) {
+    localStorage.setItem('zyfix_ela_worker', ELA_WORKER_URL);
+    localStorage.setItem('ELA_WORKER_URL', ELA_WORKER_URL);
+  }
   localStorage.setItem('zyfix_ela_agent_id',  ELA_AGENT_ID);
   localStorage.setItem('zyfix_ela_api_key',   ELA_API_KEY);
   localStorage.setItem('zyfix_ela_twilio',    ELA_TWILIO_NUM);
   localStorage.setItem('zyfix_ela_transfer',  ELA_TRANSFER_NUM);
+  localStorage.setItem('ELA_AGENT_ID', ELA_AGENT_ID);
 
   elaUpdateConfigStatus();
   closeM('m-agent-config');
