@@ -8,32 +8,40 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ZyFix">
-<meta name="theme-color" content="#00d4ff">
+<meta name="theme-color" content="#0284c7">
 <meta name="description" content="ZyFix — Gestion tickets, clients, devis, factures et stock pour technicien informatique.">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/svg+xml" href="icon-192.svg">
-<link rel="apple-touch-icon" href="icon-192.svg">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44'><rect width='44' height='44' rx='10' fill='%230c0c10'/><polygon points='22,4 36,12 36,32 22,40 8,32 8,12' fill='none' stroke='%230ea5e9' stroke-width='2'/><polygon points='25,8 17,24 22,24 19,36 27,20 22,20' fill='%230ea5e9'/></svg>">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44'><rect width='44' height='44' rx='10' fill='%230c0c10'/><polygon points='22,4 36,12 36,32 22,40 8,32 8,12' fill='none' stroke='%230ea5e9' stroke-width='2'/><polygon points='25,8 17,24 22,24 19,36 27,20 22,20' fill='%230ea5e9'/></svg>">
 <title>ZyFix — Gestion Réparations IT</title>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800;900&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+@font-face {
+  font-family: 'Franklin Gothic Medium';
+  src: local('Franklin Gothic Medium'), local('FranklinGothic-Medium');
+  font-weight: 500;
+}
+</style>
 <style>
 :root {
-  --bg:       #080b10;
-  --s1:       #0d1117;
-  --s2:       #131920;
-  --s3:       #1a2230;
-  --border:   #1e2d3d;
-  --border2:  #243040;
-  --cyan:     #00d4ff;
-  --cyan-dim: rgba(0,212,255,.12);
-  --amber:    #ffb300;
-  --green:    #00e676;
-  --red:      #ff4d4d;
-  --purple:   #b388ff;
-  --t1:       #e8f0f8;
-  --t2:       #8899aa;
-  --t3:       #445566;
-  --font:     'Syne', sans-serif;
-  --mono:     'DM Mono', monospace;
+  --bg:       #e8eaf0;
+  --s1:       #f0f2f7;
+  --s2:       #e2e5ed;
+  --s3:       #d8dbe5;
+  --border:   rgba(0,0,0,0.09);
+  --border2:  rgba(0,0,0,0.14);
+  --cyan:     #1a6fc4;
+  --cyan-dim: rgba(26,111,196,.09);
+  --amber:    #c07a10;
+  --green:    #1d9955;
+  --red:      #c94040;
+  --purple:   #7251c4;
+  --t1:       #1a1d24;
+  --t2:       #5a6070;
+  --t3:       #9099aa;
+  --font:     -apple-system, 'SF Pro Text', 'Helvetica Neue', sans-serif;
+  --heading:  'Franklin Gothic Medium', 'Arial Narrow', 'Arial', sans-serif;
+  --mono:     'SF Mono', 'DM Mono', monospace;
   --r:        10px;
 }
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -45,13 +53,7 @@ body{
   min-height:100vh;
   overflow-x:hidden;
 }
-/* scanlines subtiles */
-body::after{
-  content:'';
-  position:fixed;inset:0;
-  background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.04) 2px,rgba(0,0,0,.04) 4px);
-  pointer-events:none;z-index:9999;
-}
+/* scanlines désactivées — thème clair */
 
 /* ─── SIDEBAR ─── */
 #sidebar{
@@ -67,10 +69,9 @@ body::after{
   border-bottom:1px solid var(--border);
 }
 .logo-name{
-  font-size:26px;font-weight:900;letter-spacing:-1px;
-  color:var(--cyan);
-  text-shadow:0 0 24px rgba(0,212,255,.5);
-  display:flex;align-items:center;gap:8px;
+  font-size:22px;font-weight:900;letter-spacing:-0.5px;
+  color:var(--t1);
+  display:flex;align-items:center;gap:10px;
 }
 .logo-sub{
   font-family:var(--mono);font-size:10px;
@@ -86,26 +87,26 @@ body::after{
 .nav-item{
   display:flex;align-items:center;gap:10px;
   padding:9px 12px;border-radius:8px;cursor:pointer;
-  font-size:13px;font-weight:700;color:var(--t2);
+  font-family:var(--heading);font-size:13.5px;font-weight:500;color:var(--t2);
   transition:all .15s;border:1px solid transparent;
   position:relative;
 }
 .nav-item:hover{background:var(--s2);color:var(--t1);}
 .nav-item.active{
   background:var(--cyan-dim);color:var(--cyan);
-  border-color:rgba(0,212,255,.25);
+  border-color:rgba(26,111,196,.22);
 }
-.nav-item .ico{font-size:15px;width:20px;text-align:center;}
+.nav-item .ico{font-size:18px;width:24px;text-align:center;display:flex;align-items:center;justify-content:center;}
 .nav-cnt{
   margin-left:auto;
-  background:var(--cyan);color:var(--bg);
+  background:var(--cyan);color:#fff;
   font-size:10px;font-weight:900;font-family:var(--mono);
   padding:2px 7px;border-radius:20px;min-width:20px;text-align:center;
 }
 .nav-cnt.amber{background:var(--amber);}
 .sidebar-foot{
   padding:14px 16px;border-top:1px solid var(--border);
-  font-family:var(--mono);font-size:10px;color:var(--t3);
+  font-family:var(--mono);font-size:10px;color:var(--t2);
 }
 
 /* ─── MAIN ─── */
@@ -114,7 +115,7 @@ body::after{
 /* ─── TOPBAR ─── */
 .topbar{
   position:sticky;top:0;
-  background:rgba(8,11,16,.88);
+  background:rgba(232,234,240,.94);
   backdrop-filter:blur(14px);
   border-bottom:1px solid var(--border);
   padding:14px 28px;
@@ -122,7 +123,7 @@ body::after{
   z-index:50;
 }
 .topbar-left{display:flex;align-items:center;gap:14px;}
-.page-title{font-size:17px;font-weight:800;}
+.page-title{font-family:var(--heading);font-size:19px;font-weight:500;}
 .topbar-date{
   font-family:var(--mono);font-size:11px;color:var(--t3);
   background:var(--s2);padding:4px 10px;border-radius:6px;
@@ -137,8 +138,8 @@ body::after{
   cursor:pointer;border:none;transition:all .15s;
   display:inline-flex;align-items:center;gap:6px;
 }
-.btn-primary{background:var(--cyan);color:var(--bg);}
-.btn-primary:hover{filter:brightness(1.1);box-shadow:0 0 16px rgba(0,212,255,.35);}
+.btn-primary{background:var(--cyan);color:#fff;}
+.btn-primary:hover{filter:brightness(1.1);}
 .btn-ghost{background:var(--s2);color:var(--t2);border:1px solid var(--border2);}
 .btn-ghost:hover{color:var(--t1);border-color:var(--t3);}
 .btn-danger{background:rgba(255,77,77,.12);color:var(--red);border:1px solid rgba(255,77,77,.3);}
@@ -166,12 +167,15 @@ body::after{
 .stat-card.c-green::before{background:var(--green);}
 .stat-card.c-purple::before{background:var(--purple);}
 .stat-lbl{font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;color:var(--t3);margin-bottom:8px;}
-.stat-val{font-size:34px;font-weight:900;line-height:1;margin-bottom:3px;}
+.stat-val{font-family:var(--heading);font-size:36px;font-weight:500;line-height:1;margin-bottom:3px;letter-spacing:-0.5px;}
 .stat-card.c-cyan .stat-val{color:var(--cyan);}
 .stat-card.c-amber .stat-val{color:var(--amber);}
 .stat-card.c-green .stat-val{color:var(--green);}
 .stat-card.c-purple .stat-val{color:var(--purple);}
 .stat-hint{font-family:var(--mono);font-size:10px;color:var(--t3);}
+.stat-evo{font-size:11px;font-weight:600;margin-top:4px;display:flex;align-items:center;gap:3px;}
+.stat-evo.up{color:var(--green);}
+.stat-evo.down{color:var(--red);}
 
 /* ─── CARD ─── */
 .card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:18px;}
@@ -179,7 +183,7 @@ body::after{
   padding:14px 18px;border-bottom:1px solid var(--border);
   display:flex;align-items:center;justify-content:space-between;
 }
-.card-title{font-size:14px;font-weight:800;display:flex;align-items:center;gap:8px;}
+.card-title{font-family:var(--heading);font-size:15px;font-weight:500;display:flex;align-items:center;gap:8px;}
 
 /* ─── TABLE ─── */
 table{width:100%;border-collapse:collapse;font-size:13px;}
@@ -222,7 +226,7 @@ tr:hover td{background:rgba(255,255,255,.018);}
 .avatar{
   display:inline-flex;align-items:center;justify-content:center;
   width:28px;height:28px;border-radius:7px;
-  background:linear-gradient(135deg,#1a2a6c,#00d4ff);
+  background:linear-gradient(135deg,#2a4a6c,#3b9edd);
   font-size:11px;font-weight:900;color:#fff;margin-right:7px;
   vertical-align:middle;flex-shrink:0;
 }
@@ -240,7 +244,7 @@ input,select,textarea{
 }
 input:focus,select:focus,textarea:focus{
   border-color:var(--cyan);
-  box-shadow:0 0 0 3px rgba(0,212,255,.08);
+  box-shadow:0 0 0 3px rgba(59,158,221,.12);
 }
 select option{background:var(--s2);}
 textarea{resize:vertical;min-height:72px;line-height:1.5;}
@@ -252,7 +256,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 /* ─── MODAL ─── */
 .overlay{
   display:none;position:fixed;inset:0;
-  background:rgba(0,0,0,.72);backdrop-filter:blur(5px);
+  background:rgba(0,0,0,.45);backdrop-filter:blur(4px);
   z-index:500;align-items:center;justify-content:center;
 }
 .overlay.open{display:flex;}
@@ -307,6 +311,131 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 .dp-total-ttc{display:flex;justify-content:space-between;padding:10px 0;font-weight:900;font-size:16px;border-top:2px solid #111;margin-top:4px;}
 .dp-foot{margin-top:24px;font-size:10px;color:#aaa;text-align:center;border-top:1px solid #eee;padding-top:12px;}
 
+/* ─── ROUTAGE APPELS — TOGGLE MODE ─── */
+.av-routing-banner{
+  display:flex;align-items:center;justify-content:space-between;
+  border-radius:14px;padding:18px 22px;margin-bottom:18px;
+  border:2px solid;transition:all .35s;
+}
+.av-routing-banner.av-routing-agent{
+  background:linear-gradient(135deg,rgba(26,111,196,.09),rgba(26,111,196,.04));
+  border-color:rgba(26,111,196,.30);
+}
+.av-routing-banner.av-routing-tech{
+  background:linear-gradient(135deg,rgba(29,153,85,.09),rgba(29,153,85,.04));
+  border-color:rgba(29,153,85,.30);
+}
+.av-routing-left{display:flex;align-items:center;gap:16px;}
+.av-routing-icon{
+  font-size:32px;width:56px;height:56px;
+  border-radius:14px;display:flex;align-items:center;justify-content:center;
+  transition:all .35s;flex-shrink:0;
+}
+.av-routing-banner.av-routing-agent .av-routing-icon{background:rgba(26,111,196,.12);border:1.5px solid rgba(26,111,196,.25);}
+.av-routing-banner.av-routing-tech  .av-routing-icon{background:rgba(29,153,85,.12);border:1.5px solid rgba(29,153,85,.25);}
+.av-routing-title{
+  font-family:var(--heading);font-size:17px;font-weight:500;
+  color:var(--t1);margin-bottom:3px;
+}
+.av-routing-sub{font-size:12px;color:var(--t2);}
+.av-routing-right{display:flex;align-items:center;gap:12px;flex-shrink:0;}
+.av-routing-lbl{font-size:12px;font-weight:600;color:var(--t3);white-space:nowrap;transition:color .3s;}
+.av-routing-lbl.active{color:var(--t1);}
+
+/* Toggle switch */
+.av-toggle{
+  position:relative;width:60px;height:30px;
+  border-radius:15px;border:none;cursor:pointer;
+  transition:background .3s;flex-shrink:0;
+  background:rgba(26,111,196,.25);
+  outline:none;
+}
+.av-toggle.is-tech{ background:rgba(29,153,85,.30); }
+.av-toggle-thumb{
+  position:absolute;top:3px;left:3px;
+  width:24px;height:24px;border-radius:50%;
+  background:#fff;
+  box-shadow:0 1px 4px rgba(0,0,0,.18);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);
+}
+.av-toggle.is-tech .av-toggle-thumb{ transform:translateX(30px); }
+
+/* Pastille statut sync */
+.av-routing-status-dot{
+  width:10px;height:10px;border-radius:50%;
+  background:var(--t3);transition:background .3s;
+  flex-shrink:0;cursor:help;
+}
+.av-routing-status-dot.synced{ background:var(--green); }
+.av-routing-status-dot.syncing{ background:var(--amber); animation:avPulse 1s infinite; }
+.av-routing-status-dot.error{ background:var(--red); }
+@keyframes avPulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ─── AGENT VOCAL — TOUR DE CONTRÔLE ─── */
+.av-status-row{display:flex;align-items:center;gap:10px;font-size:13px;}
+.av-status-dot{width:9px;height:9px;border-radius:50%;background:var(--t3);flex-shrink:0;transition:background .3s;}
+.av-status-dot.ok{background:var(--green);}
+.av-status-dot.warn{background:var(--amber);}
+.av-status-dot.err{background:var(--red);}
+.av-status-lbl{flex:1;color:var(--t2);font-size:12.5px;}
+.av-status-val{font-family:var(--mono);font-size:11px;color:var(--t3);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.av-fail-card{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px;text-align:center;transition:border-color .15s;}
+.av-fail-card:hover{border-color:var(--border2);}
+.av-fail-ico{font-size:22px;margin-bottom:6px;}
+.av-fail-val{font-family:var(--heading);font-size:28px;font-weight:500;color:var(--t1);line-height:1;margin-bottom:4px;}
+.av-fail-lbl{font-size:11px;color:var(--t3);font-family:var(--mono);}
+.av-tool-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:5px;font-family:var(--mono);font-size:10px;font-weight:600;}
+.av-tool-rdv{background:rgba(29,153,85,.10);color:var(--green);border:1px solid rgba(29,153,85,.22);}
+.av-tool-rappel{background:rgba(192,122,16,.10);color:var(--amber);border:1px solid rgba(192,122,16,.22);}
+.av-tool-ticket{background:rgba(26,111,196,.10);color:var(--cyan);border:1px solid rgba(26,111,196,.22);}
+.av-tool-transfert{background:rgba(114,81,196,.10);color:var(--purple);border:1px solid rgba(114,81,196,.22);}
+.av-tool-err{background:rgba(201,64,64,.10);color:var(--red);border:1px solid rgba(201,64,64,.22);}
+
+/* ─── MODULE e-FACTURE B2B ─── */
+.ef-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:10px;font-weight:700;font-family:var(--mono);}
+.ef-non{background:rgba(155,155,155,.10);color:var(--t3);border:1px solid var(--border);}
+.ef-pret{background:rgba(26,111,196,.10);color:var(--cyan);border:1px solid rgba(26,111,196,.22);}
+.ef-complet{background:rgba(192,122,16,.10);color:var(--amber);border:1px solid rgba(192,122,16,.22);}
+.ef-actif{background:rgba(29,153,85,.10);color:var(--green);border:1px solid rgba(29,153,85,.22);}
+
+.ef-statut-badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:5px;font-size:9.5px;font-weight:700;font-family:var(--mono);}
+.ef-s-brouillon{background:rgba(155,155,155,.08);color:var(--t3);border:1px solid var(--border);}
+.ef-s-prete{background:rgba(26,111,196,.10);color:var(--cyan);border:1px solid rgba(26,111,196,.2);}
+.ef-s-envoyee{background:rgba(114,81,196,.10);color:var(--purple);border:1px solid rgba(114,81,196,.2);}
+.ef-s-deposee{background:rgba(192,122,16,.10);color:var(--amber);border:1px solid rgba(192,122,16,.2);}
+.ef-s-recue{background:rgba(26,111,196,.10);color:var(--cyan);border:1px solid rgba(26,111,196,.2);}
+.ef-s-rejetee{background:rgba(201,64,64,.10);color:var(--red);border:1px solid rgba(201,64,64,.2);}
+.ef-s-acceptee{background:rgba(29,153,85,.10);color:var(--green);border:1px solid rgba(29,153,85,.2);}
+.ef-s-payee{background:rgba(29,153,85,.15);color:var(--green);border:1px solid rgba(29,153,85,.3);font-weight:900;}
+
+.ef-block{background:var(--s2);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-top:14px;}
+.ef-block-title{font-family:var(--heading);font-size:13px;font-weight:500;color:var(--t1);margin-bottom:10px;display:flex;align-items:center;gap:7px;}
+.ef-row{display:flex;align-items:center;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border);color:var(--t2);}
+.ef-row:last-child{border-bottom:none;}
+.ef-row strong{color:var(--t1);font-family:var(--mono);font-size:11px;}
+.ef-warn{background:rgba(192,122,16,.07);border:1px solid rgba(192,122,16,.20);border-radius:8px;padding:9px 12px;font-size:11.5px;color:var(--amber);margin-top:10px;line-height:1.5;}
+.ef-log-item{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px;}
+.ef-log-item:last-child{border-bottom:none;}
+.ef-log-ts{font-family:var(--mono);color:var(--t3);white-space:nowrap;font-size:10px;min-width:110px;}
+.ef-log-msg{color:var(--t2);flex:1;}
+.ef-log-ok{color:var(--green);}
+.ef-log-err{color:var(--red);}
+
+/* ─── BOUTON SUPPRESSION TOUS TICKETS ─── */
+.btn-del-all-tk{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 10px;border-radius:7px;
+  border:1px solid var(--border2);
+  background:transparent;color:var(--t3);
+  font-size:11px;font-family:var(--mono);
+  cursor:pointer;transition:all .15s;
+}
+.btn-del-all-tk:hover{
+  color:var(--red);
+  border-color:rgba(201,64,64,.35);
+  background:rgba(201,64,64,.06);
+}
+
 /* ─── SCROLLBAR ─── */
 ::-webkit-scrollbar{width:5px;}
 ::-webkit-scrollbar-track{background:transparent;}
@@ -328,7 +457,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 #bottomnav{
   display:none;
   position:fixed;bottom:0;left:0;right:0;
-  background:rgba(10,12,16,.97);
+  background:rgba(232,234,240,.97);
   backdrop-filter:blur(20px);
   -webkit-backdrop-filter:blur(20px);
   border-top:1px solid var(--border);
@@ -350,12 +479,12 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 }
 .bnav-item:active{background:rgba(255,255,255,.04);}
 .bnav-item.active{color:var(--cyan);}
-.bnav-item.active .bico{filter:drop-shadow(0 0 6px rgba(0,212,255,.5));}
-.bico{font-size:19px;line-height:1;}
+.bnav-item.active .bico{ opacity:1; }
+.bico{width:18px;height:18px;display:flex;align-items:center;justify-content:center;line-height:1;}
 .blbl{font-family:var(--mono);font-size:9px;letter-spacing:.5px;font-weight:500;}
 .bcnt{
   position:absolute;top:5px;right:calc(50% - 19px);
-  background:var(--cyan);color:var(--bg);
+  background:var(--cyan);color:#fff;
   font-size:9px;font-weight:900;font-family:var(--mono);
   padding:1px 5px;border-radius:20px;min-width:16px;text-align:center;
   line-height:14px;
@@ -371,19 +500,14 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
   width:54px;height:54px;
   border-radius:50%;
   background:var(--cyan);
-  color:var(--bg);
+  color:#fff;
   font-size:26px;font-weight:900;
   border:none;cursor:pointer;
   z-index:400;
-  box-shadow:0 4px 20px rgba(0,212,255,.45),0 0 0 0 rgba(0,212,255,.3);
+  box-shadow:0 4px 16px rgba(26,111,196,.35);
   align-items:center;justify-content:center;
   transition:transform .12s,box-shadow .12s;
   -webkit-tap-highlight-color:transparent;
-  animation:fabPulse 2.5s infinite;
-}
-@keyframes fabPulse{
-  0%,100%{box-shadow:0 4px 20px rgba(0,212,255,.45),0 0 0 0 rgba(0,212,255,.25);}
-  50%{box-shadow:0 4px 20px rgba(0,212,255,.45),0 0 0 10px rgba(0,212,255,0);}
 }
 #fab:active{transform:scale(.91);}
 
@@ -391,8 +515,8 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 #install-banner{
   display:none;
   margin:10px 14px 0;
-  background:linear-gradient(135deg,rgba(0,212,255,.1),rgba(0,212,255,.04));
-  border:1px solid rgba(0,212,255,.28);
+  background:rgba(26,111,196,.07);
+  border:1px solid rgba(26,111,196,.20);
   border-radius:10px;padding:11px 14px;
   align-items:center;gap:10px;
   animation:fadeUp .3s ease;
@@ -466,7 +590,8 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
   #topbar-actions .btn{display:none;} /* FAB remplace le bouton topbar */
   /* Stats 2 colonnes */
   .stats-row{grid-template-columns:1fr 1fr !important;gap:8px;}
-  .stat-val{font-size:26px !important;}
+  #page-agent-vocal .stats-row{grid-template-columns:repeat(3,1fr) !important;}
+  .stat-val{font-size:28px !important;}
   /* Dash 1 colonne */
   .dash-grid{grid-template-columns:1fr !important;}
   /* Cacher tables, afficher mcards */
@@ -533,7 +658,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
   cursor:pointer; transition:all .15s;
 }
 .cat-pill.active, .cat-pill:hover {
-  background:var(--cyan); color:#000; border-color:var(--cyan);
+  background:var(--cyan); color:#fff; border-color:var(--cyan);
 }
 .drawer-body {
   flex:1; overflow-y:auto; padding:12px 16px;
@@ -605,7 +730,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
   padding:7px 16px; border-radius:8px; font-family:var(--font);
   font-size:13px; font-weight:700; cursor:pointer; transition:all .2s;
 }
-#btn-open-forfait-drawer:hover { background:var(--cyan); color:#000; }
+#btn-open-forfait-drawer:hover { background:var(--cyan); color:#fff; }
 
 /* Lignes devis dans modal avec edit inline */
 .ligne-devis-row {
@@ -613,7 +738,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
   border-radius:8px; padding:4px 6px; transition:background .15s;
 }
 /* Types visuels */
-.ligne-devis-row.type-mo   { background:rgba(0,212,255,.06); border-left:3px solid var(--cyan); }
+.ligne-devis-row.type-mo   { background:rgba(2,132,199,.06); border-left:3px solid var(--cyan); }
 .ligne-devis-row.type-piece{ background:rgba(179,136,255,.07); border-left:3px solid #b388ff; }
 .ligne-devis-row.type-forfait{ background:rgba(255,184,0,.06); border-left:3px solid var(--amber); }
 .ligne-devis-row.type-autre { background:rgba(255,255,255,.03); border-left:3px solid var(--border); }
@@ -1051,44 +1176,55 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 <div id="bottomnav">
   <div class="bnav-inner">
     <div class="bnav-item bnav-call" data-bpage="appels">
-      <span class="bico">📞</span><span class="blbl">Appel</span>
+      <span class="bico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.06 2.18 2 2 0 012.03 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></span>
+      <span class="blbl">Appel</span>
     </div>
     <div class="bnav-item active" data-bpage="dashboard">
-      <span class="bico">📊</span><span class="blbl">Accueil</span>
+      <span class="bico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span>
+      <span class="blbl">Accueil</span>
     </div>
     <div class="bnav-item" data-bpage="tickets">
-      <span class="bico">🔧</span><span class="blbl">Tickets</span>
+      <span class="bico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></span>
+      <span class="blbl">Tickets</span>
       <span class="bcnt" id="bcnt-tk">0</span>
     </div>
     <div class="bnav-item" data-bpage="clients">
-      <span class="bico">👤</span><span class="blbl">Clients</span>
+      <span class="bico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+      <span class="blbl">Clients</span>
     </div>
     <div class="bnav-item" data-bpage="devis">
-      <span class="bico">📋</span><span class="blbl">Devis</span>
+      <span class="bico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span>
+      <span class="blbl">Devis</span>
       <span class="bcnt amber" id="bcnt-dv">0</span>
     </div>
     <div class="bnav-item" data-bpage="factures">
-      <span class="bico">💰</span><span class="blbl">Factures</span>
+      <span class="bico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span>
+      <span class="blbl">Factures</span>
     </div>
     <div class="bnav-item" data-bpage="agenda">
-      <span class="bico">📅</span><span class="blbl">Agenda</span>
+      <span class="bico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+      <span class="blbl">Agenda</span>
       <span class="bcnt" id="bcnt-rdv" style="display:none">0</span>
     </div>
-    <div class="bnav-item" onclick="openAgentIA()" style="cursor:pointer">
-      <span class="bico" style="font-size:18px">🎙️</span>
+    <div class="bnav-item" data-bpage="agent-vocal" onclick="goto('agent-vocal')" style="cursor:pointer">
+      <span class="bico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></span>
       <span class="blbl">Agent Vocal</span>
     </div>
     <div class="bnav-item" data-bpage="pub">
-      <span class="bico">📣</span><span class="blbl">Pub</span>
+      <span class="bico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span>
+      <span class="blbl">Pub</span>
     </div>
     <div class="bnav-item" data-bpage="pilotage">
-      <span class="bico">📈</span><span class="blbl">CA</span>
+      <span class="bico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+      <span class="blbl">CA</span>
     </div>
     <div class="bnav-item" data-bpage="reparations">
-      <span class="bico">🔩</span><span class="blbl">Répars.</span>
+      <span class="bico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/></svg></span>
+      <span class="blbl">Répars.</span>
     </div>
     <div class="bnav-item" data-bpage="stock">
-      <span class="bico">📦</span><span class="blbl">Stock</span>
+      <span class="bico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></span>
+      <span class="blbl">Stock</span>
     </div>
   </div>
 </div>
@@ -1099,69 +1235,90 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 <!-- SIDEBAR -->
 <aside id="sidebar">
   <div class="logo-zone">
-    <div class="logo-name">⚡ ZyFix</div>
+    <div class="logo-name">
+      <svg viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg" width="34" height="34" style="flex-shrink:0">
+        <rect width="44" height="44" rx="10" fill="#0c0c10"/>
+        <polygon points="22,4 36,12 36,32 22,40 8,32 8,12" fill="none" stroke="#0ea5e9" stroke-width="2" stroke-linejoin="round"/>
+        <polyline points="8,17 3,17 3,13" fill="none" stroke="#0ea5e9" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="3" cy="12" r="1.5" fill="#0ea5e9"/>
+        <polyline points="8,24 2,24" fill="none" stroke="#0ea5e9" stroke-width="1.2" stroke-linecap="round"/>
+        <circle cx="1.5" cy="24" r="1.2" fill="#0ea5e9"/>
+        <polyline points="36,17 41,17 41,13" fill="none" stroke="#0ea5e9" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="41" cy="12" r="1.5" fill="#0ea5e9"/>
+        <polyline points="36,24 42,24" fill="none" stroke="#0ea5e9" stroke-width="1.2" stroke-linecap="round"/>
+        <circle cx="42.5" cy="24" r="1.2" fill="#0ea5e9"/>
+        <polygon points="25,8 17,24 22,24 19,36 27,20 22,20" fill="#0ea5e9"/>
+        <polygon points="25,8 22,20 27,20" fill="white" opacity="0.55"/>
+      </svg>
+      <span>Zy<span style="color:var(--cyan)">FIX</span></span>
+    </div>
     <div class="logo-sub">Réparations &amp; Gestion IT</div>
   </div>
   <nav class="nav">
     <div class="nav-sec">Principal</div>
     <div class="nav-item nav-call" data-page="appels">
-      <span class="ico">📞</span> Prise d'appel
+      <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 10.8 19.79 19.79 0 01.06 2.18 2 2 0 012.03 0h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.09 7.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg></span> Prise d'appel
     </div>
-    <div class="nav-item" data-page="agent-ia" onclick="openAgentIA()" style="cursor:pointer">
-      <span class="nicon">🎙️</span>
+    <div class="nav-item" data-page="agent-vocal" onclick="goto('agent-vocal')" style="cursor:pointer">
+      <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></span>
       <span>Agent Vocal</span>
     </div>
     <div class="nav-item active" data-page="dashboard">
-      <span class="ico">📊</span> Dashboard
+      <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></span> Dashboard
     </div>
     <div class="nav-item" data-page="tickets">
-      <span class="ico">🔧</span> Tickets
+      <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg></span> Tickets
       <span class="nav-cnt" id="cnt-tickets">0</span>
     </div>
     <div class="nav-item" data-page="clients">
-      <span class="ico">👤</span> Clients
+      <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span> Clients
     </div>
 
     <div class="nav-sec">Commercial</div>
     <div class="nav-item" data-page="devis">
-      <span class="ico">📋</span> Devis
+      <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span> Devis
       <span class="nav-cnt amber" id="cnt-devis">0</span>
     </div>
     <div class="nav-item" data-page="factures">
-      <span class="ico">💰</span> Factures
+      <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></span> Factures
     </div>
-
     <div class="nav-item" data-page="pilotage">
-      <span class="ico">📈</span> CA / Pilotage
+      <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span> CA / Pilotage
     </div>
-
+    <div class="nav-item" data-page="efacture">
+      <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></span> e-Facture B2B
+    </div>
     <div class="nav-item" data-page="pub">
-      <span class="ico">📣</span> Publicité / Comm.
+      <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></span> Publicité / Comm.
     </div>
 
     <div class="nav-sec">Atelier</div>
     <div class="nav-item" data-page="reparations">
-      <span class="ico">🔩</span> Réparations
+      <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/></svg></span> Réparations
     </div>
     <div class="nav-item" data-page="stock">
-      <span class="ico">📦</span> Stock pièces
+      <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></span> Stock pièces
     </div>
     <div class="nav-item" data-page="agenda">
-      <span class="ico">📅</span> Agenda
+      <span class="ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span> Agenda
     </div>
   </nav>
   <div class="sidebar-foot">
     <div style="margin-bottom:8px">
-      <button onclick="ghSyncNow()" id="btn-gdrive" style="width:100%;background:rgba(0,212,255,.12);border:1px solid rgba(0,212,255,.3);color:var(--cyan);border-radius:8px;padding:8px 12px;font-family:Syne,sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6.28 3L1 12.5l3.64 6.32L10 9.5 6.28 3zm5.44 0L8 9.5l5.36 9.32L17.72 12 11.72 3zm6 9l-5.36 9.32L17.72 21H23l-5.28-9z"/></svg>
-        <span id="gdrive-label">⚙ Configurer Sync</span>
+      <!-- Indicateur mode routage rapide -->
+      <div id="sb-routing-indicator" onclick="goto('agent-vocal')" style="display:flex;align-items:center;gap:8px;padding:8px 11px;border-radius:8px;background:var(--s2);border:1px solid var(--border);cursor:pointer;margin-bottom:6px;transition:border-color .15s" title="Cliquer pour gérer le routage">
+        <div id="sb-routing-dot" style="width:8px;height:8px;border-radius:50%;background:var(--cyan);flex-shrink:0"></div>
+        <span id="sb-routing-label" style="font-size:11px;font-weight:600;color:var(--t2);flex:1">Agent Vocal</span>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--t3)"><polyline points="9 18 15 12 9 6"/></svg>
+      </div>
+      <button onclick="avSyncNow(); goto('agent-vocal');" id="btn-agent-sync" style="width:100%;background:rgba(113,81,196,.10);border:1px solid rgba(113,81,196,.28);color:var(--purple);border-radius:8px;padding:8px 12px;font-family:var(--font);font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+        <span id="agent-sync-label">Sync appels Agent Vocal</span>
       </button>
-      <div id="gdrive-status" style="font-size:10px;color:var(--t3);text-align:center;margin-top:4px;font-family:var(--mono)"></div>
-      <button id="btn-drive-connect" onclick="openM('m-gdrive-setup')" style="display:none;width:100%;margin-top:6px;padding:6px;background:rgba(0,212,255,.15);border:1px solid rgba(0,212,255,.3);border-radius:8px;color:var(--cyan);font-size:11px;cursor:pointer;font-family:var(--mono)">🔄 Reconnecter Drive</button>
-      <button onclick="syncAgentVocalNow()" id="btn-agent-sync" style="width:100%;margin-top:8px;background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.35);color:#b794f6;border-radius:8px;padding:8px 12px;font-family:Syne,sans-serif;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
-  <span id="agent-sync-label">🎙️ Sync Agent Vocal</span>
-</button>
-      <button onclick="openAgentConfig()" style="width:100%;margin-top:4px;padding:6px;background:rgba(0,212,255,.1);border:1px solid rgba(0,212,255,.25);border-radius:8px;color:var(--cyan);font-size:11px;cursor:pointer;font-family:var(--mono)">🎙️ Configurer Agent Vocal</button>
+      <button onclick="openAgentConfig()" style="width:100%;margin-top:5px;padding:7px;background:rgba(26,111,196,.08);border:1px solid rgba(26,111,196,.20);border-radius:8px;color:var(--cyan);font-size:11px;font-weight:600;cursor:pointer;font-family:var(--font);display:flex;align-items:center;justify-content:center;gap:5px">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+        Configurer Agent Vocal
+      </button>
     </div>
     ZyRAMGamer © 2026 — v1.0
   </div>
@@ -1177,10 +1334,6 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
       <div class="topbar-date" id="tdate"></div>
     </div>
     <div class="topbar-right" style="display:flex;align-items:center;gap:6px">
-      <button onclick="ghSyncNow()" title="Sync GitHub" style="background:transparent;border:none;cursor:pointer;padding:4px 8px;border-radius:6px;display:flex;align-items:center;gap:4px;color:var(--cyan);font-size:11px;font-weight:700">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M6.28 3L1 12.5l3.64 6.32L10 9.5 6.28 3zm5.44 0L8 9.5l5.36 9.32L17.72 12 11.72 3zm6 9l-5.36 9.32L17.72 21H23l-5.28-9z"/></svg>
-        <span id="topbar-sync-label">Drive</span>
-      </button>
       <div id="topbar-actions" style="display:flex;gap:6px"></div>
     </div>
   </div>
@@ -1218,6 +1371,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
         <div class="stat-lbl">CA Total</div>
         <div class="stat-val" id="d-ca">0€</div>
         <div class="stat-hint">toutes factures</div>
+        <div class="stat-evo" id="d-ca-evo"></div>
       </div>
     </div>
 
@@ -1247,7 +1401,215 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
     </div>
   </div>
 
-  <!-- ════════ TICKETS ════════ -->
+  <!-- ════════ AGENT VOCAL — TOUR DE CONTRÔLE ════════ -->
+  <div class="page" id="page-agent-vocal">
+
+    <!-- ── ROUTAGE DES APPELS — SWITCH PRINCIPAL ── -->
+    <div id="av-routing-banner" class="av-routing-banner av-routing-agent">
+      <div class="av-routing-left">
+        <div class="av-routing-icon" id="av-routing-icon">🎙️</div>
+        <div>
+          <div class="av-routing-title" id="av-routing-title">Mode Agent Vocal actif</div>
+          <div class="av-routing-sub" id="av-routing-sub">Les appels entrants sont pris en charge par Alex (ElevenLabs)</div>
+        </div>
+      </div>
+      <div class="av-routing-right">
+        <span class="av-routing-lbl" id="av-routing-lbl-left">Agent Vocal</span>
+        <button class="av-toggle" id="av-toggle-btn" onclick="avToggleMode()" title="Basculer le mode de réponse">
+          <div class="av-toggle-thumb" id="av-toggle-thumb"></div>
+        </button>
+        <span class="av-routing-lbl" id="av-routing-lbl-right">Technicien direct</span>
+        <div id="av-routing-status" class="av-routing-status-dot" title="Statut synchronisation worker"></div>
+      </div>
+    </div>
+
+
+    <!-- ── KPI PERF ── -->
+    <div class="stats-row" style="grid-template-columns:repeat(6,1fr)">
+      <div class="stat-card c-cyan">
+        <div class="stat-lbl">Appels reçus</div>
+        <div class="stat-val" id="av-kpi-appels">0</div>
+        <div class="stat-hint">total agent</div>
+      </div>
+      <div class="stat-card c-green">
+        <div class="stat-lbl">RDV créés</div>
+        <div class="stat-val" id="av-kpi-rdv">0</div>
+        <div class="stat-hint">creer_rdv</div>
+      </div>
+      <div class="stat-card c-amber">
+        <div class="stat-lbl">Rappels</div>
+        <div class="stat-val" id="av-kpi-rappels">0</div>
+        <div class="stat-hint">demande_rappel</div>
+      </div>
+      <div class="stat-card c-cyan">
+        <div class="stat-lbl">Tickets créés</div>
+        <div class="stat-val" id="av-kpi-tickets">0</div>
+        <div class="stat-hint">create_ticket</div>
+      </div>
+      <div class="stat-card c-purple">
+        <div class="stat-lbl">Transferts</div>
+        <div class="stat-val" id="av-kpi-transferts">0</div>
+        <div class="stat-hint">vers humain</div>
+      </div>
+      <div class="stat-card" style="border-top:2px solid var(--red)">
+        <div class="stat-lbl">Erreurs</div>
+        <div class="stat-val" style="color:var(--red)" id="av-kpi-erreurs">0</div>
+        <div class="stat-hint">payloads KO</div>
+      </div>
+    </div>
+
+    <div class="dash-grid" style="grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
+
+      <!-- ── STATUT SYSTÈME ── -->
+      <div class="card" style="margin-bottom:0">
+        <div class="card-head">
+          <div class="card-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Statut système
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="avCheckStatus()">↻ Vérifier</button>
+        </div>
+        <div style="padding:14px 18px;display:flex;flex-direction:column;gap:10px">
+          <div class="av-status-row">
+            <div class="av-status-dot" id="av-dot-agent"></div>
+            <span class="av-status-lbl">Agent ElevenLabs</span>
+            <span class="av-status-val" id="av-val-agent">—</span>
+          </div>
+          <div class="av-status-row">
+            <div class="av-status-dot" id="av-dot-worker"></div>
+            <span class="av-status-lbl">Worker Cloudflare</span>
+            <span class="av-status-val" id="av-val-worker">—</span>
+          </div>
+          <div class="av-status-row">
+            <div class="av-status-dot" id="av-dot-webhook"></div>
+            <span class="av-status-lbl">Webhook /webhook</span>
+            <span class="av-status-val" id="av-val-webhook">—</span>
+          </div>
+          <div class="av-status-row">
+            <div class="av-status-dot" id="av-dot-poll"></div>
+            <span class="av-status-lbl">Polling /poll</span>
+            <span class="av-status-val" id="av-val-poll">—</span>
+          </div>
+          <div class="av-status-row" style="border-top:1px solid var(--border);padding-top:10px">
+            <div class="av-status-dot" id="av-dot-sync" style="background:var(--t3)"></div>
+            <span class="av-status-lbl">Dernière sync</span>
+            <span class="av-status-val" id="av-val-sync">jamais</span>
+          </div>
+          <div class="av-status-row">
+            <div class="av-status-dot" style="background:var(--t3)" id="av-dot-lastcall"></div>
+            <span class="av-status-lbl">Dernier appel IA</span>
+            <span class="av-status-val" id="av-val-lastcall">aucun</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CONFIG RAPIDE ── -->
+      <div class="card" style="margin-bottom:0">
+        <div class="card-head">
+          <div class="card-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+            Configuration rapide
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="avSaveConfig()">💾 Sauvegarder</button>
+        </div>
+        <div style="padding:14px 18px;display:flex;flex-direction:column;gap:10px">
+          <div class="fg">
+            <label>Agent ID ElevenLabs</label>
+            <input id="avc-agent-id" type="text" placeholder="agent_0001kkehzmnrfcpbne7eyh4cw4md" style="font-family:var(--mono);font-size:12px">
+          </div>
+          <div class="fg">
+            <label>URL Worker Cloudflare</label>
+            <input id="avc-worker-url" type="text" placeholder="https://zyfix-worker.xxx.workers.dev">
+          </div>
+          <div class="fg">
+            <label>Numéro de transfert humain</label>
+            <input id="avc-transfer-num" type="tel" placeholder="+336xxxxxxxx">
+          </div>
+          <div class="fg">
+            <label>URL Webhook (à coller dans ElevenLabs)</label>
+            <div style="display:flex;gap:6px">
+              <input id="avc-webhook-url" type="text" readonly style="font-family:var(--mono);font-size:11px;flex:1;background:var(--s3);color:var(--t2)">
+              <button class="btn btn-ghost btn-sm" onclick="avCopyWebhook()" title="Copier">⎘</button>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+            <button class="btn btn-ghost btn-sm" onclick="avSyncNow()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+              Sync manuelle
+            </button>
+            <button class="btn btn-ghost btn-sm" onclick="avTestWorker()">⚡ Tester worker</button>
+            <button class="btn btn-ghost btn-sm" onclick="openAgentIA()">🎙️ Lancer agent</button>
+          </div>
+          <div id="avc-status" style="font-size:11px;margin-top:4px"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── CAUSES D'ÉCHEC ── -->
+    <div class="card" style="margin-bottom:18px">
+      <div class="card-head">
+        <div class="card-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Causes fréquentes d'échec
+        </div>
+        <span id="av-fail-total" style="font-family:var(--mono);font-size:11px;color:var(--t3)"></span>
+      </div>
+      <div style="padding:10px 18px;display:grid;grid-template-columns:repeat(4,1fr);gap:10px" id="av-fail-grid">
+        <div class="av-fail-card" id="avf-no-tel">
+          <div class="av-fail-ico">📵</div>
+          <div class="av-fail-val" id="avf-no-tel-n">0</div>
+          <div class="av-fail-lbl">Téléphone absent</div>
+        </div>
+        <div class="av-fail-card" id="avf-no-date">
+          <div class="av-fail-ico">📅</div>
+          <div class="av-fail-val" id="avf-no-date-n">0</div>
+          <div class="av-fail-lbl">Date floue / absente</div>
+        </div>
+        <div class="av-fail-card" id="avf-no-addr">
+          <div class="av-fail-ico">📍</div>
+          <div class="av-fail-val" id="avf-no-addr-n">0</div>
+          <div class="av-fail-lbl">Adresse manquante</div>
+        </div>
+        <div class="av-fail-card" id="avf-unknown-tool">
+          <div class="av-fail-ico">❓</div>
+          <div class="av-fail-val" id="avf-unknown-tool-n">0</div>
+          <div class="av-fail-lbl">Outil inconnu</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── HISTORIQUE APPELS IA ── -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+          Historique appels Agent IA
+        </div>
+        <div style="display:flex;gap:6px">
+          <button class="btn btn-ghost btn-sm" onclick="avExportLog()">⬇ Exporter</button>
+          <button class="btn btn-danger btn-sm" onclick="avClearLog()">🗑 Vider log</button>
+        </div>
+      </div>
+      <div class="desktop-table">
+        <table>
+          <thead><tr>
+            <th>Date / heure</th>
+            <th>Action déclenchée</th>
+            <th>Client</th>
+            <th>Résumé</th>
+            <th>Fiches créées</th>
+            <th>Résultat</th>
+          </tr></thead>
+          <tbody id="av-history-tbody">
+            <tr><td colspan="6"><div class="empty"><div class="ei">🎙️</div><p>Aucun appel enregistré</p></div></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+
   <div class="page" id="page-tickets">
     <div class="search-wrap">
       <span class="search-ico">🔍</span>
@@ -1256,7 +1618,13 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
     <div class="card">
       <div class="card-head">
         <div class="card-title">🔧 Tickets de réparation</div>
-        <button class="btn btn-primary btn-sm" onclick="openM('m-ticket')">+ Nouveau ticket</button>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn-del-all-tk" onclick="openDeleteAllTickets()" title="Supprimer tous les tickets">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+            Tout supprimer
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="openM('m-ticket')">+ Nouveau ticket</button>
+        </div>
       </div>
       <div class="desktop-table"><table>
         <thead><tr><th>Ticket</th><th>Client</th><th>Appareil</th><th>Problème</th><th>Diagnostic</th><th>Statut</th><th>Date</th><th>Hist.</th><th>Actions</th></tr></thead>
@@ -1311,10 +1679,151 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
         <button class="btn btn-primary btn-sm" onclick="openM('m-facture')">+ Nouvelle facture</button>
       </div>
       <div class="desktop-table"><table>
-        <thead><tr><th>N° Facture</th><th>Client</th><th>Prestations</th><th>Total TTC</th><th>Statut</th><th>Date</th><th>Actions</th></tr></thead>
+        <thead><tr><th>N° Facture</th><th>Client</th><th>Prestations</th><th>Total TTC</th><th>Mode</th><th>Statut</th><th>e-Facture</th><th>Date</th><th>Actions</th></tr></thead>
         <tbody id="tbl-factures"></tbody>
       </table></div>
       <div class="mcard-list" id="mlist-factures"></div>
+    </div>
+  </div>
+
+  <!-- ════════ e-FACTURE B2B ════════ -->
+  <div class="page" id="page-efacture">
+
+    <!-- ── Bandeau explicatif ── -->
+    <div style="background:linear-gradient(135deg,rgba(26,111,196,.07),rgba(26,111,196,.03));border:1px solid rgba(26,111,196,.20);border-radius:14px;padding:18px 22px;margin-bottom:18px;display:flex;gap:18px;align-items:flex-start">
+      <div style="font-size:28px;flex-shrink:0">📄</div>
+      <div>
+        <div style="font-family:var(--heading);font-size:16px;font-weight:500;color:var(--t1);margin-bottom:6px">Comment fonctionne l'e-Facture B2B dans ZyFix ?</div>
+        <div style="font-size:12.5px;color:var(--t2);line-height:1.7">
+          L'e-Facture <strong>n'est pas une facture différente</strong> — c'est votre facture habituelle, enrichie d'une transmission électronique obligatoire vers les clients professionnels.<br>
+          <strong>Le flux est :</strong>
+          <span style="display:inline-flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap">
+            <span style="background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:11px">① Créer un client pro (SIRET requis)</span>
+            <span style="color:var(--t3)">→</span>
+            <span style="background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:11px">② Cocher "Soumis e-Facture"</span>
+            <span style="color:var(--t3)">→</span>
+            <span style="background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:11px">③ Créer la facture normalement</span>
+            <span style="color:var(--t3)">→</span>
+            <span style="background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-size:11px">④ Elle apparaît ici → Préparer → Envoyer</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Workflow en 3 étapes ── -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px">
+
+      <!-- Étape 1 -->
+      <div class="card" style="margin-bottom:0;border-top:3px solid var(--cyan)">
+        <div style="padding:16px 18px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--cyan);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--heading);font-size:14px;font-weight:500;flex-shrink:0">1</div>
+            <div style="font-family:var(--heading);font-size:14px;font-weight:500;color:var(--t1)">Préparer le client pro</div>
+          </div>
+          <div style="font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:14px">
+            Dans l'onglet <strong>Clients</strong>, ouvrez la fiche d'un client Entreprise et remplissez le bloc <em>"Facturation électronique"</em> : SIRET, plateforme de réception, adresse électronique. Cochez <em>"Soumis e-Facture"</em>.
+          </div>
+          <div id="ef-step1-status" style="font-size:11px;color:var(--t3);margin-bottom:10px"></div>
+          <button class="btn btn-primary btn-sm" style="width:100%" onclick="goto('clients')">
+            👤 Aller aux clients
+          </button>
+        </div>
+      </div>
+
+      <!-- Étape 2 -->
+      <div class="card" style="margin-bottom:0;border-top:3px solid var(--purple)">
+        <div style="padding:16px 18px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--purple);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--heading);font-size:14px;font-weight:500;flex-shrink:0">2</div>
+            <div style="font-family:var(--heading);font-size:14px;font-weight:500;color:var(--t1)">Créer la facture</div>
+          </div>
+          <div style="font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:14px">
+            Créez la facture <strong>exactement comme d'habitude</strong> dans l'onglet <strong>Factures</strong>. Si le client est pro et soumis e-Facture, elle sera automatiquement détectée comme <em>e-Facture B2B</em>.
+          </div>
+          <button class="btn btn-ghost btn-sm" style="width:100%;background:rgba(114,81,196,.08);border-color:rgba(114,81,196,.25);color:var(--purple)" onclick="openM('m-facture')">
+            💰 Nouvelle facture
+          </button>
+        </div>
+      </div>
+
+      <!-- Étape 3 -->
+      <div class="card" style="margin-bottom:0;border-top:3px solid var(--green)">
+        <div style="padding:16px 18px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+            <div style="width:28px;height:28px;border-radius:50%;background:var(--green);color:#fff;display:flex;align-items:center;justify-content:center;font-family:var(--heading);font-size:14px;font-weight:500;flex-shrink:0">3</div>
+            <div style="font-family:var(--heading);font-size:14px;font-weight:500;color:var(--t1)">Transmettre</div>
+          </div>
+          <div style="font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:14px">
+            La facture apparaît dans le tableau ci-dessous. Cliquez <strong>📋 Préparer</strong> pour générer le payload JSON, puis <strong>📤 Envoyer</strong> pour la transmettre à la plateforme (disponible en 2027).
+          </div>
+          <button class="btn btn-ghost btn-sm" style="width:100%;background:rgba(29,153,85,.08);border-color:rgba(29,153,85,.25);color:var(--green)" onclick="efRefreshKpi()">
+            ↻ Actualiser la liste
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── KPI ── -->
+    <div class="stats-row" style="grid-template-columns:repeat(4,1fr);margin-bottom:18px">
+      <div class="stat-card c-cyan">
+        <div class="stat-lbl">Clients pro</div>
+        <div class="stat-val" id="ef-kpi-clients-pro">0</div>
+        <div class="stat-hint">type entreprise</div>
+      </div>
+      <div class="stat-card c-green">
+        <div class="stat-lbl">Prêts e-Facture</div>
+        <div class="stat-val" id="ef-kpi-clients-prets">0</div>
+        <div class="stat-hint">SIRET + plateforme OK</div>
+      </div>
+      <div class="stat-card c-purple">
+        <div class="stat-lbl">Factures B2B</div>
+        <div class="stat-val" id="ef-kpi-factures-b2b">0</div>
+        <div class="stat-hint">détectées auto</div>
+      </div>
+      <div class="stat-card c-amber">
+        <div class="stat-lbl">À transmettre</div>
+        <div class="stat-val" id="ef-kpi-factures-prete">0</div>
+        <div class="stat-hint">prêtes à envoyer</div>
+      </div>
+    </div>
+
+    <!-- ── Liste factures e-Facture ── -->
+    <div class="card" style="margin-bottom:18px">
+      <div class="card-head">
+        <div class="card-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Factures électroniques B2B détectées
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="efExportPayloads()">⬇ Export JSON</button>
+      </div>
+      <div id="ef-empty-hint" style="display:none;padding:20px 18px;background:rgba(192,122,16,.05);border-bottom:1px solid var(--border)">
+        <div style="font-size:12.5px;color:var(--amber);line-height:1.6">
+          ⚠️ Aucune facture B2B détectée. Pour qu'une facture apparaisse ici : allez dans <strong>Clients</strong>, ouvrez un client <em>Entreprise</em>, remplissez son SIRET et cochez <em>"Soumis e-Facture"</em>. Les prochaines factures de ce client seront automatiquement classées e-Facture B2B.
+        </div>
+      </div>
+      <div class="desktop-table">
+        <table>
+          <thead><tr><th>N° Facture</th><th>Client pro</th><th>Montant TTC</th><th>Statut e-Facture</th><th>Plateforme</th><th>Date</th><th>Actions</th></tr></thead>
+          <tbody id="ef-tbl-factures"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── Clients pro à compléter ── -->
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Clients pro — Complétude e-Facture
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="goto('clients')">+ Ajouter un client pro</button>
+      </div>
+      <div class="desktop-table">
+        <table>
+          <thead><tr><th>Client</th><th>SIRET</th><th>TVA Intra</th><th>Plateforme</th><th>Statut</th><th>Actions</th></tr></thead>
+          <tbody id="ef-tbl-clients"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -1764,9 +2273,85 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 
 </div>
 
-</main>
+  <!-- ════════ PARAMÈTRES e-FACTURE ════════ -->
+  <div class="page" id="page-ef-params">
+    <div class="dash-grid" style="grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px">
+      <div class="card" style="margin-bottom:0">
+        <div class="card-head">
+          <div class="card-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+            Plateforme e-Facture
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="efSavePlatformConfig()">💾 Sauvegarder</button>
+        </div>
+        <div style="padding:14px 18px;display:flex;flex-direction:column;gap:10px">
+          <div class="fg">
+            <label>Nom de la plateforme</label>
+            <select id="ef-platform-name" onchange="efUpdatePlatformHelp()">
+              <option value="">— Non choisie —</option>
+              <option value="chorus_pro">Chorus Pro (secteur public)</option>
+              <option value="factur_x">Factur-X (PDF/A-3)</option>
+              <option value="peppol">PEPPOL BIS Billing 3.0</option>
+              <option value="cii">CII (Cross Industry Invoice)</option>
+              <option value="autre">Autre plateforme agréée</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>URL / Endpoint API</label>
+            <input id="ef-platform-url" placeholder="https://api.plateforme.fr/v1/factures">
+          </div>
+          <div class="fg">
+            <label>Clé API / Token</label>
+            <input id="ef-platform-key" type="password" placeholder="sk-xxxx ou token">
+          </div>
+          <div class="fg">
+            <label>Identifiant émetteur (SIRET ou PEPPOL ID)</label>
+            <input id="ef-emetteur-id" placeholder="12345678900012">
+          </div>
+          <div class="tva-toggle-row" style="margin-top:4px">
+            <label style="cursor:pointer;flex:1">Mode production
+              <span>Désactiver pour tester sans envoyer de vraies factures</span>
+            </label>
+            <div class="toggle-switch"><input type="checkbox" id="ef-mode-prod"><div class="toggle-track"></div></div>
+          </div>
+          <div id="ef-platform-help" style="font-size:11px;color:var(--t3);padding:8px 10px;background:var(--s2);border-radius:7px;border:1px solid var(--border);line-height:1.6;display:none"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:0">
+        <div class="card-head">
+          <div class="card-title">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Statut &amp; Tests
+          </div>
+        </div>
+        <div style="padding:14px 18px;display:flex;flex-direction:column;gap:12px">
+          <div class="av-status-row"><div class="av-status-dot" id="ef-dot-config"></div><span class="av-status-lbl">Configuration</span><span class="av-status-val" id="ef-val-config">Non configurée</span></div>
+          <div class="av-status-row"><div class="av-status-dot" id="ef-dot-conn"></div><span class="av-status-lbl">Connexion plateforme</span><span class="av-status-val" id="ef-val-conn">—</span></div>
+          <div class="av-status-row"><div class="av-status-dot" id="ef-dot-mode"></div><span class="av-status-lbl">Mode</span><span class="av-status-val" id="ef-val-mode">—</span></div>
+          <div class="av-status-row" style="border-top:1px solid var(--border);padding-top:10px"><span class="av-status-lbl">Dernier échange</span><span class="av-status-val" id="ef-val-last">jamais</span></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">
+            <button class="btn btn-ghost btn-sm" onclick="efTestConnection()">⚡ Tester la connexion</button>
+            <button class="btn btn-ghost btn-sm" onclick="efSendTestInvoice()">📤 Facture test</button>
+          </div>
+          <div id="ef-test-result" style="font-size:11px;color:var(--t3);min-height:20px"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+          Journal des échanges plateforme
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="efClearPlatformLog()">🗑 Vider</button>
+      </div>
+      <div style="padding:10px 18px" id="ef-platform-log">
+        <div style="font-size:12px;color:var(--t3);text-align:center;padding:20px">Aucun échange enregistré</div>
+      </div>
+    </div>
+  </div>
 
-<!-- ═══════════════════ MODALS ═══════════════════ -->
+</main>
 
 <!-- TICKET -->
 <div class="overlay" id="m-ticket">
@@ -1816,7 +2401,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 
 <!-- CLIENT -->
 <div class="overlay" id="m-client">
-  <div class="modal">
+  <div class="modal" style="max-width:620px">
     <div class="modal-head">
       <div class="modal-title" id="m-client-title">👤 Nouveau client</div>
       <button class="modal-x" onclick="closeM('m-client');resetModal('client')">✕</button>
@@ -1828,17 +2413,57 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
       <div class="fg"><label>Email</label><input id="c-email" placeholder="jean@mail.com"></div>
       <div class="fg form-full"><label>Adresse</label><input id="c-adresse" placeholder="12 rue de la Paix, Narbonne"></div>
       <div class="fg"><label>Type client</label>
-        <select id="c-type"><option value="particulier">Particulier</option><option value="entreprise">Entreprise</option></select>
+        <select id="c-type" onchange="efToggleClientPro()">
+          <option value="particulier">Particulier</option>
+          <option value="entreprise">Entreprise</option>
+        </select>
       </div>
       <div class="fg"><label>Entreprise (si pro)</label><input id="c-entreprise" placeholder="Nom société"></div>
       <div class="fg form-full">
         <label>📣 Comment il m'a connu ?</label>
-        <select id="c-source">
-          <option value="">— Non renseigné —</option>
-        </select>
+        <select id="c-source"><option value="">— Non renseigné —</option></select>
       </div>
       <div class="fg form-full"><label>Note source (optionnel)</label><input id="c-source-note" placeholder="Ex: recommandé par M. Dupont"></div>
     </div>
+
+    <!-- ── BLOC e-FACTURE B2B (pro uniquement) ── -->
+    <div id="ef-client-block" style="display:none;padding:0 18px 14px">
+      <div style="border-top:1px solid var(--border);padding-top:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div style="font-family:var(--heading);font-size:13px;font-weight:500;color:var(--t1);display:flex;align-items:center;gap:7px">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>
+            Facturation électronique B2B
+          </div>
+          <span id="ef-client-badge" class="ef-badge ef-non">Non concerné</span>
+        </div>
+        <div class="form-grid" style="padding:0">
+          <div class="fg"><label>Raison sociale</label><input id="c-raison-sociale" placeholder="SARL Dupont Informatique" oninput="efUpdateClientBadge()"></div>
+          <div class="fg"><label>SIREN (9 chiffres)</label><input id="c-siren" placeholder="123456789" maxlength="9" oninput="efUpdateClientBadge()"></div>
+          <div class="fg"><label>SIRET (14 chiffres)</label><input id="c-siret" placeholder="12345678900012" maxlength="14" oninput="efUpdateClientBadge()"></div>
+          <div class="fg"><label>N° TVA Intracommunautaire</label><input id="c-tva-intra" placeholder="FR12123456789"></div>
+          <div class="fg"><label>Email facturation</label><input id="c-email-fact" type="email" placeholder="compta@societe.fr"></div>
+          <div class="fg"><label>Adresse facturation</label><input id="c-adresse-fact" placeholder="Siège social ou adresse de facturation"></div>
+          <div class="fg"><label>Plateforme de réception</label>
+            <select id="c-plateforme-ef">
+              <option value="">— Non renseignée —</option>
+              <option value="chorus_pro">Chorus Pro (secteur public)</option>
+              <option value="factur-x">Factur-X compatible</option>
+              <option value="peppol">PEPPOL</option>
+              <option value="autre">Autre plateforme agréée</option>
+            </select>
+          </div>
+          <div class="fg"><label>Adresse électronique facturation</label><input id="c-adr-ef" placeholder="ID annuaire ou adresse PEPPOL" oninput="efUpdateClientBadge()"></div>
+          <div class="fg form-full">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+              <input type="checkbox" id="c-soumis-efacture" onchange="efUpdateClientBadge()" style="accent-color:var(--cyan);width:15px;height:15px">
+              <span>Soumis à la facturation électronique obligatoire (e-Facture B2B)</span>
+            </label>
+          </div>
+          <div class="fg form-full"><label>Commentaire facturation</label><textarea id="c-commentaire-fact" rows="2" placeholder="Référence commande, service destinataire, conditions particulières…"></textarea></div>
+        </div>
+      </div>
+    </div>
+
     <div class="form-foot">
       <button class="btn btn-ghost" onclick="closeM('m-client');resetModal('client')">Annuler</button>
       <button class="btn btn-primary" id="btn-save-client" onclick="saveClient()">Ajouter</button>
@@ -1918,28 +2543,42 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 
 <!-- FACTURE -->
 <div class="overlay" id="m-facture">
-  <div class="modal">
+  <div class="modal" style="max-width:620px">
     <div class="modal-head">
       <div class="modal-title" id="m-facture-title">💰 Nouvelle facture</div>
       <button class="modal-x" onclick="closeM('m-facture');resetModal('facture')">✕</button>
     </div>
     <div class="form-grid">
       <div class="fg form-full"><label>Client *</label><select id="f-client"><option value="">— Choisir —</option></select></div>
+
+      <!-- Forfaits rapides — conteneur scrollable pour la grille -->
       <div class="fg form-full" id="forfaits-box-f">
-        <label>⚡ Forfaits rapides</label>
-        <div id="forfaits-list-f" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px"></div>
+        <label style="display:flex;align-items:center;justify-content:space-between">
+          <span>⚡ Forfaits rapides <span style="font-size:10px;color:var(--t3);font-weight:400">— Cliquez pour ajouter · recliquez pour retirer</span></span>
+        </label>
+        <div id="forfaits-list-f" style="max-height:280px;overflow-y:auto;margin-top:6px;border-radius:8px"></div>
       </div>
+
       <div class="fg form-full">
-        <label>Lignes prestations — Description | Prix HT</label>
-        <textarea id="f-lignes" rows="5" placeholder="SSD Samsung 1TB | 80&#10;Main d'œuvre 2h | 60"></textarea>
+        <label style="display:flex;align-items:center;justify-content:space-between">
+          <span>Lignes prestations — <span style="font-weight:400;color:var(--t3)">Description | Prix HT</span></span>
+          <span id="f-lignes-preview" style="font-family:var(--mono);font-size:11px;color:var(--green);font-weight:700"></span>
+        </label>
+        <textarea id="f-lignes" rows="5"
+          placeholder="SSD Samsung 1TB | 80&#10;Main d'œuvre 2h | 60"
+          oninput="fUpdatePreview()"></textarea>
       </div>
+
       <div class="fg form-full" style="display:flex;align-items:center;gap:12px;padding:8px 0">
         <label style="cursor:pointer;display:flex;align-items:center;gap:8px;font-size:13px">
-          <input type="checkbox" id="f-tva-toggle" onchange="toggleFactureTVA()" style="accent-color:var(--cyan);width:16px;height:16px">
+          <input type="checkbox" id="f-tva-toggle" onchange="toggleFactureTVA();fUpdatePreview()" style="accent-color:var(--cyan);width:16px;height:16px">
           Micro-entreprise (pas de TVA — art. 293 B CGI)
         </label>
       </div>
-      <div class="fg" id="f-tva-row"><label>TVA (%)</label><input type="number" id="f-tva" value="20" min="0" max="100"></div>
+      <div class="fg" id="f-tva-row">
+        <label>TVA (%)</label>
+        <input type="number" id="f-tva" value="20" min="0" max="100" oninput="fUpdatePreview()">
+      </div>
       <div class="fg"><label>Statut</label>
         <select id="f-statut"><option value="emise">📤 Émise</option><option value="payee">✅ Payée</option></select>
       </div>
@@ -2091,35 +2730,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 </div>
 
 <!-- MODAL GITHUB SYNC SETUP -->
-<div class="overlay" id="m-gdrive-setup">
-  <div class="modal" style="max-width:480px">
-    <div class="modal-head">
-      <div class="modal-title">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
-        GitHub Sync — Configuration
-      </div>
-      <button class="modal-close" onclick="closeM('m-gdrive-setup')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div style="background:rgba(0,212,255,.08);border:1px solid rgba(0,212,255,.2);border-radius:10px;padding:14px;margin-bottom:16px;font-size:13px;line-height:1.6">
-        <strong>🔒 Token GitHub requis</strong><br>
-        Le token est stocké <strong>uniquement dans ton navigateur</strong> (localStorage).<br>
-        Il ne sera jamais uploadé sur GitHub ni visible par personne.
-      </div>
-      <div class="fg">
-        <label>Token GitHub (ghp_...)</label>
-        <input id="gh-token-input" type="password" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" style="font-family:var(--mono);font-size:13px">
-      </div>
-      <p style="font-size:11px;color:var(--t3);margin-top:6px">
-        Dépôt de données : <strong>florentcouzy-cyber/zyfix-data</strong> (privé)
-      </p>
-    </div>
-    <div class="modal-foot">
-      <button onclick="closeM('m-gdrive-setup')" style="background:transparent;border-color:var(--border)">Annuler</button>
-      <button onclick="ghSetToken()" style="background:#238636;border-color:#238636">✅ Sauvegarder</button>
-    </div>
-  </div>
-</div>
+<!-- modale gdrive-setup supprimée — sync GitHub non utilisé -->
 
 </div>
 
@@ -2159,7 +2770,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
       <!-- Agent ID -->
       <div class="fg">
         <label>Agent ID ElevenLabs</label>
-        <input id="ela-agent-id" type="text" placeholder="agent_xxxxxxxxxxxxxxxx" style="font-family:var(--mono);font-size:13px">
+        <input id="ela-agent-id" type="text" placeholder="agent_0001kkehzmnrfcpbne7eyh4cw4md" style="font-family:var(--mono);font-size:13px">
       </div>
 
       <!-- Clé API -->
@@ -2681,10 +3292,13 @@ function dbSave(){
 // ─── NAVIGATION ──────────────────────────────────
 const PAGES = {
   appels:'📞 Prise d\'appel', dashboard:'📊 Dashboard', appels:'📞 Prise d\'appel / Nouvel appel',
-  tickets:'🔧 Tickets',
+  tickets:'🔧 Tickets de réparation',
   clients:'👤 Clients', devis:'📋 Devis',
   factures:'💰 Factures', pub:'📣 Publicité / Comm.', pilotage:'📈 CA / Pilotage',
-  reparations:'🔩 Réparations', stock:'📦 Stock pièces', agenda:'📅 Agenda'
+  reparations:'🔩 Réparations', stock:'📦 Stock pièces', agenda:'📅 Agenda',
+  'agent-vocal':'🎙️ Agent Vocal — Tour de contrôle',
+  'efacture':'📄 e-Facture B2B',
+  'ef-params':'⚙️ Paramètres e-Facture'
 };
 const ACTIONS = {
   appels:`<button class="btn btn-primary btn-sm" onclick="openNewAppel()">📞 Nouvel appel</button>`,
@@ -2696,6 +3310,9 @@ const ACTIONS = {
   stock:`<button class="btn btn-primary btn-sm" onclick="openM('m-stock')">+ Pièce</button>`,
   agenda:`<button class="btn btn-primary btn-sm" onclick="openM('m-rdv')">+ RDV</button>`,
   pilotage:`<button class="btn btn-ghost btn-sm" onclick="exportPilotageCSV()">⬇ CSV</button>`,
+  'agent-vocal':`<button class="btn btn-primary btn-sm" onclick="openAgentIA()">🎙️ Lancer l'agent</button><button class="btn btn-ghost btn-sm" onclick="avSyncNow()" style="margin-left:6px">↻ Sync</button>`,
+  'efacture':`<button class="btn btn-ghost btn-sm" onclick="efRefreshKpi()">↻ Actualiser</button><button class="btn btn-ghost btn-sm" onclick="goto('ef-params')" style="margin-left:6px">⚙️ Paramètres</button>`,
+  'ef-params':`<button class="btn btn-ghost btn-sm" onclick="goto('efacture')">← e-Facture</button>`,
 };
 
 function _gotoCore(name){
@@ -2710,6 +3327,9 @@ function _gotoCore(name){
   document.getElementById('ptitle').textContent = PAGES[name]||name;
   document.getElementById('topbar-actions').innerHTML = ACTIONS[name]||'';
   _curPage = name;
+  if (name === 'agent-vocal') { try{ avOnPageEnter(); }catch(e){} }
+  if (name === 'efacture')   { try{ efRefreshKpi(); }catch(e){} }
+  if (name === 'ef-params')  { try{ efUpdateParamsStatus(); efRenderPlatformLog(); }catch(e){} }
 }
 
 document.querySelectorAll('.nav-item').forEach(n=>{
@@ -2729,6 +3349,7 @@ function openM(id){
     renderForfaits('d');
   }
   if(id === 'm-facture'){
+    resetForfaitsAdded('f');
     renderForfaits('f');
   }
 }
@@ -2981,6 +3602,22 @@ function resetModal(type) {
 function saveClient(){
   const nom=document.getElementById('c-nom').value.trim();
   if(!nom){ showToast('Nom requis !'); return; }
+
+  // Champs e-Facture pro
+  var g = function(id){ return (document.getElementById(id)||{}).value||''; };
+  var efFields = {
+    raisonSociale:       g('c-raison-sociale'),
+    siren:               g('c-siren'),
+    siret:               g('c-siret'),
+    tvaIntra:            g('c-tva-intra'),
+    emailFacturation:    g('c-email-fact'),
+    adresseFacturation:  g('c-adresse-fact'),
+    plateformeEf:        g('c-plateforme-ef'),
+    adrEf:               g('c-adr-ef'),
+    soumisEFacture:      (document.getElementById('c-soumis-efacture')||{}).checked || false,
+    commentaireFacturation: g('c-commentaire-fact')
+  };
+
   if(_editMode && _editMode.type === 'client'){
     var c = DB.clients.find(x=>x.id===_editMode.id);
     if(c){
@@ -2992,12 +3629,13 @@ function saveClient(){
       c.entreprise=document.getElementById('c-entreprise').value;
       c.source=document.getElementById('c-source').value;
       c.sourceNote=document.getElementById('c-source-note').value;
+      Object.assign(c, efFields);
     }
     dbSave(); closeM('m-client'); resetModal('client');
     resetFields(['c-nom','c-prenom','c-tel','c-email','c-adresse','c-entreprise']);
     refreshAll(); showToast('✅ Client modifié !'); return;
   }
-  DB.clients.push({
+  DB.clients.push(Object.assign({
     id:'CL'+Date.now(), nom,
     prenom:document.getElementById('c-prenom').value,
     tel:document.getElementById('c-tel').value,
@@ -3008,7 +3646,7 @@ function saveClient(){
     source:document.getElementById('c-source').value,
     sourceNote:document.getElementById('c-source-note').value,
     date:today()
-  });
+  }, efFields));
   dbSave(); closeM('m-client');
   resetFields(['c-nom','c-prenom','c-tel','c-email','c-adresse','c-entreprise']);
   refreshAll();
@@ -3038,7 +3676,8 @@ function renderClients(list){
       +'<td>'+r.telHtml+'</td>'
       +'<td>'+r.mailHtml+'</td>'
       +'<td>'+(c.adresse?'<a href="#" onclick="openMap(this.dataset.a);return false;" data-a="'+escHtml(c.adresse)+'" style="color:var(--cyan);text-decoration:none;font-size:12px;cursor:pointer">📍 '+c.adresse+'</a>':'—')+'</td>'
-      +'<td>'+(c.type==='entreprise'?'<span class="badge b-encours">🏢 Entreprise</span>':'<span class="badge b-livre">👤 Particulier</span>')+'</td>'
+      +'<td>'+(c.type==='entreprise'?'<span class="badge b-encours">🏢 Entreprise</span>':'<span class="badge b-livre">👤 Particulier</span>')
+      +(c.type==='entreprise' ? '<br>' + efClientBadge(c) : '')+'</td>'
       +'<td style="text-align:center"><span class="tk-tag">'+nb+'</span></td>'
       +'<td><button class="btn btn-ghost btn-sm" onclick="showHistorique(this.dataset.cid)" data-cid="'+c.id+'">📋</button></td>'
       +'<td><button class="btn btn-ghost btn-sm" onclick="editClient(\''+c.id+'\')">✏️</button> <button class="btn btn-danger btn-sm" onclick="del(&quot;clients&quot;,&quot;'+c.id+'&quot;)">🗑</button></td>'
@@ -3348,21 +3987,27 @@ function renderFactures(list){
     if(ml) ml.innerHTML=empty;
     return;
   }
-  if(tb) tb.innerHTML=data.map(f=>`
+  if(tb) tb.innerHTML=data.map(f=>{
+    var efMode = efGetModeFacturation(f);
+    var efSt   = efMode === 'efacture_b2b' ? efStatutBadge(f.efactureStatus || 'brouillon') : '<span style="color:var(--t3);font-size:11px">—</span>';
+    return `
     <tr>
       <td><span class="tk-tag">${f.id}</span></td>
       <td>${clientName(f.clientId)}</td>
       <td class="td-dim">${f.lignes.map(l=>l.desc).join(', ')}</td>
       <td class="td-mono" style="color:var(--green);font-weight:700">${fmt(f.ttc)} €</td>
+      <td>${efModeBadge(f)}</td>
       <td>${badge(f.statut)}</td>
+      <td>${efSt}</td>
       <td class="td-sm">${fmtDate(f.date)}</td>
-      <td style="display:flex;gap:4px">
-        <button class="btn btn-success btn-sm" onclick="previewDoc('facture','${f.id}')">👁 Aperçu</button>
+      <td style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="btn btn-success btn-sm" onclick="previewDoc('facture','${f.id}')">👁</button>
+        ${efMode==='efacture_b2b' ? `<button class="btn btn-ghost btn-sm" onclick="efPrepareFacture('${f.id}')" title="Préparer e-Facture">📋</button>` : ''}
         ${f.statut!=='payee'&&f.statut!=='encaisse'?`<button class="btn btn-primary btn-sm" onclick="marquerPayee('${f.id}')">✅</button>`:''}
         <button class="btn btn-ghost btn-sm" onclick="editFacture('${f.id}')">✏️</button>
         <button class="btn btn-danger btn-sm" onclick="del('factures','${f.id}')">🗑</button>
       </td>
-    </tr>`).join('');
+    </tr>`}).join('');
   if(ml) ml.innerHTML=data.map(f=>`
     <div class="mcard">
       <div class="mcard-top">
@@ -3822,10 +4467,9 @@ function editClient(id) {
   if (!c) { showToast('Client introuvable'); return; }
   _editMode = { type: 'client', id: id };
 
-  var set = function(elId, val) {
-    var el = document.getElementById(elId);
-    if (el) el.value = val || '';
-  };
+  var set = function(elId, val) { var el = document.getElementById(elId); if (el) el.value = val || ''; };
+  var setChk = function(elId, val) { var el = document.getElementById(elId); if (el) el.checked = !!val; };
+
   set('c-nom',         c.nom);
   set('c-prenom',      c.prenom);
   set('c-tel',         c.tel);
@@ -3835,6 +4479,21 @@ function editClient(id) {
   set('c-entreprise',  c.entreprise);
   set('c-source',      c.source);
   set('c-source-note', c.sourceNote);
+
+  // Champs e-Facture pro
+  set('c-raison-sociale',     c.raisonSociale);
+  set('c-siren',              c.siren);
+  set('c-siret',              c.siret);
+  set('c-tva-intra',          c.tvaIntra);
+  set('c-email-fact',         c.emailFacturation);
+  set('c-adresse-fact',       c.adresseFacturation);
+  set('c-plateforme-ef',      c.plateformeEf);
+  set('c-adr-ef',             c.adrEf);
+  set('c-commentaire-fact',   c.commentaireFacturation);
+  setChk('c-soumis-efacture', c.soumisEFacture);
+
+  efToggleClientPro();
+  efUpdateClientBadge();
 
   var title = document.getElementById('m-client-title');
   if (title) title.textContent = '✏️ Modifier client';
@@ -3931,6 +4590,9 @@ function editFacture(id) {
     if (ta) ta.value = lignesTxt;
     set('f-tva',    f.tva);
     set('f-statut', f.statut);
+    var toggle = document.getElementById('f-tva-toggle');
+    if (toggle) toggle.checked = !!f.microEntreprise;
+    setTimeout(fUpdatePreview, 10);
   }, 50);
 
   var title = document.getElementById('m-facture-title');
@@ -4711,12 +5373,17 @@ syncSelects = function(){
   sel.value = prev;
 };
 
-// Patch _refreshCore pour inclure agenda + init rdv date
+// Patch _refreshCore pour inclure agenda + e-Facture
 var _refreshCoreOrig = _refreshCore;
 _refreshCore = function(){
   if(!DB.rdv) DB.rdv = [];
   _refreshCoreOrig();
   renderAgenda();
+  // Refresh e-Facture si la page est active
+  try {
+    var pgEf = document.getElementById('page-efacture');
+    if (pgEf && pgEf.classList.contains('active')) efRefreshKpi();
+  } catch(e){}
 };
 
 // Bouton historique dans les mcards clients
@@ -4997,6 +5664,7 @@ async function syncAgentVocal(){
 
     var imported = new Set(JSON.parse(localStorage.getItem(importedKey) || '[]'));
     var done = 0;
+    var toAck = [];
 
     function todayStr(){
       var d = new Date();
@@ -5181,11 +5849,23 @@ async function syncAgentVocal(){
       });
 
       imported.add(ev.id);
+      toAck.push(ev.id);
       done++;
     });
 
     localStorage.setItem('zyfix', JSON.stringify(DB));
     localStorage.setItem(importedKey, JSON.stringify(Array.from(imported)));
+
+    // ACK tous les events importés en une passe
+    if (toAck.length && worker) {
+      toAck.forEach(function(evId) {
+        fetch(worker + '/ack', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({eventId: evId})
+        }).catch(function(){});
+      });
+    }
 
     if(typeof renderAppels === 'function') renderAppels();
     if(typeof refreshAll === 'function') refreshAll();
@@ -8370,13 +9050,22 @@ function renderForfaits(prefix) {
 
       row.onclick = function() {
         if (window._forfaitsAdded[prefix][gIdx]) {
-          /* RETIRER : supprimer la ligne du container */
+          /* RETIRER */
           if (prefix === 'd') {
             var rows = document.querySelectorAll('#devis-lignes-container .ligne-devis-row');
             rows.forEach(function(r) {
               var descEl = r.querySelector('.ldesc');
               if (descEl && descEl.value === f.nom) r.remove();
             });
+          } else if (prefix === 'f') {
+            /* Retirer la ligne du textarea f-lignes */
+            var ta = document.getElementById('f-lignes');
+            if (ta) {
+              var lignes = ta.value.split('\n').filter(function(l) {
+                return l.trim() && l.split('|')[0].trim() !== f.nom;
+              });
+              ta.value = lignes.join('\n');
+            }
           }
           delete window._forfaitsAdded[prefix][gIdx];
           row.style.opacity = '1';
@@ -8433,6 +9122,37 @@ function _refreshCore() {
   var facEmises = (DB.factures||[]).filter(function(f){ return f.statut!=='payee' && f.statut!=='encaisse'; }).length;
   var caTotal   = (DB.factures||[]).filter(function(f){ return f.statut==='payee' || f.statut==='encaisse'; })
                    .reduce(function(s,f){ return s+(parseFloat(f.ttc)||0); },0);
+
+  /* ── évolution CA mois en cours vs mois précédent ── */
+  var now = new Date();
+  var curM = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  var prevDate = new Date(now.getFullYear(), now.getMonth()-1, 1);
+  var prevM = prevDate.getFullYear()+'-'+String(prevDate.getMonth()+1).padStart(2,'0');
+  function caForMonth(m){
+    return (DB.factures||[]).filter(function(f){
+      return (f.statut==='payee'||f.statut==='encaisse') && (f.date||'').startsWith(m);
+    }).reduce(function(s,f){ return s+(parseFloat(f.ttc)||0); },0);
+  }
+  var caCur  = caForMonth(curM);
+  var caPrev = caForMonth(prevM);
+  var evoEl  = document.getElementById('d-ca-evo');
+  if(evoEl){
+    if(caPrev === 0 && caCur === 0){
+      evoEl.innerHTML = '';
+    } else if(caPrev === 0){
+      evoEl.className = 'stat-evo up';
+      evoEl.innerHTML = '↑ nouveau mois';
+    } else {
+      var pct = Math.round((caCur - caPrev) / caPrev * 100);
+      if(pct >= 0){
+        evoEl.className = 'stat-evo up';
+        evoEl.innerHTML = '↑ +'+pct+'% vs mois préc.';
+      } else {
+        evoEl.className = 'stat-evo down';
+        evoEl.innerHTML = '↓ '+pct+'% vs mois préc.';
+      }
+    }
+  }
   var el;
   if((el=document.getElementById('d-encours')))  el.textContent = enRepair;
   if((el=document.getElementById('d-devisatt'))) el.textContent = devisAtt;
@@ -8447,11 +9167,11 @@ function _refreshCore() {
     } else {
       rtEl.innerHTML = tks.map(function(t){
         return '<tr>'
-          +'<td style="padding:8px 4px;font-size:12px;color:var(--t3)">'+(t.id||'')+'</td>'
-          +'<td style="padding:8px 4px;font-size:13px">'+escHtml(clientName(t.clientId)||'—')+'</td>'
-          +'<td style="padding:8px 4px;font-size:12px;color:var(--t3)">'+escHtml(t.appareil||t.marque||'—')+'</td>'
-          +'<td style="padding:8px 4px;font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(t.probleme||'—')+'</td>'
-          +'<td style="padding:8px 4px">'+badge(t.statut)+'</td>'
+          +'<td style="padding:9px 5px;font-family:var(--mono);font-size:12px;color:var(--t3)">'+(t.id||'')+'</td>'
+          +'<td style="padding:9px 5px;font-family:var(--heading);font-size:15px;font-weight:500">'+escHtml(clientName(t.clientId)||'—')+'</td>'
+          +'<td style="padding:9px 5px;font-size:13px;color:var(--t2)">'+escHtml(t.appareil||t.marque||'—')+'</td>'
+          +'<td style="padding:9px 5px;font-size:13px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(t.probleme||'—')+'</td>'
+          +'<td style="padding:9px 5px">'+badge(t.statut)+'</td>'
           +'</tr>';
       }).join('');
     }
@@ -8582,15 +9302,57 @@ document.addEventListener('click', function(e){
 
 
 // ════════════════════════════════════════════════════════════════════════
-// AGENT VOCAL ELEVENLABS — ZyFix Prise de RDV
+// SUPPRESSION SÉCURISÉE — TOUS LES TICKETS
+// ════════════════════════════════════════════════════════════════════════
+
+function openDeleteAllTickets() {
+  var count = (DB && Array.isArray(DB.tickets)) ? DB.tickets.length : 0;
+  if (count === 0) {
+    alert('Aucun ticket à supprimer.');
+    return;
+  }
+  // Étape 1 : confirmation
+  var ok1 = confirm(
+    '⚠️ SUPPRESSION DE TOUS LES TICKETS\n\n' +
+    count + ' ticket(s) vont être supprimés définitivement.\n\n' +
+    'Cette action est IRRÉVERSIBLE.\n\n' +
+    'Cliquez OK pour continuer.'
+  );
+  if (!ok1) return;
+
+  // Étape 2 : saisie de confirmation
+  var saisie = prompt(
+    'Pour confirmer, tapez exactement le mot :\n\nSUPPRIMER'
+  );
+  if (saisie === null) return; // annulé
+  if (saisie.trim().toUpperCase() !== 'SUPPRIMER') {
+    alert('❌ Mot incorrect. Suppression annulée.');
+    return;
+  }
+
+  // Supprimer
+  DB.tickets = [];
+  dbSave();
+  refreshAll();
+  showToast('🗑 ' + count + ' ticket(s) supprimé(s)');
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// AGENT VOCAL ELEVENLABS — Alex, assistant vocal ZyRAMGamer
+// Agent ID : agent_0001kkehzmnrfcpbne7eyh4cw4md
 // Utilise ElevenLabs Conversational AI SDK
 // Webhook entrant → crée client/ticket/rdv automatiquement
 // ════════════════════════════════════════════════════════════════════════
 
 // ── Config (stockée en localStorage) ────────────────────────────────────
-var ELA_AGENT_ID    = localStorage.getItem('zyfix_ela_agent_id')  || '';
+var ELA_AGENT_ID    = localStorage.getItem('zyfix_ela_agent_id')  || 'agent_0001kkehzmnrfcpbne7eyh4cw4md';
 var ELA_API_KEY     = localStorage.getItem('zyfix_ela_api_key')   || '';
 var ELA_WORKER_URL  = localStorage.getItem('zyfix_ela_worker')    || '';
+// Persister l'Agent ID par défaut si pas encore en localStorage
+if (!localStorage.getItem('zyfix_ela_agent_id')) {
+  localStorage.setItem('zyfix_ela_agent_id', ELA_AGENT_ID);
+  localStorage.setItem('ELA_AGENT_ID', ELA_AGENT_ID);
+}
 
 // ── Proxy endpoint (utilisé par recherche pièces + agent chat fallback) ──────
 function aiaGetApiEndpoint() {
@@ -8799,34 +9561,1010 @@ function elaHandleWebhook(payload) {
 }
 
 // ── SERVICE WORKER WEBHOOK (écoute les POST entrants via GitHub Pages) ────
+
+// ── addLigneFacture — ajoute un forfait dans le textarea f-lignes ─────────
+function addLigneFacture(desc, prix, opts) {
+  var ta = document.getElementById('f-lignes');
+  if (!ta) return;
+  var ligne = desc + ' | ' + (parseFloat(prix) || 0);
+  var current = ta.value.trim();
+  ta.value = current ? (current + '\n' + ligne) : ligne;
+  ta.style.borderColor = 'var(--green)';
+  setTimeout(function(){ ta.style.borderColor = ''; }, 800);
+  fUpdatePreview();
+}
+
+// ── fUpdatePreview — aperçu total HT/TTC en temps réel dans la modale ────
+function fUpdatePreview() {
+  var ta   = document.getElementById('f-lignes');
+  var prev = document.getElementById('f-lignes-preview');
+  if (!ta || !prev) return;
+  var txt = ta.value.trim();
+  if (!txt) { prev.textContent = ''; return; }
+  var lignes = parseLignes(txt);
+  if (!lignes || !lignes.length) { prev.textContent = ''; return; }
+  var isMicro = document.getElementById('f-tva-toggle') && document.getElementById('f-tva-toggle').checked;
+  var tva = isMicro ? 0 : (parseFloat((document.getElementById('f-tva')||{}).value) || 20);
+  var totaux = calcTotaux(lignes, tva);
+  if (isMicro) {
+    prev.textContent = 'Total : ' + fmt(totaux.ht) + ' € HT (sans TVA)';
+  } else {
+    prev.textContent = 'HT : ' + fmt(totaux.ht) + ' € · TTC : ' + fmt(totaux.ttc) + ' €';
+  }
+}
+
+// ── updateFacturePreview — alias pour compatibilité ───────────────────────
+function updateFacturePreview() { fUpdatePreview(); }
+
+// ════════════════════════════════════════════════════════════════════════
+// MODULE e-FACTURE B2B
+// ════════════════════════════════════════════════════════════════════════
+
+// ── Config plateforme persistée ──────────────────────────────────────────
+var EF_CONFIG = JSON.parse(localStorage.getItem('zyfix_ef_config') || '{}');
+// { platform, url, key, emetteurId, modeProd }
+
+// ── Statuts e-Facture ────────────────────────────────────────────────────
+var EF_STATUTS = {
+  brouillon:          { label:'Brouillon',          cls:'ef-s-brouillon', ico:'📝' },
+  prete_a_transmettre:{ label:'Prête',              cls:'ef-s-prete',     ico:'📋' },
+  envoyee:            { label:'Envoyée',            cls:'ef-s-envoyee',   ico:'📤' },
+  deposee_plateforme: { label:'Déposée',            cls:'ef-s-deposee',   ico:'🏦' },
+  recue:              { label:'Reçue',              cls:'ef-s-recue',     ico:'📥' },
+  rejetee:            { label:'Rejetée',            cls:'ef-s-rejetee',   ico:'❌' },
+  acceptee:           { label:'Acceptée',           cls:'ef-s-acceptee',  ico:'✅' },
+  payee:              { label:'Payée',              cls:'ef-s-payee',     ico:'💚' }
+};
+
+// ── Badge statut e-Facture ────────────────────────────────────────────────
+function efStatutBadge(statut) {
+  if (!statut) return '<span class="ef-statut-badge ef-s-brouillon">—</span>';
+  var s = EF_STATUTS[statut] || { label: statut, cls: 'ef-s-brouillon', ico: '?' };
+  return '<span class="ef-statut-badge ' + s.cls + '">' + s.ico + ' ' + s.label + '</span>';
+}
+
+// ── Badge complétude client pro ──────────────────────────────────────────
+function efClientBadge(c) {
+  if (!c || c.type !== 'entreprise') return '';
+  if (!c.soumisEFacture) return '<span class="ef-badge ef-non">Non concerné</span>';
+  if (c.siret && c.adrEf && c.plateformeEf)
+    return '<span class="ef-badge ef-actif">Actif</span>';
+  if (c.siret || c.siren)
+    return '<span class="ef-badge ef-complet">À compléter</span>';
+  return '<span class="ef-badge ef-pret">Prêt</span>';
+}
+
+// ── Détecter le mode facturation d'une facture ───────────────────────────
+function efGetModeFacturation(facture) {
+  if (!facture) return 'classique';
+  var c = getClient(facture.clientId);
+  if (!c || c.type !== 'entreprise') return 'classique';
+  if (!c.soumisEFacture) return 'classique';
+  return 'efacture_b2b';
+}
+
+function efModeBadge(facture) {
+  var mode = efGetModeFacturation(facture);
+  if (mode === 'efacture_b2b')
+    return '<span class="ef-badge ef-actif" style="font-size:9px">e-Facture B2B</span>';
+  return '<span class="ef-badge ef-non" style="font-size:9px">Classique</span>';
+}
+
+// ── Journal par facture ──────────────────────────────────────────────────
+function efAddLog(factureId, action, statutAvant, statutApres, message, idExterne, erreur) {
+  var f = (DB.factures || []).find(function(x){ return x.id === factureId; });
+  if (!f) return;
+  if (!Array.isArray(f.efactureLog)) f.efactureLog = [];
+  f.efactureLog.push({
+    ts:           new Date().toISOString(),
+    action:       action,
+    statutAvant:  statutAvant || null,
+    statutApres:  statutApres || null,
+    message:      message || '',
+    idExterne:    idExterne || null,
+    erreur:       erreur || null
+  });
+  dbSave();
+}
+
+// ── Préparer le payload JSON e-Facture ───────────────────────────────────
+function efBuildPayload(facture) {
+  var c = getClient(facture.clientId) || {};
+  var now = new Date().toISOString();
+  return {
+    version:          '1.0',
+    type:             'FACTURE',
+    numero:           facture.id,
+    dateEmission:     facture.date || now.substring(0,10),
+    emetteur: {
+      nom:            'ZyRAMGamer / ZyFix',
+      siret:          EF_CONFIG.emetteurId || '',
+      adresse:        'Narbonne, Aude (11100)',
+    },
+    destinataire: {
+      raisonSociale:  c.raisonSociale || c.entreprise || c.nom,
+      siren:          c.siren || '',
+      siret:          c.siret || '',
+      tvaIntra:       c.tvaIntra || '',
+      emailFacturation: c.emailFacturation || c.email,
+      adresseFacturation: c.adresseFacturation || c.adresse,
+      plateformeReception: c.plateformeEf || '',
+      adresseElectronique: c.adrEf || ''
+    },
+    lignes: (facture.lignes || []).map(function(l, i) {
+      return {
+        numero:   i + 1,
+        description: l.desc,
+        quantite: l.qte || 1,
+        prixUnitaireHT: parseFloat(l.prix) || 0,
+        tauxTVA:  facture.tva || 0,
+        totalHT:  parseFloat(l.prix) || 0
+      };
+    }),
+    totaux: {
+      totalHT:  facture.ht || 0,
+      totalTVA: (facture.ttc || 0) - (facture.ht || 0),
+      totalTTC: facture.ttc || 0,
+      devise:   'EUR'
+    },
+    plateforme:       EF_CONFIG.platform || '',
+    format:           facture.efactureFormat || 'Factur-X',
+    statut:           facture.efactureStatus || 'brouillon',
+    generatedAt:      now
+  };
+}
+
+// ── Préparer une facture pour transmission ───────────────────────────────
+function efPrepareFacture(factureId) {
+  var f = (DB.factures || []).find(function(x){ return x.id === factureId; });
+  if (!f) { showToast('Facture introuvable'); return; }
+
+  var mode = efGetModeFacturation(f);
+  if (mode !== 'efacture_b2b') {
+    showToast('ℹ️ Cette facture n\'est pas une e-Facture B2B');
+    return;
+  }
+
+  var c = getClient(f.clientId);
+  var manquants = [];
+  if (!c.siret) manquants.push('SIRET');
+  if (!c.adrEf && !c.plateformeEf) manquants.push('plateforme / adresse électronique');
+
+  if (manquants.length) {
+    showToast('⚠️ Données manquantes : ' + manquants.join(', '));
+    return;
+  }
+
+  var ancien = f.efactureStatus || 'brouillon';
+  f.efactureEnabled  = true;
+  f.efactureStatus   = 'prete_a_transmettre';
+  f.efactureFormat   = EF_CONFIG.platform === 'peppol' ? 'PEPPOL-BIS' : 'Factur-X';
+  f.efacturePlatform = c.plateformeEf || EF_CONFIG.platform || '';
+  f.efactureRecipientAddress = c.adrEf || '';
+  f.efacturePayload  = efBuildPayload(f);
+
+  efAddLog(factureId, 'Facture préparée pour transmission', ancien, 'prete_a_transmettre',
+    'Payload généré — en attente d\'envoi plateforme');
+
+  dbSave(); refreshAll();
+  showToast('✅ Facture ' + factureId + ' prête à transmettre');
+}
+
+// ── Simuler l'envoi (Phase 1 — pas de vraie API) ─────────────────────────
+function efSimulerEnvoi(factureId) {
+  var f = (DB.factures || []).find(function(x){ return x.id === factureId; });
+  if (!f) return;
+  if (f.efactureStatus !== 'prete_a_transmettre') {
+    showToast('⚠️ La facture doit d\'abord être préparée');
+    return;
+  }
+
+  var ancien = f.efactureStatus;
+  f.efactureStatus  = 'envoyee';
+  f.efactureSentAt  = new Date().toISOString();
+  efAddLog(factureId, 'Facture envoyée à la plateforme (simulation)', ancien, 'envoyee',
+    'Mode simulation — aucune API réelle contactée');
+
+  // Simuler réception après 1.5s
+  setTimeout(function() {
+    f.efactureStatus      = 'deposee_plateforme';
+    f.efactureDeliveredAt = new Date().toISOString();
+    efAddLog(factureId, 'Plateforme a accusé réception', 'envoyee', 'deposee_plateforme',
+      'Accusé de réception simulé');
+    dbSave(); refreshAll();
+    showToast('📥 Plateforme a accusé réception de ' + factureId);
+  }, 1500);
+
+  dbSave(); refreshAll();
+  showToast('📤 ' + factureId + ' envoyée (simulation)');
+}
+
+// ── Marquer acceptée / rejetée ────────────────────────────────────────────
+function efMarquerAcceptee(factureId) {
+  var f = (DB.factures || []).find(function(x){ return x.id === factureId; });
+  if (!f) return;
+  var ancien = f.efactureStatus;
+  f.efactureStatus   = 'acceptee';
+  f.efactureAcceptedAt = new Date().toISOString();
+  efAddLog(factureId, 'Facture acceptée', ancien, 'acceptee', 'Acceptation enregistrée manuellement');
+  dbSave(); refreshAll();
+  showToast('✅ Facture ' + factureId + ' acceptée');
+}
+
+function efMarquerRejetee(factureId, raison) {
+  var f = (DB.factures || []).find(function(x){ return x.id === factureId; });
+  if (!f) return;
+  var ancien = f.efactureStatus;
+  raison = raison || prompt('Raison du rejet ?') || 'Non précisée';
+  f.efactureStatus   = 'rejetee';
+  f.efactureRejectedAt = new Date().toISOString();
+  f.efactureError    = raison;
+  efAddLog(factureId, 'Facture rejetée', ancien, 'rejetee', raison, null, raison);
+  dbSave(); refreshAll();
+  showToast('❌ Facture ' + factureId + ' rejetée : ' + raison);
+}
+
+// ── Voir le journal d'une facture ────────────────────────────────────────
+function efShowLog(factureId) {
+  var f = (DB.factures || []).find(function(x){ return x.id === factureId; });
+  if (!f) return;
+  var log = f.efactureLog || [];
+  if (!log.length) { showToast('Aucun événement pour cette facture'); return; }
+
+  var html = '<div style="max-height:400px;overflow-y:auto;padding:0">';
+  log.slice().reverse().forEach(function(e) {
+    var dt = new Date(e.ts).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    html += '<div class="ef-log-item">'
+      + '<span class="ef-log-ts">' + dt + '</span>'
+      + '<div class="ef-log-msg' + (e.erreur ? ' ef-log-err' : '') + '">'
+      + '<strong>' + (e.action||'') + '</strong>'
+      + (e.message ? '<br><span style="color:var(--t3)">' + e.message + '</span>' : '')
+      + (e.statutApres ? '<br><span style="font-size:10px">→ ' + (e.statutApres||'') + '</span>' : '')
+      + '</div></div>';
+  });
+  html += '</div>';
+
+  // Ouvrir dans une alerte simple (ou afficher inline)
+  var win = window.open('', '_blank', 'width=600,height=500');
+  if (win) {
+    win.document.write('<html><head><title>Journal ' + factureId + '</title>'
+      + '<style>body{font-family:system-ui;background:#f0f2f7;padding:20px;font-size:13px}'
+      + '.ef-log-item{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid #dde}'
+      + '.ef-log-ts{font-family:monospace;color:#888;min-width:120px;font-size:11px}'
+      + '.ef-log-msg{flex:1;color:#333}'
+      + '.ef-log-err{color:#c94040}'
+      + '</style></head><body>'
+      + '<h2 style="margin-bottom:16px">Journal — ' + factureId + '</h2>'
+      + html + '</body></html>');
+  }
+}
+
+// ── Exporter les payloads JSON ────────────────────────────────────────────
+function efExportPayloads() {
+  var b2b = (DB.factures || []).filter(function(f){ return efGetModeFacturation(f) === 'efacture_b2b'; });
+  if (!b2b.length) { showToast('Aucune facture e-Facture B2B'); return; }
+  var payloads = b2b.map(function(f){ return f.efacturePayload || efBuildPayload(f); });
+  var blob = new Blob([JSON.stringify(payloads, null, 2)], {type:'application/json'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'zyfix_efactures_' + new Date().toISOString().substring(0,10) + '.json';
+  a.click();
+  showToast('⬇ ' + payloads.length + ' payload(s) exporté(s)');
+}
+
+// ── Refresh KPI & tableaux ────────────────────────────────────────────────
+function efRefreshKpi() {
+  var clientsPro   = (DB.clients||[]).filter(function(c){ return c.type==='entreprise'; });
+  var clientsPrets = clientsPro.filter(function(c){ return c.soumisEFacture && c.siret && c.adrEf; });
+  var facB2B       = (DB.factures||[]).filter(function(f){ return efGetModeFacturation(f)==='efacture_b2b'; });
+  var facPrete     = facB2B.filter(function(f){ return f.efactureStatus==='prete_a_transmettre'; });
+
+  var s = function(id,v){ var el=document.getElementById(id); if(el) el.textContent=v; };
+  s('ef-kpi-clients-pro',  clientsPro.length);
+  s('ef-kpi-clients-prets',clientsPrets.length);
+  s('ef-kpi-factures-b2b', facB2B.length);
+  s('ef-kpi-factures-prete',facPrete.length);
+
+  // Hint si aucune facture B2B
+  var hint = document.getElementById('ef-empty-hint');
+  if (hint) hint.style.display = facB2B.length ? 'none' : 'block';
+
+  // Statut étape 1
+  var step1 = document.getElementById('ef-step1-status');
+  if (step1) {
+    var prets = clientsPrets.length;
+    var total = clientsPro.length;
+    if (total === 0) {
+      step1.style.color = 'var(--t3)';
+      step1.textContent = 'Aucun client entreprise pour l\'instant';
+    } else if (prets === 0) {
+      step1.style.color = 'var(--amber)';
+      step1.textContent = '⚠️ ' + total + ' client(s) pro — aucun configuré pour l\'e-Facture';
+    } else {
+      step1.style.color = 'var(--green)';
+      step1.textContent = '✅ ' + prets + '/' + total + ' client(s) pro prêt(s)';
+    }
+  }
+  var tb = document.getElementById('ef-tbl-factures');
+  if (tb) {
+    if (!facB2B.length) {
+      tb.innerHTML = '<tr><td colspan="8"><div class="empty"><div class="ei">📄</div><p>Aucune facture e-Facture B2B</p></div></td></tr>';
+    } else {
+      tb.innerHTML = facB2B.map(function(f) {
+        var c = getClient(f.clientId) || {};
+        var nom = c.raisonSociale || c.entreprise || c.nom || '—';
+        var statut = f.efactureStatus || 'brouillon';
+        var actions = '';
+        if (statut === 'brouillon' || !f.efactureStatus)
+          actions += '<button class="btn btn-ghost btn-sm" onclick="efPrepareFacture(\'' + f.id + '\')">📋 Préparer</button> ';
+        if (statut === 'prete_a_transmettre')
+          actions += '<button class="btn btn-primary btn-sm" onclick="efSimulerEnvoi(\'' + f.id + '\')">📤 Envoyer</button> ';
+        if (statut === 'deposee_plateforme' || statut === 'envoyee' || statut === 'recue') {
+          actions += '<button class="btn btn-success btn-sm" onclick="efMarquerAcceptee(\'' + f.id + '\')">✅</button> ';
+          actions += '<button class="btn btn-danger btn-sm" onclick="efMarquerRejetee(\'' + f.id + '\')">❌</button> ';
+        }
+        actions += '<button class="btn btn-ghost btn-sm" onclick="efShowLog(\'' + f.id + '\')">📋</button>';
+        return '<tr>'
+          + '<td><span class="tk-tag">' + f.id + '</span></td>'
+          + '<td style="font-family:var(--heading);font-size:14px">' + escHtml(nom) + '</td>'
+          + '<td class="td-mono" style="color:var(--green);font-weight:700">' + fmt(f.ttc) + ' €</td>'
+          + '<td>' + efModeBadge(f) + '</td>'
+          + '<td>' + efStatutBadge(statut) + '</td>'
+          + '<td style="font-size:11px;color:var(--t3)">' + escHtml(f.efacturePlatform || '—') + '</td>'
+          + '<td class="td-sm">' + fmtDate(f.date) + '</td>'
+          + '<td style="display:flex;gap:4px;flex-wrap:wrap">' + actions + '</td>'
+          + '</tr>';
+      }).join('');
+    }
+  }
+
+  // Tableau clients pro
+  var tc = document.getElementById('ef-tbl-clients');
+  if (tc) {
+    if (!clientsPro.length) {
+      tc.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="ei">👤</div><p>Aucun client professionnel</p></div></td></tr>';
+    } else {
+      tc.innerHTML = clientsPro.map(function(c) {
+        var manque = [];
+        if (c.soumisEFacture) {
+          if (!c.siret) manque.push('SIRET');
+          if (!c.tvaIntra) manque.push('TVA intra');
+          if (!c.adrEf && !c.plateformeEf) manque.push('Plateforme');
+        }
+        return '<tr>'
+          + '<td><strong>' + escHtml(c.raisonSociale || c.entreprise || c.nom) + '</strong>'
+          + (c.nom ? '<br><span class="td-sm">' + escHtml(c.nom) + '</span>' : '') + '</td>'
+          + '<td class="td-mono">' + (c.siret || '<span style="color:var(--amber)">—</span>') + '</td>'
+          + '<td class="td-mono">' + (c.tvaIntra || '<span style="color:var(--t3)">—</span>') + '</td>'
+          + '<td>' + (c.plateformeEf || '<span style="color:var(--t3)">—</span>') + '</td>'
+          + '<td>' + efClientBadge(c)
+          + (manque.length ? '<br><span style="font-size:10px;color:var(--amber)">⚠️ ' + manque.join(', ') + '</span>' : '')
+          + '</td>'
+          + '<td><button class="btn btn-ghost btn-sm" onclick="editClient(\'' + c.id + '\')">✏️ Compléter</button></td>'
+          + '</tr>';
+      }).join('');
+    }
+  }
+}
+
+// ── Modale client — toggle bloc pro + badge ──────────────────────────────
+function efToggleClientPro() {
+  var type = (document.getElementById('c-type') || {}).value;
+  var bloc = document.getElementById('ef-client-block');
+  if (bloc) bloc.style.display = (type === 'entreprise') ? 'block' : 'none';
+}
+
+function efUpdateClientBadge() {
+  var badge = document.getElementById('ef-client-badge');
+  if (!badge) return;
+  var siren  = (document.getElementById('c-siren') || {}).value || '';
+  var siret  = (document.getElementById('c-siret') || {}).value || '';
+  var adrEf  = (document.getElementById('c-adr-ef') || {}).value || '';
+  var soumis = (document.getElementById('c-soumis-efacture') || {}).checked;
+  if (!soumis) {
+    badge.className = 'ef-badge ef-non'; badge.textContent = 'Non concerné';
+  } else if (siret && adrEf) {
+    badge.className = 'ef-badge ef-actif'; badge.textContent = 'Actif';
+  } else if (siret || siren) {
+    badge.className = 'ef-badge ef-complet'; badge.textContent = 'À compléter';
+  } else {
+    badge.className = 'ef-badge ef-pret'; badge.textContent = 'Prêt';
+  }
+}
+
+// ── Paramètres plateforme ────────────────────────────────────────────────
+var _efPlatformLog = JSON.parse(localStorage.getItem('zyfix_ef_platform_log') || '[]');
+
+function efSavePlatformConfig() {
+  var g = function(id){ return (document.getElementById(id)||{}).value||''; };
+  EF_CONFIG = {
+    platform:   g('ef-platform-name'),
+    url:        g('ef-platform-url'),
+    key:        g('ef-platform-key'),
+    emetteurId: g('ef-emetteur-id'),
+    modeProd:   (document.getElementById('ef-mode-prod')||{}).checked || false
+  };
+  localStorage.setItem('zyfix_ef_config', JSON.stringify(EF_CONFIG));
+  efUpdateParamsStatus();
+  showToast('✅ Config e-Facture sauvegardée');
+}
+
+function efUpdateParamsStatus() {
+  var hasConfig = EF_CONFIG.platform && EF_CONFIG.emetteurId;
+  var setDot = function(id, state) {
+    var el = document.getElementById(id);
+    if (el) el.className = 'av-status-dot' + (state ? ' ' + state : '');
+  };
+  var setVal = function(id, v) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = v;
+  };
+  setDot('ef-dot-config', hasConfig ? 'ok' : 'err');
+  setVal('ef-val-config', hasConfig ? (EF_CONFIG.platform + ' — ' + EF_CONFIG.emetteurId) : 'Non configurée');
+  setDot('ef-dot-mode', 'ok');
+  setVal('ef-val-mode', EF_CONFIG.modeProd ? '🟢 Production' : '🧪 Test');
+
+  // Pré-remplir les champs
+  var s = function(id, v){ var el=document.getElementById(id); if(el) el.value=v||''; };
+  s('ef-platform-name', EF_CONFIG.platform);
+  s('ef-platform-url',  EF_CONFIG.url);
+  s('ef-platform-key',  EF_CONFIG.key);
+  s('ef-emetteur-id',   EF_CONFIG.emetteurId);
+  var prod = document.getElementById('ef-mode-prod');
+  if (prod) prod.checked = !!EF_CONFIG.modeProd;
+}
+
+function efUpdatePlatformHelp() {
+  var v = (document.getElementById('ef-platform-name')||{}).value || '';
+  var helps = {
+    chorus_pro: 'Chorus Pro : utilisé pour les marchés publics. Connectez-vous sur chorus-pro.gouv.fr pour récupérer vos identifiants API.',
+    factur_x:   'Factur-X : format PDF/A-3 avec données XML intégrées. Compatible avec la majorité des logiciels comptables.',
+    peppol:     'PEPPOL : réseau international. Votre PEPPOL ID est basé sur votre SIRET. Aucun abonnement requis.',
+    cii:        'CII (Cross Industry Invoice) : format XML UBL. Nécessite un opérateur de dématérialisation (OD) ou une PDP agréée.',
+    autre:      'Autre plateforme : renseignez l\'URL API et les identifiants fournis par votre opérateur.'
+  };
+  var el = document.getElementById('ef-platform-help');
+  if (el) {
+    if (helps[v]) { el.textContent = helps[v]; el.style.display = 'block'; }
+    else { el.style.display = 'none'; }
+  }
+}
+
+function efAddPlatformLog(msg, ok) {
+  _efPlatformLog.unshift({ ts: new Date().toISOString(), msg: msg, ok: ok });
+  if (_efPlatformLog.length > 50) _efPlatformLog = _efPlatformLog.slice(0, 50);
+  localStorage.setItem('zyfix_ef_platform_log', JSON.stringify(_efPlatformLog));
+  efRenderPlatformLog();
+  localStorage.setItem('zyfix_ef_last_exchange', new Date().toISOString());
+  var el = document.getElementById('ef-val-last');
+  if (el) el.textContent = new Date().toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+
+function efRenderPlatformLog() {
+  var el = document.getElementById('ef-platform-log');
+  if (!el) return;
+  if (!_efPlatformLog.length) {
+    el.innerHTML = '<div style="font-size:12px;color:var(--t3);text-align:center;padding:20px">Aucun échange enregistré</div>';
+    return;
+  }
+  el.innerHTML = _efPlatformLog.map(function(e) {
+    var dt = new Date(e.ts).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    return '<div class="ef-log-item">'
+      + '<span class="ef-log-ts">' + dt + '</span>'
+      + '<span class="ef-log-msg' + (e.ok ? ' ef-log-ok' : ' ef-log-err') + '">' + escHtml(e.msg) + '</span>'
+      + '</div>';
+  }).join('');
+}
+
+function efClearPlatformLog() {
+  _efPlatformLog = [];
+  localStorage.removeItem('zyfix_ef_platform_log');
+  efRenderPlatformLog();
+}
+
+function efTestConnection() {
+  if (!EF_CONFIG.url) {
+    showToast('⚠️ URL plateforme non configurée');
+    var el = document.getElementById('ef-test-result');
+    if (el) { el.style.color = 'var(--red)'; el.textContent = '❌ URL manquante'; }
+    return;
+  }
+  var el = document.getElementById('ef-test-result');
+  if (el) { el.style.color = 'var(--amber)'; el.textContent = '⏳ Test en cours…'; }
+  var dot = document.getElementById('ef-dot-conn');
+  if (dot) dot.className = 'av-status-dot warn';
+
+  fetch(EF_CONFIG.url + '/ping', { method: 'GET',
+    headers: EF_CONFIG.key ? {'Authorization': 'Bearer ' + EF_CONFIG.key} : {} })
+  .then(function(r) {
+    var ok = r.ok || r.status === 404; // 404 = serveur répond
+    if (dot) dot.className = 'av-status-dot ' + (ok ? 'ok' : 'err');
+    var val = document.getElementById('ef-val-conn');
+    if (val) val.textContent = ok ? 'Accessible (HTTP ' + r.status + ')' : 'Erreur HTTP ' + r.status;
+    if (el) { el.style.color = ok ? 'var(--green)' : 'var(--red)'; el.textContent = ok ? '✅ Plateforme accessible' : '❌ HTTP ' + r.status; }
+    efAddPlatformLog('Test connexion : HTTP ' + r.status, ok);
+  })
+  .catch(function(e) {
+    if (dot) dot.className = 'av-status-dot err';
+    if (el) { el.style.color = 'var(--red)'; el.textContent = '❌ Inaccessible : ' + e.message; }
+    efAddPlatformLog('Test connexion échoué : ' + e.message, false);
+  });
+}
+
+function efSendTestInvoice() {
+  if (!EF_CONFIG.url) { showToast('⚠️ URL plateforme non configurée'); return; }
+  var payload = { test: true, version: '1.0', type: 'TEST', numero: 'TEST-001', emetteur: { siret: EF_CONFIG.emetteurId } };
+  var el = document.getElementById('ef-test-result');
+  if (el) { el.style.color = 'var(--amber)'; el.textContent = '⏳ Envoi facture test…'; }
+  fetch(EF_CONFIG.url + '/factures', {
+    method: 'POST',
+    headers: { 'Content-Type':'application/json', ...(EF_CONFIG.key ? {'Authorization':'Bearer '+EF_CONFIG.key} : {}) },
+    body: JSON.stringify(payload)
+  })
+  .then(function(r) {
+    if (el) { el.style.color = r.ok ? 'var(--green)' : 'var(--amber)'; el.textContent = r.ok ? '✅ Facture test acceptée (HTTP '+r.status+')' : '⚠️ HTTP '+r.status; }
+    efAddPlatformLog('Facture test envoyée : HTTP ' + r.status, r.ok);
+  })
+  .catch(function(e) {
+    if (el) { el.style.color = 'var(--red)'; el.textContent = '❌ Erreur : ' + e.message; }
+    efAddPlatformLog('Envoi test échoué : ' + e.message, false);
+  });
+}
+
+// ── Enrichir saveClient avec les champs pro e-Facture ────────────────────
+var _saveClientOrig = null; // sera wrappé après init
+
+// ── Enrichir renderFactures avec colonnes Mode + e-Facture ───────────────
+// Patchée dans renderFactures pour ajouter les colonnes
+
+// ── Init au chargement ───────────────────────────────────────────────────
+function efInit() {
+  efUpdateParamsStatus();
+  efRenderPlatformLog();
+  // Restaurer dernier échange
+  var last = localStorage.getItem('zyfix_ef_last_exchange');
+  var el = document.getElementById('ef-val-last');
+  if (el && last) el.textContent = new Date(last).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// FIN MODULE e-FACTURE
+// ════════════════════════════════════════════════════════════════════════
+
+
+
+// ── Mode de routage des appels ───────────────────────────────────────────
+// 'agent' = Alex répond, 'tech' = téléphone technicien sonne directement
+var AV_MODE = localStorage.getItem('zyfix_av_mode') || 'agent';
+
+function avApplyModeUI(mode) {
+  var banner = document.getElementById('av-routing-banner');
+  var icon   = document.getElementById('av-routing-icon');
+  var title  = document.getElementById('av-routing-title');
+  var sub    = document.getElementById('av-routing-sub');
+  var toggle = document.getElementById('av-toggle-btn');
+  var lblL   = document.getElementById('av-routing-lbl-left');
+  var lblR   = document.getElementById('av-routing-lbl-right');
+  if (!banner) return;
+
+  if (mode === 'tech') {
+    banner.className = 'av-routing-banner av-routing-tech';
+    if (icon)   icon.textContent  = '📱';
+    if (title)  title.textContent = 'Mode Technicien direct actif';
+    if (sub)    sub.textContent   = 'L\'agent IA est en pause — les appels sonnent directement sur votre téléphone';
+    if (toggle) toggle.className  = 'av-toggle is-tech';
+    if (lblL)   lblL.className    = 'av-routing-lbl';
+    if (lblR)   lblR.className    = 'av-routing-lbl active';
+  } else {
+    banner.className = 'av-routing-banner av-routing-agent';
+    if (icon)   icon.textContent  = '🎙️';
+    if (title)  title.textContent = 'Mode Agent Vocal actif';
+    if (sub)    sub.textContent   = 'Les appels entrants sont pris en charge par Alex (ElevenLabs)';
+    if (toggle) toggle.className  = 'av-toggle';
+    if (lblL)   lblL.className    = 'av-routing-lbl active';
+    if (lblR)   lblR.className    = 'av-routing-lbl';
+  }
+  // Mise à jour indicateur sidebar
+  var sbDot   = document.getElementById('sb-routing-dot');
+  var sbLabel = document.getElementById('sb-routing-label');
+  var sbBox   = document.getElementById('sb-routing-indicator');
+  if (mode === 'tech') {
+    if (sbDot)   sbDot.style.background = 'var(--green)';
+    if (sbLabel) sbLabel.textContent = 'Technicien direct';
+    if (sbLabel) sbLabel.style.color = 'var(--green)';
+    if (sbBox)   sbBox.style.borderColor = 'rgba(29,153,85,.3)';
+  } else {
+    if (sbDot)   sbDot.style.background = 'var(--cyan)';
+    if (sbLabel) sbLabel.textContent = 'Agent Vocal';
+    if (sbLabel) sbLabel.style.color = 'var(--t2)';
+    if (sbBox)   sbBox.style.borderColor = 'var(--border)';
+  }
+}
+
+function avToggleMode() {
+  AV_MODE = (AV_MODE === 'agent') ? 'tech' : 'agent';
+  localStorage.setItem('zyfix_av_mode', AV_MODE);
+  avApplyModeUI(AV_MODE);
+  avSyncModeToWorker(AV_MODE);
+}
+
+function avSyncModeToWorker(mode) {
+  var worker = ELA_WORKER_URL || localStorage.getItem('zyfix_ela_worker') || '';
+  if (!worker) {
+    avSetRoutingDot('');
+    showToast(mode === 'tech' ? '📱 Mode Technicien actif (local)' : '🎙️ Mode Agent Vocal actif (local)');
+    return;
+  }
+
+  avSetRoutingDot('syncing');
+
+  fetch(worker + '/mode', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      mode: mode,
+      transfer_number: ELA_TRANSFER_NUM || localStorage.getItem('zyfix_ela_transfer') || ''
+    })
+  })
+  .then(function(r) {
+    if (r.ok) {
+      avSetRoutingDot('synced');
+      showToast(mode === 'tech'
+        ? '📱 Mode Technicien activé — les appels sonnent sur votre téléphone'
+        : '🎙️ Agent Vocal activé — Alex reprend les appels'
+      );
+    } else if (r.status === 404) {
+      // Endpoint /mode pas encore dans le worker — comportement normal, pas une erreur
+      avSetRoutingDot('');
+      showToast(mode === 'tech' ? '📱 Mode Technicien actif' : '🎙️ Mode Agent Vocal actif');
+    } else {
+      avSetRoutingDot('error');
+      showToast('⚠️ Erreur ' + r.status + ' — mode changé localement');
+    }
+  })
+  .catch(function() {
+    avSetRoutingDot('error');
+    showToast('⚠️ Worker inaccessible — mode sauvegardé localement');
+  });
+}
+
+function avSetRoutingDot(state) {
+  var dot = document.getElementById('av-routing-status');
+  if (!dot) return;
+  dot.className = 'av-routing-status-dot' + (state ? ' ' + state : '');
+  var titles = { synced:'Synchronisé avec le worker', syncing:'Synchronisation...', error:'Erreur — non synchronisé' };
+  dot.title = titles[state] || 'Statut inconnu';
+}
+
+
+var _avLog = JSON.parse(localStorage.getItem('zyfix_av_log') || '[]');
+
+function avLogCall(entry) {
+  // entry : { ts, tool, client, resume, result, linkedRdv, linkedTicket, linkedAppel, errors, eventId }
+  entry.ts = entry.ts || new Date().toISOString();
+  // Déduplication : ne pas logger deux fois le même event
+  if (entry.eventId && _avLog.some(function(e){ return e.eventId === entry.eventId; })) return;
+  _avLog.unshift(entry);
+  if (_avLog.length > 500) _avLog = _avLog.slice(0, 500);
+  localStorage.setItem('zyfix_av_log', JSON.stringify(_avLog));
+  // Refresh uniquement si la page agent est active (pas en boucle)
+  if (document.getElementById('page-agent-vocal') &&
+      document.getElementById('page-agent-vocal').classList.contains('active')) {
+    avRefreshPage();
+  }
+}
+
+function avClearLog() {
+  if (!confirm('Vider tout le log des appels IA ?\n\nAttention : les appels déjà importés dans ZyFix (tickets, RDV, appels) ne seront pas supprimés.')) return;
+  _avLog = [];
+  localStorage.removeItem('zyfix_av_log');
+  // NE PAS vider zyfix_agent_imported_ids — sinon re-import de tout au prochain sync
+  avRefreshPage();
+  showToast('🗑 Log visuel vidé (imports ZyFix conservés)');
+}
+
+function avExportLog() {
+  var lines = ['Date;Action;Client;Résumé;Résultat'];
+  _avLog.forEach(function(e) {
+    lines.push([
+      (e.ts||'').replace('T',' ').substring(0,19),
+      e.tool||'',
+      e.client||'',
+      (e.resume||'').replace(/;/g,','),
+      e.result||''
+    ].join(';'));
+  });
+  var blob = new Blob([lines.join('\n')], {type:'text/csv'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'zyfix_av_log_' + new Date().toISOString().substring(0,10) + '.csv';
+  a.click();
+}
+
+// ── Initialiser les champs config depuis localStorage ───────────────────
+function avInitConfigFields() {
+  var f = function(id, val) { var el = document.getElementById(id); if(el) el.value = val||''; };
+  f('avc-agent-id',    ELA_AGENT_ID);
+  f('avc-worker-url',  ELA_WORKER_URL);
+  f('avc-transfer-num',ELA_TRANSFER_NUM);
+  f('avc-webhook-url', ELA_WORKER_URL ? ELA_WORKER_URL + '/webhook' : '— Worker non configuré —');
+}
+
+function avSaveConfig() {
+  var g = function(id){ return (document.getElementById(id)||{}).value||''; };
+  ELA_AGENT_ID     = g('avc-agent-id').trim();
+  ELA_WORKER_URL   = g('avc-worker-url').trim().replace(/\/+$/,'');
+  ELA_TRANSFER_NUM = g('avc-transfer-num').trim();
+  if (!ELA_AGENT_ID) { showToast('⚠️ Agent ID requis'); return; }
+  localStorage.setItem('zyfix_ela_agent_id',  ELA_AGENT_ID);
+  localStorage.setItem('ELA_AGENT_ID',        ELA_AGENT_ID);
+  if (ELA_WORKER_URL) {
+    localStorage.setItem('zyfix_ela_worker',  ELA_WORKER_URL);
+    localStorage.setItem('ELA_WORKER_URL',    ELA_WORKER_URL);
+  }
+  localStorage.setItem('zyfix_ela_transfer', ELA_TRANSFER_NUM);
+  // sync aussi dans l'autre modale config
+  elaSaveConfig && typeof elaSaveConfig === 'function' ? null : null;
+  var el = document.getElementById('avc-webhook-url');
+  if (el) el.value = ELA_WORKER_URL ? ELA_WORKER_URL + '/webhook' : '— Worker non configuré —';
+  showToast('✅ Config sauvegardée');
+  avCheckStatus();
+}
+
+function avCopyWebhook() {
+  var el = document.getElementById('avc-webhook-url');
+  if (!el || !el.value || el.value.startsWith('—')) { showToast('⚠️ Worker non configuré'); return; }
+  navigator.clipboard.writeText(el.value).then(function(){ showToast('⎘ URL copiée !'); });
+}
+
+// ── Vérification statut système ──────────────────────────────────────────
+function avSetDot(id, state, text) {
+  var dot = document.getElementById(id);
+  var val = document.getElementById(id.replace('av-dot-','av-val-'));
+  if (dot) { dot.className = 'av-status-dot ' + (state==='ok'?'ok':state==='warn'?'warn':'err'); }
+  if (val && text) val.textContent = text;
+}
+
+function avCheckStatus() {
+  // Agent ID
+  if (ELA_AGENT_ID) {
+    avSetDot('av-dot-agent', 'ok', ELA_AGENT_ID.substring(0,16)+'…');
+  } else {
+    avSetDot('av-dot-agent', 'err', 'Non configuré');
+  }
+
+  // Worker + webhook + poll
+  if (!ELA_WORKER_URL) {
+    avSetDot('av-dot-worker', 'err', 'Non configuré');
+    avSetDot('av-dot-webhook', 'err', 'Worker requis');
+    avSetDot('av-dot-poll',    'err', 'Worker requis');
+    var st = document.getElementById('avc-status');
+    if (st) { st.style.color = 'var(--red)'; st.textContent = '⚠️ Worker URL manquant'; }
+    return;
+  }
+
+  avSetDot('av-dot-worker', 'warn', 'Vérification…');
+  avSetDot('av-dot-webhook', 'warn', 'Test en cours…');
+  avSetDot('av-dot-poll',    'warn', 'Test en cours…');
+
+  // Test /poll
+  fetch(ELA_WORKER_URL + '/poll', {signal: AbortSignal.timeout ? AbortSignal.timeout(5000) : undefined})
+    .then(function(r) {
+      if (r.ok) {
+        avSetDot('av-dot-worker', 'ok', ELA_WORKER_URL.replace('https://','').substring(0,30)+'…');
+        avSetDot('av-dot-poll',   'ok', 'HTTP ' + r.status + ' ✓');
+        avSetDot('av-dot-webhook','ok', ELA_WORKER_URL + '/webhook');
+        var st = document.getElementById('avc-status');
+        if (st) { st.style.color='var(--green)'; st.textContent='✅ Worker opérationnel'; }
+      } else {
+        avSetDot('av-dot-worker', 'warn', 'HTTP ' + r.status);
+        avSetDot('av-dot-poll',   'warn', 'HTTP ' + r.status);
+      }
+    })
+    .catch(function(e) {
+      avSetDot('av-dot-worker', 'err', 'Inaccessible');
+      avSetDot('av-dot-poll',   'err', e.message||'Erreur réseau');
+      avSetDot('av-dot-webhook','err', 'Worker KO');
+      var st = document.getElementById('avc-status');
+      if (st) { st.style.color='var(--red)'; st.textContent='❌ Worker inaccessible — vérif URL'; }
+    });
+}
+
+function avTestWorker() {
+  if (!ELA_WORKER_URL) { showToast('⚠️ Worker URL non configuré'); return; }
+  showToast('⚡ Test en cours…');
+  avCheckStatus();
+}
+
+// ── Sync manuelle ────────────────────────────────────────────────────────
+function avSyncNow() {
+  var lbl = document.getElementById('agent-sync-label');
+  if (lbl) lbl.textContent = '⏳ Sync…';
+  syncAgentVocalNow();
+  var el = document.getElementById('av-val-sync');
+  if (el) {
+    var now = new Date();
+    el.textContent = now.toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    var dot = document.getElementById('av-dot-sync');
+    if (dot) dot.className = 'av-status-dot ok';
+  }
+  localStorage.setItem('zyfix_av_last_sync', new Date().toISOString());
+  if (lbl) setTimeout(function(){ lbl.textContent = 'Sync appels Agent Vocal'; }, 2000);
+}
+
+// ── Calcul des KPIs et causes d'échec depuis le log ─────────────────────
+function avComputeStats() {
+  var stats = { appels:0, rdv:0, rappels:0, tickets:0, transferts:0, erreurs:0 };
+  var fails = { noTel:0, noDate:0, noAddr:0, unknownTool:0 };
+  _avLog.forEach(function(e) {
+    stats.appels++;
+    if (e.tool === 'creer_rdv')       stats.rdv++;
+    else if (e.tool === 'demande_rappel') stats.rappels++;
+    else if (e.tool === 'create_ticket')  stats.tickets++;
+    else if (e.tool === 'transfert_humain') stats.transferts++;
+    else if (!e.tool || e.result === 'erreur') stats.erreurs++;
+    if (e.errors) {
+      if (e.errors.indexOf('tel') !== -1)  fails.noTel++;
+      if (e.errors.indexOf('date') !== -1) fails.noDate++;
+      if (e.errors.indexOf('addr') !== -1) fails.noAddr++;
+      if (e.errors.indexOf('tool') !== -1) fails.unknownTool++;
+    }
+  });
+  return { stats: stats, fails: fails };
+}
+
+// ── Rendu complet de la page ─────────────────────────────────────────────
+function avRefreshPage() {
+  if (document.getElementById('page-agent-vocal') === null) return;
+
+  // Init champs config
+  avInitConfigFields();
+
+  // Dernière sync + dernier appel depuis localStorage
+  var lastSync = localStorage.getItem('zyfix_av_last_sync');
+  var syncEl = document.getElementById('av-val-sync');
+  if (syncEl && lastSync) {
+    var d = new Date(lastSync);
+    syncEl.textContent = d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+    var dot = document.getElementById('av-dot-sync');
+    if (dot) dot.className = 'av-status-dot ok';
+  }
+
+  var lastCallEl = document.getElementById('av-val-lastcall');
+  if (lastCallEl && _avLog.length > 0) {
+    var last = _avLog[0];
+    lastCallEl.textContent = last.client || last.tool || '—';
+    var lcdot = document.getElementById('av-dot-lastcall');
+    if (lcdot) lcdot.className = 'av-status-dot ok';
+  }
+
+  // KPIs
+  var r = avComputeStats();
+  var s = r.stats, f = r.fails;
+  var setEl = function(id, v){ var el=document.getElementById(id); if(el) el.textContent=v; };
+  setEl('av-kpi-appels',    s.appels);
+  setEl('av-kpi-rdv',       s.rdv);
+  setEl('av-kpi-rappels',   s.rappels);
+  setEl('av-kpi-tickets',   s.tickets);
+  setEl('av-kpi-transferts',s.transferts);
+  setEl('av-kpi-erreurs',   s.erreurs);
+  setEl('avf-no-tel-n',     f.noTel);
+  setEl('avf-no-date-n',    f.noDate);
+  setEl('avf-no-addr-n',    f.noAddr);
+  setEl('avf-unknown-tool-n',f.unknownTool);
+
+  var ftotal = f.noTel + f.noDate + f.noAddr + f.unknownTool;
+  setEl('av-fail-total', ftotal ? ftotal + ' échec(s) détecté(s)' : '');
+
+  // Historique
+  var tbody = document.getElementById('av-history-tbody');
+  if (!tbody) return;
+  if (!_avLog.length) {
+    tbody.innerHTML = '<tr><td colspan="6"><div class="empty"><div class="ei">🎙️</div><p>Aucun appel enregistré</p></div></td></tr>';
+    return;
+  }
+
+  var toolBadge = function(tool) {
+    var map = {
+      creer_rdv:       ['av-tool-rdv','RDV'],
+      demande_rappel:  ['av-tool-rappel','Rappel'],
+      create_ticket:   ['av-tool-ticket','Ticket'],
+      transfert_humain:['av-tool-transfert','Transfert'],
+    };
+    var m = map[tool];
+    if (m) return '<span class="av-tool-badge '+m[0]+'">'+m[1]+'</span>';
+    return '<span class="av-tool-badge av-tool-err">'+(tool||'Erreur')+'</span>';
+  };
+
+  var resultBadge = function(r) {
+    if (r === 'ok' || r === 'succès') return '<span class="badge b-termine">✓ OK</span>';
+    if (r === 'erreur') return '<span class="badge b-refuse">✗ Erreur</span>';
+    return '<span class="badge" style="background:var(--s3);color:var(--t3)">'+escHtml(r||'—')+'</span>';
+  };
+
+  var links = function(e) {
+    var out = '';
+    if (e.linkedRdv)    out += '<button class="btn btn-ghost btn-sm" style="padding:3px 8px;font-size:10px" onclick="goto(\'agenda\')">📅 RDV</button> ';
+    if (e.linkedTicket) out += '<button class="btn btn-ghost btn-sm" style="padding:3px 8px;font-size:10px" onclick="goto(\'tickets\')">🔧 Ticket</button> ';
+    if (e.linkedAppel)  out += '<button class="btn btn-ghost btn-sm" style="padding:3px 8px;font-size:10px" onclick="goto(\'appels\')">📞 Appel</button> ';
+    return out || '<span style="color:var(--t3);font-size:11px">—</span>';
+  };
+
+  tbody.innerHTML = _avLog.map(function(e) {
+    var dt = e.ts ? new Date(e.ts).toLocaleString('fr-FR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : '—';
+    return '<tr>'
+      +'<td class="td-mono" style="font-size:11px;white-space:nowrap">'+dt+'</td>'
+      +'<td>'+toolBadge(e.tool)+'</td>'
+      +'<td style="font-family:var(--heading);font-size:14px">'+escHtml(e.client||'—')+'</td>'
+      +'<td style="font-size:12px;color:var(--t2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+escHtml(e.resume||'—')+'</td>'
+      +'<td>'+links(e)+'</td>'
+      +'<td>'+resultBadge(e.result)+'</td>'
+      +'</tr>';
+  }).join('');
+}
+
+// ── Hook : enregistrer chaque appel IA dans le log ───────────────────────
+// On wrappe elaHandleWebhook pour logger automatiquement
+var _elaHandleWebhook_orig = null; // sera set après la définition de elaHandleWebhook
+
+// ── Appelé quand on arrive sur la page ──────────────────────────────────
+function avOnPageEnter() {
+  avApplyModeUI(AV_MODE);          // afficher le bon état du toggle
+  avInitConfigFields();
+  avCheckStatus();
+  avRefreshPage();
+}
+
+// ════════════════════════════════════════════════════════════════════════
+// FIN TOUR DE CONTRÔLE
+// ════════════════════════════════════════════════════════════════════════
+
 function elaRegisterWebhookListener() {
   // Polling du Worker Cloudflare KV toutes les 3 secondes
-  // Le Worker reçoit les POST d'ElevenLabs (/webhook) et les stocke en KV
-  // ZyFix poll (/poll) pour récupérer les events en attente
+  // UNIQUEMENT quand le modal agent vocal est ouvert (session en cours)
+  // syncAgentVocal() gère l'import batch — ce polling ne traite QUE les events live
   var _elaLastPoll = 0;
+  var _elaProcessedIds = new Set(
+    JSON.parse(localStorage.getItem('zyfix_agent_imported_ids') || '[]')
+  );
+
   setInterval(function() {
     var workerUrl = ELA_WORKER_URL;
-    if (!workerUrl || !document.getElementById('m-agent-ia') || 
-        !document.getElementById('m-agent-ia').classList.contains('open')) return;
-    // Ne pas poll trop souvent
+    // Ne tourner QUE si le modal agent est ouvert (session vocale active)
+    var modalOpen = document.getElementById('m-agent-ia') &&
+                    document.getElementById('m-agent-ia').classList.contains('open');
+    if (!workerUrl || !modalOpen) return;
+
     var now = Date.now();
     if (now - _elaLastPoll < 2800) return;
     _elaLastPoll = now;
+
     fetch(workerUrl + '/poll')
       .then(function(r){ return r.json(); })
       .then(function(d){
-        if (d.events && d.events.length > 0) {
-          d.events.forEach(function(ev){
-            console.log('[ElaWebhook] Event reçu:', ev.tool);
-            var result = elaHandleWebhook(ev);
-            // Acquitter
-            fetch(workerUrl + '/ack', {
-              method: 'POST',
-              headers: {'Content-Type':'application/json'},
-              body: JSON.stringify({eventId: ev.id})
-            }).catch(function(){});
-          });
-        }
+        if (!d || !Array.isArray(d.events)) return;
+        d.events.forEach(function(ev){
+          if (!ev || !ev.id) return;
+          // Déduplication stricte — ne traiter qu'une seule fois
+          if (_elaProcessedIds.has(ev.id)) return;
+          _elaProcessedIds.add(ev.id);
+          // Persister immédiatement pour éviter re-traitement après reload
+          try {
+            var existing = new Set(JSON.parse(localStorage.getItem('zyfix_agent_imported_ids') || '[]'));
+            existing.add(ev.id);
+            localStorage.setItem('zyfix_agent_imported_ids', JSON.stringify(Array.from(existing)));
+          } catch(e){}
+
+          console.log('[ElaWebhook] Event live reçu:', ev.tool, ev.id);
+          elaHandleWebhook(ev);
+
+          // ACK au worker pour retirer l'event de la KV
+          fetch(workerUrl + '/ack', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({eventId: ev.id})
+          }).catch(function(){});
+        });
       })
       .catch(function(e){ /* silencieux */ });
   }, 3000);
@@ -9152,6 +10890,42 @@ function elaSessionToText() {
 
 // Lancer l'écoute webhook au démarrage
 elaRegisterWebhookListener();
+// Appliquer le mode de routage au démarrage
+setTimeout(function(){ avApplyModeUI(AV_MODE); }, 100);
+// Initialiser le module e-Facture
+setTimeout(function(){ try{ efInit(); }catch(e){} }, 150);
+
+// ── Hook post-init : wrapper elaHandleWebhook pour logging auto ──────────
+(function() {
+  var _orig = elaHandleWebhook;
+  elaHandleWebhook = function(payload) {
+    var result = _orig(payload);
+    try {
+      var p = payload.payload || payload.data || payload;
+      var tool = payload.tool || payload.type || p.tool || '';
+      var fullName = [p.prenom, p.nom].filter(Boolean).join(' ').trim() || p.nom || p.nom_client || 'Client vocal';
+      var resume = p.resume || p.panne || p.motif || '';
+      var errors = [];
+      if (!p.telephone && !p.tel) errors.push('tel');
+      if (!p.rdv_date && !p.date && tool === 'creer_rdv') errors.push('date');
+      if (!p.adresse && p.pec === 'domicile') errors.push('addr');
+      if (!['creer_rdv','demande_rappel','create_ticket','transfert_humain'].includes(tool)) errors.push('tool');
+      avLogCall({
+        eventId:     payload.id || '',
+        tool:        tool,
+        client:      fullName,
+        resume:      resume,
+        result:      (result && result.success) ? 'ok' : 'erreur',
+        errors:      errors,
+        linkedRdv:   tool === 'creer_rdv',
+        linkedTicket:tool === 'create_ticket',
+        linkedAppel: true,
+      });
+      localStorage.setItem('zyfix_av_last_sync', new Date().toISOString());
+    } catch(e) { console.warn('avLogCall error', e); }
+    return result;
+  };
+})();
 
 
 </script>
@@ -9171,7 +10945,7 @@ elaRegisterWebhookListener();
     <div style="display:flex;align-items:center;gap:12px;padding:14px 20px;background:linear-gradient(135deg,#0d0a1f,#130d2e);border-bottom:1px solid rgba(139,92,246,.25);flex-shrink:0">
       <div id="ela-status-dot" style="width:10px;height:10px;border-radius:50%;background:#555;flex-shrink:0;transition:background .4s"></div>
       <div style="flex:1">
-        <div style="font-size:15px;font-weight:900;color:#fff">🎙️ Agent Vocal ZyFix</div>
+        <div style="font-size:15px;font-weight:900;color:#fff">🎙️ Alex — Agent Vocal ZyRAMGamer</div>
         <div id="ela-status-label" style="font-size:11px;color:var(--t3)">ElevenLabs Conversational AI</div>
       </div>
       <div style="display:flex;gap:8px;align-items:center">
@@ -9225,5 +10999,6 @@ elaRegisterWebhookListener();
 </div>
 
 
+
 </body>
-</html>// ═══════════════════════════════════════════════════════════════
+</html>
