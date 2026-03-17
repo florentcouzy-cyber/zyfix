@@ -1363,14 +1363,14 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
         <div class="stat-hint">à valider</div>
       </div>
       <div class="stat-card c-purple">
-        <div class="stat-lbl">Factures émises</div>
+        <div class="stat-lbl">Factures non payées</div>
         <div class="stat-val" id="d-facemises">0</div>
-        <div class="stat-hint">ce mois</div>
+        <div class="stat-hint">en attente de paiement</div>
       </div>
       <div class="stat-card c-green">
-        <div class="stat-lbl">CA Total</div>
+        <div class="stat-lbl">CA Encaissé</div>
         <div class="stat-val" id="d-ca">0€</div>
-        <div class="stat-hint">toutes factures</div>
+        <div class="stat-hint">factures payées uniquement</div>
         <div class="stat-evo" id="d-ca-evo"></div>
       </div>
     </div>
@@ -2018,62 +2018,87 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
 <!-- ════════ PAGE PUBLICITÉ / COMMUNICATION ════════ -->
 <div class="page" id="page-pub">
 
-  <!-- HEADER -->
-  <div class="card" style="margin-bottom:12px;padding:16px 20px">
-    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+  <!-- ── HEADER + MEILLEUR CANAL ── -->
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:22px;flex-wrap:wrap">
+    <div>
+      <div style="font-family:var(--heading);font-size:22px;font-weight:500;color:var(--t1);margin-bottom:4px">Publicité &amp; Communication</div>
+      <div id="pub-best-canal" style="font-size:13px;color:var(--t2)">Clients : tous · CA filtré par période</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+      <select id="pub-periode" onchange="renderPub()" style="background:var(--s1);border:1px solid var(--border2);border-radius:8px;padding:7px 12px;color:var(--t1);font-family:var(--font);font-size:12px">
+        <option value="mois">CA ce mois</option>
+        <option value="trim">CA ce trimestre</option>
+        <option value="annee" selected>CA cette année</option>
+        <option value="tout">CA total (tout)</option>
+      </select>
+      <button class="btn btn-primary btn-sm" onclick="openM('m-pub-source')">+ Source</button>
+    </div>
+  </div>
+
+  <!-- ── KPI ROW ── -->
+  <div id="pub-kpi-row" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px"></div>
+
+  <!-- ── GRAPHIQUES ── -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:26px">
+    <div class="card" style="margin-bottom:0;padding:18px 20px">
+      <div style="font-family:var(--heading);font-size:13px;font-weight:500;color:var(--t1);margin-bottom:14px">Clients par source</div>
+      <div style="position:relative;height:200px"><canvas id="chart-pub-clients"></canvas></div>
+    </div>
+    <div class="card" style="margin-bottom:0;padding:18px 20px">
+      <div style="font-family:var(--heading);font-size:13px;font-weight:500;color:var(--t1);margin-bottom:14px">CA par source</div>
+      <div style="position:relative;height:200px"><canvas id="chart-pub-ca"></canvas></div>
+    </div>
+  </div>
+  <!-- canvas caché pour compat JS existant -->
+  <canvas id="chart-pub-roi" style="display:none"></canvas>
+
+  <!-- ── LISTE CANAUX ── -->
+  <div class="card" style="margin-bottom:0;overflow:hidden">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+      <div style="font-family:var(--heading);font-size:13px;font-weight:500;color:var(--t1)">Canaux</div>
+      <div style="display:grid;grid-template-columns:90px 100px 80px 100px;gap:0;font-family:var(--mono);font-size:9px;color:var(--t3);letter-spacing:.8px;text-transform:uppercase;text-align:right">
+        <span>Clients</span><span>CA généré</span><span>ROI</span><span></span>
+      </div>
+    </div>
+    <div id="pub-canal-list"></div>
+  </div>
+
+  <!-- ── DÉTAIL CANAL (panneau dépliable) ── -->
+  <div id="pub-canal-detail" style="display:none;margin-top:14px">
+    <div class="card" style="margin-bottom:0;border-left:3px solid var(--cyan)">
+      <div style="padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
+        <div style="font-family:var(--heading);font-size:14px;font-weight:500;color:var(--t1)" id="pub-detail-title">—</div>
+        <button onclick="pubCloseDetail()" style="background:none;border:none;color:var(--t3);font-size:18px;cursor:pointer;line-height:1;padding:0 4px">✕</button>
+      </div>
+      <div style="padding:16px 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px" id="pub-detail-kpi"></div>
+      <div style="padding:0 20px 16px" id="pub-detail-body"></div>
+    </div>
+  </div>
+
+  <!-- ── CLASSEMENT SOURCES ── -->
+  <div class="card" style="margin-top:18px;margin-bottom:0;overflow:hidden">
+    <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between">
       <div>
-        <div style="font-size:20px;font-weight:900;color:var(--t1)">📣 Publicité & Communication</div>
-        <div style="font-size:12px;color:var(--t3);margin-top:2px">Sources clients, coûts, rentabilité par canal</div>
+        <div style="font-family:var(--heading);font-size:13px;font-weight:500;color:var(--t1)">Classement des sources de visibilité</div>
+        <div style="font-size:11px;color:var(--t3);margin-top:2px">Trié par CA généré — part de marché clients &amp; revenu</div>
       </div>
-      <div style="display:flex;gap:8px">
-        <select id="pub-periode" onchange="renderPub()" style="background:var(--s3);border:1px solid var(--border2);border-radius:8px;padding:6px 12px;color:var(--t1);font-family:var(--font);font-size:13px">
-          <option value="mois">Ce mois</option>
-          <option value="trim">Ce trimestre</option>
-          <option value="annee" selected>Cette année</option>
-          <option value="tout">Tout</option>
-        </select>
-        <button class="btn btn-primary btn-sm" onclick="openM('m-pub-source')">+ Source</button>
-      </div>
+      <div style="font-family:var(--mono);font-size:9px;color:var(--t3);letter-spacing:.8px;text-transform:uppercase">Période sélectionnée</div>
     </div>
-  </div>
-
-  <!-- KPI GLOBAUX -->
-  <div id="pub-kpi-row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px"></div>
-
-  <!-- GRAPHIQUES -->
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px" id="pub-charts-row">
-    <div class="card pil-card">
-      <div class="pil-card-title">🥧 Clients par source</div>
-      <div style="position:relative;height:220px"><canvas id="chart-pub-clients"></canvas></div>
-    </div>
-    <div class="card pil-card">
-      <div class="pil-card-title">💶 CA par source</div>
-      <div style="position:relative;height:220px"><canvas id="chart-pub-ca"></canvas></div>
-    </div>
-    <div class="card pil-card">
-      <div class="pil-card-title">📊 Budget vs CA</div>
-      <div style="position:relative;height:220px"><canvas id="chart-pub-roi"></canvas></div>
-    </div>
-  </div>
-
-  <!-- CLASSEMENT CANAUX -->
-  <div class="card pil-card" style="margin-bottom:12px">
-    <div class="pil-card-title">🏆 Classement des canaux</div>
-    <div id="pub-ranking"></div>
-  </div>
-
-  <!-- GRILLE STATS PAR SOURCE -->
-  <div id="pub-cards-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:12px"></div>
-
-  <!-- TABLEAU DÉTAIL SOURCES -->
-  <div class="card pil-card" style="margin-bottom:12px">
-    <div class="pil-card-title">📋 Détail par canal</div>
-    <div class="desktop-table" style="margin-top:8px">
-      <table>
-        <thead><tr><th>Canal</th><th>Clients</th><th>%</th><th>CA généré</th><th>Devis</th><th>Factures</th><th>Coût total</th><th>Coût/client</th><th>ROI</th><th>Actif</th><th></th></tr></thead>
-        <tbody id="pub-tbl"></tbody>
-      </table>
-    </div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+      <thead>
+        <tr style="background:var(--s2)">
+          <th style="padding:9px 20px;text-align:left;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);font-weight:500;width:36px">#</th>
+          <th style="padding:9px 14px;text-align:left;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);font-weight:500">Source</th>
+          <th style="padding:9px 14px;text-align:right;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);font-weight:500">Clients</th>
+          <th style="padding:9px 14px;text-align:right;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);font-weight:500">Part clients</th>
+          <th style="padding:9px 14px;text-align:right;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);font-weight:500">CA généré</th>
+          <th style="padding:9px 14px;text-align:right;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);font-weight:500">Part CA</th>
+          <th style="padding:9px 14px;text-align:right;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);font-weight:500">CA / client</th>
+          <th style="padding:9px 20px;text-align:left;font-family:var(--mono);font-size:9px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t3);font-weight:500">Poids</th>
+        </tr>
+      </thead>
+      <tbody id="pub-ranking-tbody"></tbody>
+    </table>
   </div>
 
 </div>
@@ -4003,7 +4028,9 @@ function renderFactures(list){
       <td style="display:flex;gap:4px;flex-wrap:wrap">
         <button class="btn btn-success btn-sm" onclick="previewDoc('facture','${f.id}')">👁</button>
         ${efMode==='efacture_b2b' ? `<button class="btn btn-ghost btn-sm" onclick="efPrepareFacture('${f.id}')" title="Préparer e-Facture">📋</button>` : ''}
-        ${f.statut!=='payee'&&f.statut!=='encaisse'?`<button class="btn btn-primary btn-sm" onclick="marquerPayee('${f.id}')">✅</button>`:''}
+        ${f.statut!=='payee'&&f.statut!=='encaisse'
+          ? `<button class="btn btn-primary btn-sm" onclick="marquerPayee('${f.id}')" title="Marquer payée">✅ Payée</button>`
+          : `<button class="btn btn-amber btn-sm" onclick="annulerPaiement('${f.id}')" title="Annuler le paiement" style="background:rgba(192,122,16,.10);color:var(--amber);border:1px solid rgba(192,122,16,.25)">↩️ Annuler</button>`}
         <button class="btn btn-ghost btn-sm" onclick="editFacture('${f.id}')">✏️</button>
         <button class="btn btn-danger btn-sm" onclick="del('factures','${f.id}')">🗑</button>
       </td>
@@ -4024,7 +4051,9 @@ function renderFactures(list){
       </div>
       <div class="mcard-actions">
         <button class="btn btn-success btn-sm" onclick="previewDoc('facture','${f.id}')">👁 Aperçu</button>
-        ${f.statut!=='payee'&&f.statut!=='encaisse'?`<button class="btn btn-primary btn-sm" onclick="marquerPayee('${f.id}')">✅ Payée</button>`:''}
+        ${f.statut!=='payee'&&f.statut!=='encaisse'
+          ? `<button class="btn btn-primary btn-sm" onclick="marquerPayee('${f.id}')">✅ Payée</button>`
+          : `<button class="btn btn-sm" onclick="annulerPaiement('${f.id}')" style="background:rgba(192,122,16,.10);color:var(--amber);border:1px solid rgba(192,122,16,.25)">↩️ Annuler paiement</button>`}
         <button class="btn btn-ghost btn-sm" onclick="editFacture('${f.id}')">✏️</button>
         <button class="btn btn-danger btn-sm" onclick="del('factures','${f.id}')">🗑</button>
       </div>
@@ -6425,18 +6454,20 @@ function renderPilKPI(ca, regime, acreActive, vlActive) {
   var net = ca.encaisse - cotis - impot;
 
   var kpis = [
-    { label:'CA Facturé TTC',   val: pilFmtN(ca.ttc),      cls:'cyan' },
-    { label:'CA Encaissé TTC',  val: pilFmtN(ca.encaisse), cls:'green' },
-    { label:'Charges estimées', val: pilFmtN(cotis + impot), cls:'amber' },
-    { label:'Net estimé',       val: pilFmtN(net),          cls: net >= 0 ? 'green' : 'red' },
-    { label:'Factures',         val: ca.nb + ' doc.',       cls:'' },
-    { label:'TVA collectée',    val: pilFmtN(ca.tvaAmt),    cls:'amber' },
+    { label:'CA Facturé TTC',   val: pilFmtN(ca.ttc),      cls:'cyan',
+      hint: ca.emise > 0 ? '⚠️ dont ' + pilFmtN(ca.emise) + ' non encaissé' : '' },
+    { label:'CA Encaissé TTC',  val: pilFmtN(ca.encaisse), cls:'green',
+      hint: 'factures payées uniquement' },
+    { label:'Charges estimées', val: pilFmtN(cotis + impot), cls:'amber', hint: '' },
+    { label:'Net estimé',       val: pilFmtN(net),           cls: net >= 0 ? 'green' : 'red', hint: '' },
+    { label:'Factures',         val: ca.nb + ' doc.',        cls:'', hint: '' },
+    { label:'TVA collectée',    val: pilFmtN(ca.tvaAmt),     cls:'', hint: '' },
   ];
-
   document.getElementById('pil-kpi-row').innerHTML = kpis.map(function(k) {
     return '<div class="kpi-card">'
       + '<div class="kpi-card-label">' + k.label + '</div>'
       + '<div class="kpi-card-value ' + k.cls + '">' + k.val + '</div>'
+      + (k.hint ? '<div style="font-size:10px;color:var(--amber);margin-top:3px">' + k.hint + '</div>' : '')
       + '</div>';
   }).join('');
 }
@@ -6885,7 +6916,7 @@ function renderPilotage() {
 
   // CA annuel pour seuils
   var facAnnee = pilFilterFac('annee');
-  var caAnnuel = pilCAFromFac(facAnnee).ttc;
+  var caAnnuel = pilCAFromFac(facAnnee).encaisse; // seuils basés sur CA encaissé
 
   renderPilKPI(ca, regime, acreAct, vlAct);
   renderPilCADetail(ca, facs);
@@ -6906,10 +6937,33 @@ function renderPilotage() {
 function marquerPayee(id) {
   var f = DB.factures.find(function(x){ return x.id === id; });
   if (!f) return;
-  f.statut = 'payee';
-  // Ne touche PAS à ht/ttc/tva — uniquement le statut
-  dbSave(); refreshAll();
-  showToast('✅ Facture ' + id + ' marquée payée');
+  showConfirm(
+    'Marquer la facture <strong>' + id + '</strong> comme payée ?<br>'
+    + '<span style="font-size:12px;color:var(--t3)">Le montant TTC de ' + fmt(f.ttc) + ' € sera ajouté au CA encaissé.</span>',
+    function() {
+      f.statut    = 'payee';
+      f.datePaiement = new Date().toISOString().substring(0, 10);
+      dbSave(); refreshAll();
+      showToast('✅ Facture ' + id + ' marquée payée — CA mis à jour');
+    },
+    { icon:'✅', okLabel:'Confirmer paiement', okColor:'var(--green)' }
+  );
+}
+
+function annulerPaiement(id) {
+  var f = DB.factures.find(function(x){ return x.id === id; });
+  if (!f) return;
+  showConfirm(
+    'Annuler le paiement de la facture <strong>' + id + '</strong> ?<br>'
+    + '<span style="font-size:12px;color:var(--t3)">Elle repassera en statut "Émise" et sera retirée du CA encaissé.</span>',
+    function() {
+      f.statut       = 'emise';
+      f.datePaiement = null;
+      dbSave(); refreshAll();
+      showToast('↩️ Paiement annulé — facture ' + id + ' repassée en "Émise"');
+    },
+    { icon:'↩️', okLabel:'Annuler le paiement', okColor:'var(--amber)' }
+  );
 }
 
 // ═══════════════════════════════════════════════════════════════════
@@ -6964,26 +7018,28 @@ function pubFilterClients(periode) {
 
 // ── STATS PAR SOURCE ─────────────────────────────────────────────────
 function pubStats(periode) {
-  var clients  = pubFilterClients(periode);
-  var allFacs  = pilFilterFac(periode);
-  var allDevis = (DB.devis || []);
+  // Les CLIENTS sont toujours tous comptés (un client acquis reste acquis)
+  // Le filtre période s'applique uniquement au CA (factures encaissées sur la période)
+  var allClients = DB.clients || [];
+  var allFacs    = pilFilterFac(periode);  // factures de la période
+  var allDevis   = DB.devis || [];
 
   var stats = {};
   PUB_SOURCES.forEach(function(s) {
     stats[s.id] = { source: s, clients: 0, ca: 0, devis: 0, factures: 0, clientIds: [] };
   });
-  // clients sans source ou inconnu
   stats['_inconnu'] = { source: { id:'_inconnu', nom:'Non renseigné', ico:'❔', coutMois:0, coutTotal:0, actif:true }, clients:0, ca:0, devis:0, factures:0, clientIds:[] };
 
-  clients.forEach(function(c) {
+  // Compter tous les clients par source (sans filtre période sur la création)
+  allClients.forEach(function(c) {
     var key = (c.source && stats[c.source]) ? c.source : '_inconnu';
     stats[key].clients++;
     stats[key].clientIds.push(c.id);
   });
 
-  // CA par source (factures liées aux clients de cette source)
+  // CA par source = factures de la PÉRIODE liées aux clients de cette source
   var clientSourceMap = {};
-  (DB.clients || []).forEach(function(c){ clientSourceMap[c.id] = c.source || '_inconnu'; });
+  allClients.forEach(function(c){ clientSourceMap[c.id] = c.source || '_inconnu'; });
 
   allFacs.forEach(function(f) {
     var srcKey = clientSourceMap[f.clientId] || '_inconnu';
@@ -7007,134 +7063,274 @@ function renderPubKPI(stats, periode) {
   var nbMois = periode === 'annee' ? 12 : periode === 'trim' ? 3 : 1;
 
   PUB_SOURCES.forEach(function(s) {
-    var st = stats[s.id];
-    if (!st) return;
-    totalClients += st.clients;
-    totalCA      += st.ca;
-    totalCout    += s.coutMois * nbMois + s.coutTotal;
+    var st = stats[s.id] || {};
+    totalClients += st.clients || 0;
+    totalCA      += st.ca || 0;
+    totalCout    += (s.coutMois||0)*nbMois + (s.coutTotal||0);
   });
-
-  var coutParClient = totalClients > 0 ? totalCout / totalClients : 0;
-  var roi = totalCout > 0 ? ((totalCA - totalCout) / totalCout * 100) : null;
+  var roi = totalCout > 0 ? Math.round((totalCA - totalCout) / totalCout * 100) : null;
 
   var kpis = [
-    { label:'Clients acquis',      val: totalClients + ' clients',  cls:'' },
-    { label:'CA généré',           val: pilFmtN(totalCA),           cls:'cyan' },
-    { label:'Budget comm. total',  val: pilFmtN(totalCout),         cls:'amber' },
-    { label:'Coût / client',       val: totalClients > 0 ? pilFmtN(coutParClient) : '—', cls:'amber' },
-    { label:'ROI estimé',          val: roi !== null ? Math.round(roi) + '%' : '—', cls: roi !== null && roi >= 0 ? 'green' : 'red' },
+    { lbl:'Clients',        val: totalClients,                        color:'var(--cyan)',   suffix:'',  hint:'sur la période' },
+    { lbl:'CA généré',      val: fmt(totalCA) + ' €',                 color:'var(--green)',  suffix:'',  hint:'toutes sources' },
+    { lbl:'Coût total',     val: fmt(totalCout) + ' €',               color:'var(--amber)',  suffix:'',  hint:'budget marketing' },
+    { lbl:'ROI',            val: roi !== null ? (roi >= 0 ? '+' : '') + roi + '%' : '—',
+                            color: roi === null ? 'var(--t3)' : roi >= 0 ? 'var(--green)' : 'var(--red)',
+                            suffix:'', hint: roi === null ? 'pas de budget' : roi >= 100 ? 'excellent' : roi >= 0 ? 'positif' : 'négatif' }
   ];
 
-  document.getElementById('pub-kpi-row').innerHTML = kpis.map(function(k){
-    return '<div class="kpi-card"><div class="kpi-card-label">' + k.label + '</div><div class="kpi-card-value ' + k.cls + '">' + k.val + '</div></div>';
+  var el = document.getElementById('pub-kpi-row');
+  if (!el) return;
+  el.innerHTML = kpis.map(function(k) {
+    return '<div class="stat-card" style="border-top:2px solid ' + k.color + ';padding:18px 20px">'
+      + '<div class="stat-lbl">' + k.lbl.toUpperCase() + '</div>'
+      + '<div class="stat-val" style="color:' + k.color + ';font-size:30px">' + k.val + '</div>'
+      + '<div class="stat-hint">' + k.hint + '</div>'
+      + '</div>';
   }).join('');
 }
 
-// ── CLASSEMENT ────────────────────────────────────────────────────────
+// ── LISTE CANAUX + MEILLEUR CANAL ─────────────────────────────────────
 function renderPubRanking(stats, periode) {
-  var rows = [];
   var nbMois = periode === 'annee' ? 12 : periode === 'trim' ? 3 : 1;
-  var totalClients = 0;
-  PUB_SOURCES.forEach(function(s){ totalClients += (stats[s.id]||{}).clients||0; });
 
-  PUB_SOURCES.concat([{ id:'_inconnu', nom:'Non renseigné', ico:'❔', coutMois:0, coutTotal:0 }])
-    .forEach(function(s) {
-      var st = stats[s.id]; if (!st || !st.clients) return;
-      var cout = (s.coutMois||0) * nbMois + (s.coutTotal||0);
-      var cpa  = st.clients > 0 ? cout / st.clients : 0;
-      var roi  = cout > 0 ? Math.round((st.ca - cout) / cout * 100) : null;
-      var pct  = totalClients > 0 ? Math.round(st.clients / totalClients * 100) : 0;
-      rows.push({ s, st, cout, cpa, roi, pct });
-    });
+  var rows = PUB_SOURCES.concat([{ id:'_inconnu', nom:'Non renseigné', ico:'❔', coutMois:0, coutTotal:0, actif:true }])
+    .map(function(s) {
+      var st   = stats[s.id] || { clients:0, ca:0, devis:0, factures:0 };
+      var cout = (s.coutMois||0)*nbMois + (s.coutTotal||0);
+      var roi  = cout > 0 ? Math.round((st.ca - cout) / cout * 100) : (st.ca > 0 ? Infinity : null);
+      return { s:s, st:st, cout:cout, roi:roi };
+    })
+    .filter(function(r){ return r.st.clients > 0 || r.cout > 0; })
+    .sort(function(a,b){ return b.st.ca - a.st.ca; });
 
-  rows.sort(function(a,b){ return b.st.clients - a.st.clients; });
+  // Meilleur canal
+  var best = rows.find(function(r){ return r.st.ca > 0; }) || rows[0];
+  var bestEl = document.getElementById('pub-best-canal');
+  if (bestEl && best) {
+    bestEl.innerHTML = '🏆 Meilleur canal : <strong>' + best.s.ico + ' ' + best.s.nom + '</strong>'
+      + ' — ' + fmt(best.st.ca) + ' € CA'
+      + (best.st.clients ? ' · ' + best.st.clients + ' client' + (best.st.clients > 1 ? 's' : '') : '');
+  }
+
+  // Liste canaux
+  var list = document.getElementById('pub-canal-list');
+  if (!list) return;
 
   if (!rows.length) {
-    document.getElementById('pub-ranking').innerHTML = '<div style="font-size:13px;color:var(--t3);text-align:center;padding:20px">Aucun client avec source renseignée sur cette période.</div>';
+    list.innerHTML = '<div style="padding:32px;text-align:center;color:var(--t3);font-size:13px">Aucun canal avec données sur cette période</div>';
     return;
   }
 
-  var maxClients = rows[0].st.clients;
-  document.getElementById('pub-ranking').innerHTML = rows.map(function(r, i) {
-    var barW = Math.round(r.st.clients / maxClients * 100);
-    var medal = i===0?'🥇':i===1?'🥈':i===2?'🥉':'  ';
-    return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">'
-      + '<span style="font-size:16px;width:24px;text-align:center">' + medal + '</span>'
-      + '<span style="font-size:16px;width:24px">' + r.s.ico + '</span>'
-      + '<div style="flex:1">'
-      + '<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px">'
-      + '<span style="font-weight:700;color:var(--t1)">' + r.s.nom + '</span>'
-      + '<span style="color:var(--t3)">' + r.st.clients + ' clients (' + r.pct + '%) — CA: ' + pilFmtN(r.st.ca) + '</span>'
-      + '</div>'
-      + '<div class="seuil-bar-wrap" style="height:8px"><div class="seuil-bar ' + (i===0?'seuil-ok':i<3?'seuil-warn':'seuil-ok') + '" style="width:' + barW + '%"></div></div>'
-      + '</div></div>';
-  }).join('');
-}
+  list.innerHTML = rows.map(function(r, i) {
+    var roi = r.roi;
+    var roiLabel, roiColor;
+    if (roi === null)     { roiLabel = '—';         roiColor = 'var(--t3)'; }
+    else if (roi === Infinity) { roiLabel = 'Gratuit'; roiColor = 'var(--green)'; }
+    else if (roi >= 200)  { roiLabel = 'Excellent';  roiColor = 'var(--green)'; }
+    else if (roi >= 50)   { roiLabel = 'Bon +'+ roi+'%'; roiColor = 'var(--cyan)'; }
+    else if (roi >= 0)    { roiLabel = '+' + roi + '%'; roiColor = 'var(--t2)'; }
+    else                  { roiLabel = roi + '%';    roiColor = 'var(--red)'; }
 
-// ── CARTES SOURCES ────────────────────────────────────────────────────
-function renderPubCards(stats, periode) {
-  var nbMois = periode === 'annee' ? 12 : periode === 'trim' ? 3 : 1;
-  var totalClients = 0;
-  PUB_SOURCES.forEach(function(s){ totalClients += (stats[s.id]||{}).clients||0; });
-
-  var cards = PUB_SOURCES.filter(function(s){ return s.actif; }).map(function(s) {
-    var st   = stats[s.id] || { clients:0, ca:0, devis:0, factures:0 };
-    var cout = (s.coutMois||0) * nbMois + (s.coutTotal||0);
-    var cpa  = st.clients > 0 && cout > 0 ? cout / st.clients : 0;
-    var roi  = cout > 0 ? Math.round((st.ca - cout) / cout * 100) : null;
-    var pct  = totalClients > 0 ? Math.round(st.clients / totalClients * 100) : 0;
-
-    return '<div class="card pil-card">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
-      + '<div style="font-size:22px">' + s.ico + ' <span style="font-size:14px;font-weight:800;color:var(--t1)">' + s.nom + '</span></div>'
-      + '<div style="display:flex;gap:6px">'
-      + '<button class="btn btn-ghost btn-sm" onclick="editPubSource(\'' + s.id + '\')">✏️</button>'
-      + '<button class="btn btn-ghost btn-sm" onclick="togglePubSource(\'' + s.id + '\')">🚫</button>'
+    var isOdd = i % 2 === 1;
+    return '<div class="pub-canal-row" onclick="pubOpenDetail(\'' + r.s.id + '\')" style="'
+      + 'display:grid;grid-template-columns:1fr 90px 100px 80px 100px;'
+      + 'align-items:center;padding:13px 20px;cursor:pointer;transition:background .1s;'
+      + (isOdd ? 'background:rgba(0,0,0,.018);' : '')
+      + 'border-bottom:1px solid var(--border)">'
+      // Nom canal
+      + '<div style="display:flex;align-items:center;gap:10px">'
+      +   '<span style="font-size:18px;width:24px;text-align:center">' + r.s.ico + '</span>'
+      +   '<div>'
+      +     '<div style="font-family:var(--heading);font-size:14px;font-weight:500;color:var(--t1)">' + r.s.nom + '</div>'
+      +     (r.cout > 0 ? '<div style="font-size:11px;color:var(--t3);font-family:var(--mono)">Budget : ' + fmt(r.cout) + ' €</div>' : '<div style="font-size:11px;color:var(--green);font-family:var(--mono)">Gratuit</div>')
+      +   '</div>'
       + '</div>'
+      // Clients
+      + '<div style="text-align:right;font-family:var(--heading);font-size:16px;font-weight:500;color:' + (r.st.clients > 0 ? 'var(--t1)' : 'var(--t3)') + '">'
+      +   r.st.clients + '<span style="font-size:10px;color:var(--t3);font-family:var(--mono);margin-left:3px">client' + (r.st.clients > 1 ? 's' : '') + '</span>'
       + '</div>'
-      + '<div class="pil-row"><span class="pil-row-label">Clients apportés</span><span class="pil-row-val cyan">' + st.clients + ' <span style="font-size:11px;color:var(--t3)">(' + pct + '%)</span></span></div>'
-      + '<div class="pil-row"><span class="pil-row-label">CA généré</span><span class="pil-row-val green">' + pilFmtN(st.ca) + '</span></div>'
-      + '<div class="pil-row"><span class="pil-row-label">Devis / Factures</span><span class="pil-row-val">' + st.devis + ' / ' + st.factures + '</span></div>'
-      + '<div class="pil-row"><span class="pil-row-label">Budget investi</span><span class="pil-row-val amber">' + (cout > 0 ? pilFmtN(cout) : '—') + '</span></div>'
-      + '<div class="pil-row"><span class="pil-row-label">Coût / client</span><span class="pil-row-val amber">' + (cpa > 0 ? pilFmtN(cpa) : '—') + '</span></div>'
-      + '<div class="pil-row"><span class="pil-row-label">ROI estimé</span><span class="pil-row-val ' + (roi === null ? '' : roi >= 0 ? 'green' : 'red') + '">' + (roi !== null ? roi + '%' : '—') + '</span></div>'
+      // CA
+      + '<div style="text-align:right;font-family:var(--mono);font-size:13px;font-weight:700;color:' + (r.st.ca > 0 ? 'var(--green)' : 'var(--t3)') + '">'
+      +   fmt(r.st.ca) + ' €'
+      + '</div>'
+      // ROI badge
+      + '<div style="text-align:right">'
+      +   '<span style="font-size:11px;font-weight:700;color:' + roiColor + ';font-family:var(--mono)">' + roiLabel + '</span>'
+      + '</div>'
+      // Flèche
+      + '<div style="text-align:right;color:var(--t3);font-size:12px">›</div>'
       + '</div>';
   }).join('');
 
-  document.getElementById('pub-cards-grid').innerHTML = cards || '<div style="color:var(--t3);font-size:13px">Aucune source active.</div>';
+  // Hover effect via CSS
+  list.querySelectorAll('.pub-canal-row').forEach(function(row) {
+    row.addEventListener('mouseenter', function(){ this.style.background = 'rgba(0,0,0,.03)'; });
+    row.addEventListener('mouseleave', function(){ this.style.background = ''; });
+  });
+
+  // ── Tableau classement ──────────────────────────────────────────────
+  var tbody = document.getElementById('pub-ranking-tbody');
+  if (tbody) {
+    var totalClientsAll = rows.reduce(function(s,r){ return s + r.st.clients; }, 0);
+    var totalCAAll      = rows.reduce(function(s,r){ return s + r.st.ca; }, 0);
+
+    if (!rows.length) {
+      tbody.innerHTML = '<tr><td colspan="8" style="padding:28px;text-align:center;color:var(--t3);font-size:13px">Aucune donnée sur cette période</td></tr>';
+    } else {
+      // Tri par CA décroissant, puis par clients si égalité
+      var sorted = rows.slice().sort(function(a,b){
+        return b.st.ca !== a.st.ca ? b.st.ca - a.st.ca : b.st.clients - a.st.clients;
+      });
+
+      var medals = ['🥇','🥈','🥉'];
+      tbody.innerHTML = sorted.map(function(r, i) {
+        var pctClients = totalClientsAll > 0 ? r.st.clients / totalClientsAll : 0;
+        var pctCA      = totalCAAll > 0      ? r.st.ca      / totalCAAll      : 0;
+        var caParClient = r.st.clients > 0   ? r.st.ca      / r.st.clients    : 0;
+
+        // Barre de poids proportionnelle au CA
+        var barW = Math.round(pctCA * 100);
+        var barColor = i === 0 ? 'var(--green)' : i === 1 ? 'var(--cyan)' : i === 2 ? 'var(--purple)' : 'var(--t3)';
+
+        // Badge rang
+        var rang = medals[i] || ('<span style="font-family:var(--mono);font-size:11px;color:var(--t3)">' + (i+1) + '</span>');
+
+        var isOdd = i % 2 === 1;
+        return '<tr style="border-bottom:1px solid var(--border);' + (isOdd ? 'background:rgba(0,0,0,.018)' : '') + '">'
+          // Rang
+          + '<td style="padding:12px 20px;text-align:center;font-size:16px">' + rang + '</td>'
+          // Source
+          + '<td style="padding:12px 14px">'
+          +   '<div style="display:flex;align-items:center;gap:9px">'
+          +     '<span style="font-size:20px">' + r.s.ico + '</span>'
+          +     '<div>'
+          +       '<div style="font-family:var(--heading);font-size:14px;font-weight:500;color:var(--t1)">' + r.s.nom + '</div>'
+          +       (r.cout > 0 ? '<div style="font-size:10px;color:var(--t3);font-family:var(--mono)">budget : ' + fmt(r.cout) + ' €</div>' : '<div style="font-size:10px;color:var(--green);font-family:var(--mono)">gratuit</div>')
+          +     '</div>'
+          +   '</div>'
+          + '</td>'
+          // Clients
+          + '<td style="padding:12px 14px;text-align:right;font-family:var(--heading);font-size:18px;font-weight:500;color:' + (r.st.clients > 0 ? 'var(--t1)' : 'var(--t3)') + '">'
+          +   r.st.clients
+          + '</td>'
+          // Part clients
+          + '<td style="padding:12px 14px;text-align:right">'
+          +   '<div style="display:flex;align-items:center;justify-content:flex-end;gap:8px">'
+          +     '<div style="width:50px;height:5px;background:var(--s3);border-radius:3px;overflow:hidden">'
+          +       '<div style="width:' + Math.round(pctClients*100) + '%;height:100%;background:var(--cyan);border-radius:3px"></div>'
+          +     '</div>'
+          +     '<span style="font-family:var(--mono);font-size:11px;color:var(--t2);min-width:32px;text-align:right">' + Math.round(pctClients*100) + '%</span>'
+          +   '</div>'
+          + '</td>'
+          // CA
+          + '<td style="padding:12px 14px;text-align:right;font-family:var(--mono);font-size:13px;font-weight:700;color:' + (r.st.ca > 0 ? 'var(--green)' : 'var(--t3)') + '">'
+          +   fmt(r.st.ca) + ' €'
+          + '</td>'
+          // Part CA
+          + '<td style="padding:12px 14px;text-align:right">'
+          +   '<div style="display:flex;align-items:center;justify-content:flex-end;gap:8px">'
+          +     '<div style="width:50px;height:5px;background:var(--s3);border-radius:3px;overflow:hidden">'
+          +       '<div style="width:' + barW + '%;height:100%;background:' + barColor + ';border-radius:3px"></div>'
+          +     '</div>'
+          +     '<span style="font-family:var(--mono);font-size:11px;color:var(--t2);min-width:32px;text-align:right">' + Math.round(pctCA*100) + '%</span>'
+          +   '</div>'
+          + '</td>'
+          // CA / client
+          + '<td style="padding:12px 14px;text-align:right;font-family:var(--mono);font-size:12px;color:var(--t2)">'
+          +   (caParClient > 0 ? fmt(caParClient) + ' €' : '—')
+          + '</td>'
+          // Barre poids globale
+          + '<td style="padding:12px 20px;min-width:120px">'
+          +   '<div style="height:6px;background:var(--s3);border-radius:3px;overflow:hidden">'
+          +     '<div style="width:' + barW + '%;height:100%;background:' + barColor + ';border-radius:3px;transition:width .4s"></div>'
+          +   '</div>'
+          + '</td>'
+          + '</tr>';
+      }).join('');
+    }
+  }
 }
 
-// ── TABLEAU DÉTAIL ────────────────────────────────────────────────────
-function renderPubTable(stats, periode) {
-  var nbMois = periode === 'annee' ? 12 : periode === 'trim' ? 3 : 1;
-  var totalClients = 0;
-  PUB_SOURCES.forEach(function(s){ totalClients += (stats[s.id]||{}).clients||0; });
+// ── PANNEAU DÉTAIL CANAL ──────────────────────────────────────────────
+function pubOpenDetail(sourceId) {
+  var periode = (document.getElementById('pub-periode') || {}).value || 'annee';
+  var stats   = pubStats(periode);
+  var nbMois  = periode === 'annee' ? 12 : periode === 'trim' ? 3 : 1;
 
-  var rows = PUB_SOURCES.map(function(s) {
-    var st   = stats[s.id] || { clients:0, ca:0, devis:0, factures:0 };
-    var cout = (s.coutMois||0) * nbMois + (s.coutTotal||0);
-    var cpa  = st.clients > 0 && cout > 0 ? (cout / st.clients).toFixed(2) : '—';
-    var roi  = cout > 0 ? Math.round((st.ca - cout) / cout * 100) + '%' : '—';
-    var pct  = totalClients > 0 ? Math.round(st.clients / totalClients * 100) + '%' : '0%';
-    return '<tr>'
-      + '<td><span style="margin-right:6px">' + s.ico + '</span><strong>' + s.nom + '</strong></td>'
-      + '<td style="text-align:center">' + st.clients + '</td>'
-      + '<td style="text-align:center;color:var(--t3)">' + pct + '</td>'
-      + '<td class="td-mono" style="color:var(--green)">' + pilFmtN(st.ca) + '</td>'
-      + '<td style="text-align:center">' + st.devis + '</td>'
-      + '<td style="text-align:center">' + st.factures + '</td>'
-      + '<td class="td-mono" style="color:var(--amber)">' + (cout > 0 ? pilFmtN(cout) : '—') + '</td>'
-      + '<td class="td-mono">' + (cpa !== '—' ? cpa + ' €' : '—') + '</td>'
-      + '<td class="td-mono" style="color:' + (roi !== '—' && parseInt(roi) >= 0 ? 'var(--green)' : 'var(--red)') + '">' + roi + '</td>'
-      + '<td style="text-align:center">' + (s.actif ? '🟢' : '🔴') + '</td>'
-      + '<td style="display:flex;gap:4px">'
-      + '<button class="btn btn-ghost btn-sm" onclick="editPubSource(\'' + s.id + '\')">✏️</button>'
-      + '<button class="btn btn-ghost btn-sm" onclick="togglePubSource(\'' + s.id + '\')" title="' + (s.actif ? 'Désactiver' : 'Activer') + '">' + (s.actif ? '🚫' : '✅') + '</button>'
-      + '<button class="btn btn-danger btn-sm" onclick="deletePubSource(\'' + s.id + '\')">🗑</button>'
-      + '</td></tr>';
+  var s  = PUB_SOURCES.find(function(x){ return x.id === sourceId; })
+        || { id:'_inconnu', nom:'Non renseigné', ico:'❔', coutMois:0, coutTotal:0 };
+  var st = stats[sourceId] || { clients:0, ca:0, devis:0, factures:0, clientIds:[] };
+  var cout = (s.coutMois||0)*nbMois + (s.coutTotal||0);
+  var coutClient = st.clients > 0 ? cout / st.clients : 0;
+  var roi = cout > 0 ? Math.round((st.ca - cout) / cout * 100) : null;
+
+  var panel  = document.getElementById('pub-canal-detail');
+  var title  = document.getElementById('pub-detail-title');
+  var kpiEl  = document.getElementById('pub-detail-kpi');
+  var bodyEl = document.getElementById('pub-detail-body');
+  if (!panel || !title || !kpiEl || !bodyEl) return;
+
+  title.textContent = s.ico + ' ' + s.nom;
+
+  // KPI détail
+  var detailKpis = [
+    { lbl:'Clients', val: st.clients, color:'var(--cyan)' },
+    { lbl:'CA généré', val: fmt(st.ca) + ' €', color:'var(--green)' },
+    { lbl:'Devis', val: st.devis, color:'var(--purple)' },
+    { lbl:'Factures', val: st.factures, color:'var(--cyan)' },
+    { lbl:'Budget investi', val: fmt(cout) + ' €', color:'var(--amber)' },
+    { lbl:'Coût / client', val: coutClient > 0 ? fmt(coutClient) + ' €' : '—', color:'var(--t2)' },
+    { lbl:'ROI', val: roi !== null ? (roi >= 0 ? '+' : '') + roi + '%' : (st.ca > 0 ? 'Gratuit ∞' : '—'),
+      color: roi === null ? 'var(--t3)' : roi >= 0 ? 'var(--green)' : 'var(--red)' }
+  ];
+  kpiEl.innerHTML = detailKpis.map(function(k) {
+    return '<div style="background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:12px 14px">'
+      + '<div style="font-family:var(--mono);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:5px">' + k.lbl + '</div>'
+      + '<div style="font-family:var(--heading);font-size:20px;font-weight:500;color:' + k.color + '">' + k.val + '</div>'
+      + '</div>';
   }).join('');
 
-  document.getElementById('pub-tbl').innerHTML = rows || '<tr><td colspan="11"><div class="empty"><div class="ei">📣</div><p>Aucune source définie</p></div></td></tr>';
+  // Liste clients de cette source
+  var clientsSource = (DB.clients || []).filter(function(c){ return (c.source || '_inconnu') === sourceId; });
+  var bodyHtml = '';
+  if (clientsSource.length) {
+    bodyHtml += '<div style="font-family:var(--mono);font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">Clients</div>';
+    bodyHtml += clientsSource.map(function(c) {
+      var facsCli = (DB.factures || []).filter(function(f){ return f.clientId === c.id; });
+      var caCli   = facsCli.reduce(function(s,f){ return s + (f.ttc||0); }, 0);
+      return '<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">'
+        + '<span class="avatar" style="flex-shrink:0">' + initials(c.nom + ' ' + (c.prenom||'')) + '</span>'
+        + '<div style="flex:1"><div style="font-size:13px;font-weight:600">' + escHtml(c.nom + ' ' + (c.prenom||'')) + '</div>'
+        + '<div style="font-size:11px;color:var(--t3)">' + facsCli.length + ' facture(s)</div></div>'
+        + '<div style="font-family:var(--mono);font-size:12px;font-weight:700;color:var(--green)">' + fmt(caCli) + ' €</div>'
+        + '</div>';
+    }).join('');
+  } else {
+    bodyHtml = '<div style="font-size:13px;color:var(--t3);padding:8px 0">Aucun client sur cette période</div>';
+  }
+  bodyEl.innerHTML = bodyHtml;
+
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+}
+
+function pubCloseDetail() {
+  var panel = document.getElementById('pub-canal-detail');
+  if (panel) panel.style.display = 'none';
+}
+
+// ── STUB fonctions plus utilisées (gardées pour compat renderPub) ─────
+function renderPubCards(){}
+function renderPubTable(){}
+
+// ── RENDER PUB principal ──────────────────────────────────────────────
+function renderPub() {
+  var periode = document.getElementById('pub-periode') ? document.getElementById('pub-periode').value : 'annee';
+  var stats = pubStats(periode);
+  renderPubKPI(stats, periode);
+  renderPubRanking(stats, periode);
+  try { renderPubCharts(stats, periode); } catch(e) { console.warn('Charts:', e); }
 }
 
 // ── CRUD SOURCES ──────────────────────────────────────────────────────
@@ -7205,18 +7401,6 @@ function deletePubSource(id) {
     renderPub();
   }, { icon:'🗑', okLabel:'Supprimer', okColor:'var(--red)' });
 }
-
-// ── RENDER PRINCIPAL ──────────────────────────────────────────────────
-function renderPub() {
-  var periode = document.getElementById('pub-periode') ? document.getElementById('pub-periode').value : 'annee';
-  var stats = pubStats(periode);
-  renderPubKPI(stats, periode);
-  renderPubRanking(stats, periode);
-  renderPubCards(stats, periode);
-  renderPubTable(stats, periode);
-  try { renderPubCharts(stats, periode); } catch(e) { console.warn('Charts:', e); }
-}
-
 
 // ═══════════════════════════════════════════════════════════════════
 // GRAPHIQUES PUBLICITÉ — Chart.js
