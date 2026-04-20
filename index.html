@@ -5929,8 +5929,8 @@ async function syncAgentVocal(){
     data.events.forEach(function(ev){
       if(!ev || !ev.id || imported.has(ev.id)) return;
 
-      var p = ev.payload || {};
-      var tool = p.tool || '';
+      var p = ev.payload || ev;
+      var tool = p.tool || ev.tool || '';
       if(['creer_rdv','demande_rappel','create_ticket'].indexOf(tool) === -1) return;
 
       var fullName = [p.prenom, p.nom].filter(Boolean).join(' ').trim() || p.nom || 'Client vocal';
@@ -5986,7 +5986,7 @@ async function syncAgentVocal(){
           date: dateIso || 'non précisé',
           heure: heureIso || 'non précisé',
           type: p.prise_en_charge || 'atelier',
-          adresse: p.adresse || '',
+          adresse: p.adresse || p.adresse_intervention || p.adresse_domicile || p.address || '',
           probleme: p.probleme || 'non précisé',
           source: 'agent_vocal',
           statut: 'à confirmer'
@@ -6032,7 +6032,7 @@ async function syncAgentVocal(){
         modele: (p.marque_modele || '').split(' ').slice(1).join(' ') || '',
         panne: p.probleme || p.resume || 'non précisé',
         notes: p.resume || '',
-        adresse: p.adresse || '',
+        adresse: p.adresse || p.adresse_intervention || p.adresse_domicile || p.address || '',
         rdvDate: tool === 'creer_rdv' ? rdvIso : '',
         typeAppareil: p.type_appareil || '',
         urgence: p.urgence || 'normal',
@@ -6062,6 +6062,8 @@ async function syncAgentVocal(){
           method: 'POST',
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify({eventId: evId})
+        }).then(function(r){
+          if(!r.ok && r.status !== 404) console.warn('[Ack] HTTP', r.status, evId);
         }).catch(function(){});
       });
     }
