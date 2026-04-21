@@ -1547,6 +1547,13 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
             <button class="btn btn-ghost btn-sm" onclick="avTestWorker()">⚡ Tester worker</button>
             <button class="btn btn-ghost btn-sm" onclick="openAgentIA()">🎙️ Lancer agent</button>
           </div>
+          <div class="fg" style="margin-top:4px">
+            <label>Secret synchro config</label>
+            <div style="display:flex;gap:6px">
+              <input id="avc-config-secret" type="password" placeholder="zyfix_s3cr3t…" style="flex:1;font-family:var(--mono);font-size:12px">
+              <button class="btn btn-ghost btn-sm" onclick="avSaveConfigSecret()">🔑 Enregistrer</button>
+            </div>
+          </div>
           <div id="avc-status" style="font-size:11px;margin-top:4px"></div>
         </div>
       </div>
@@ -10897,6 +10904,16 @@ function avInitConfigFields() {
   f('avc-worker-url',  ELA_WORKER_URL);
   f('avc-transfer-num',ELA_TRANSFER_NUM);
   f('avc-webhook-url', ELA_WORKER_URL ? ELA_WORKER_URL + '/webhook' : '— Worker non configuré —');
+  f('avc-config-secret', localStorage.getItem('zyfix_config_secret') || '');
+}
+
+function avSaveConfigSecret() {
+  var el = document.getElementById('avc-config-secret');
+  var val = el ? el.value.trim() : '';
+  if (!val) { showToast('⚠️ Secret vide, non enregistré'); return; }
+  localStorage.setItem('zyfix_config_secret', val);
+  showToast('🔑 Secret enregistré');
+  if (typeof elaLoadRemoteConfig === 'function') elaLoadRemoteConfig();
 }
 
 function avSaveConfig() {
