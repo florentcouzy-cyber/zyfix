@@ -11535,6 +11535,7 @@ function elaPushRemoteConfig() {
   fetch(worker + '/config', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-zyfix-secret': localStorage.getItem('zyfix_config_secret') || '' },
+    body: JSON.stringify(payload)
   })
     .then(function(r) { if (r.ok) console.log('[ZyFix] Config poussée sur Worker ✅'); })
     .catch(function(e) { console.warn('[ZyFix] Push config Worker échoué', e); });
