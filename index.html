@@ -8764,6 +8764,7 @@ function saveAppel(forceBrouillon) {
   }
 
   dbSave();
+  if (typeof ghPush === 'function' && GH_TOKEN) ghPush(true);
 
   if (!brouillon) {
     var sumEl = document.getElementById('appel-created-summary');
