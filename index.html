@@ -5748,14 +5748,18 @@ function ghPull(silent){
 
       if(remoteTs > localTs || (remoteTs === localTs && remoteStr !== localStr)){
         // GitHub plus récent → mettre à jour local
+        var _localAppels = (DB.appels && DB.appels.length) ? DB.appels : null;
+        var _localReps   = (DB.reparations && DB.reparations.length) ? DB.reparations : null;
         DB = remote.DB;
         if(!DB.rdv) DB.rdv = [];
         if(!DB.tickets) DB.tickets = [];
         if(!DB.devis) DB.devis = [];
         if(!DB.factures) DB.factures = [];
         if(!DB.stock) DB.stock = [];
-        if(!DB.appels) DB.appels = [];
-        if(!DB.reparations) DB.reparations = [];
+        if(_localAppels && (!DB.appels || !DB.appels.length)) DB.appels = _localAppels;
+        else if(!DB.appels) DB.appels = [];
+        if(_localReps && (!DB.reparations || !DB.reparations.length)) DB.reparations = _localReps;
+        else if(!DB.reparations) DB.reparations = [];
         CTR = remote.CTR || CTR;
         // Restaurer PILSettings si présent dans le remote
         if (remote.PIL && typeof remote.PIL === 'object') {
