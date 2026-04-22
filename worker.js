@@ -9,7 +9,7 @@ export default {
         return json({
           ok: true,
           service: "zyfix-worker",
-          routes: ["/webhook", "/poll", "/debug-add", "/config"],
+          routes: ["/webhook", "/poll", "/debug-add", "/config", "/ack"],
         });
       }
       // Route de test manuelle
@@ -79,6 +79,12 @@ export default {
           await env.ZYFIX_KV.put("zyfix_config", JSON.stringify(body));
           return json({ ok: true });
         }
+      }
+      // ACK : supprimer un event traité de la KV
+      if (url.pathname === "/ack" && request.method === "POST") {
+        const { eventId } = await request.json().catch(() => ({}));
+        if (eventId) await env.ZYFIX_KV.delete(`event:${eventId}`);
+        return json({ ok: true });
       }
       return json({ ok: false, error: "Route introuvable" }, 404);
     } catch (error) {
