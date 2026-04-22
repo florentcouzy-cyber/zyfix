@@ -3576,9 +3576,24 @@ function openM(id){
     renderForfaits('f');
   }
 }
-function closeM(id){ document.getElementById(id).classList.remove('open'); }
+function _elaCleanup() {
+  if (window._elaClosing) return;
+  window._elaClosing = true;
+  try {
+    if (typeof elaStopAudioViz === 'function') elaStopAudioViz();
+    if (typeof elaEndCall === 'function' && (window._elaActive || (window._elaConversation))) elaEndCall();
+  } catch(e) {}
+  setTimeout(function(){ window._elaClosing = false; }, 500);
+}
+function closeM(id){
+  if (id === 'm-agent-ia') _elaCleanup();
+  document.getElementById(id).classList.remove('open');
+}
 document.querySelectorAll('.overlay').forEach(o=>{
-  o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
+  o.addEventListener('click',e=>{ if(e.target===o){
+    if(o.id === 'm-agent-ia') _elaCleanup();
+    o.classList.remove('open');
+  }});
 });
 
 // ─── HELPERS ─────────────────────────────────────
