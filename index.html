@@ -11527,6 +11527,7 @@ function elaApplyRemoteConfig(cfg) {
   if (cfg.transfer_num) { ELA_TRANSFER_NUM = cfg.transfer_num; localStorage.setItem('zyfix_ela_transfer',  ELA_TRANSFER_NUM); }
   if (cfg.twilio_num)   { ELA_TWILIO_NUM   = cfg.twilio_num;   localStorage.setItem('zyfix_ela_twilio',    ELA_TWILIO_NUM); }
   if (cfg.api_key)      { ELA_API_KEY      = cfg.api_key;      localStorage.setItem('zyfix_ela_api_key',   ELA_API_KEY); }
+  if (cfg.gh_token)     { GH_TOKEN         = cfg.gh_token;     localStorage.setItem('zyfix_gh_token',      GH_TOKEN); }
   if (typeof avInitConfigFields === 'function') avInitConfigFields();
 }
 
@@ -11551,7 +11552,8 @@ function elaPushRemoteConfig() {
     worker_url:   ELA_WORKER_URL   || '',
     transfer_num: ELA_TRANSFER_NUM || '',
     twilio_num:   ELA_TWILIO_NUM   || '',
-    api_key:      ELA_API_KEY      || ''
+    api_key:      ELA_API_KEY      || '',
+    gh_token:     GH_TOKEN         || ''
   };
   fetch(worker + '/config', {
     method: 'POST',
