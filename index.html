@@ -5754,6 +5754,8 @@ function ghPull(silent){
         if(!DB.devis) DB.devis = [];
         if(!DB.factures) DB.factures = [];
         if(!DB.stock) DB.stock = [];
+        if(!DB.appels) DB.appels = [];
+        if(!DB.reparations) DB.reparations = [];
         CTR = remote.CTR || CTR;
         // Restaurer PILSettings si présent dans le remote
         if (remote.PIL && typeof remote.PIL === 'object') {
@@ -5781,13 +5783,6 @@ function ghPull(silent){
     })
     .catch(function(e){ console.error('ghPull:', e); });
 }
-
-// ── Patch dbSave — push auto après chaque modif ──
-var _dbSaveOrigGH = dbSave;
-dbSave = function(){
-  _dbSaveOrigGH();
-  if(GH_TOKEN){ ghPush(true); }
-};
 
 // ── Config token ──────────────────────────────────
 function ghSetToken(){
