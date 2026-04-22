@@ -1557,6 +1557,10 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
           <!-- ── Panneau diagnostic GitHub Sync ── -->
           <div id="gh-diag-panel" style="margin-top:8px;padding:8px;background:#0a1520;border:1px solid #1e3a5f;border-radius:6px;font-size:11px;font-family:var(--mono)">
             <div style="font-weight:600;color:var(--cyan);margin-bottom:6px">🔗 Diagnostic GitHub Sync</div>
+            <div style="display:flex;gap:6px;margin-bottom:6px">
+              <input id="ghd-token-input" type="password" placeholder="Token GitHub (ghp_…)" style="flex:1;font-family:var(--mono);font-size:11px;background:#050c18;border:1px solid #1e3a5f;color:#fff;padding:4px 6px;border-radius:4px">
+              <button class="btn btn-ghost btn-sm" onclick="ghDiagSaveToken()" style="white-space:nowrap">💾 Enregistrer</button>
+            </div>
             <div style="display:grid;grid-template-columns:auto 1fr;gap:2px 8px;color:#8899aa">
               <span>GH_TOKEN :</span><span id="ghd-token" style="color:#fff">—</span>
               <span>Dernier push :</span><span id="ghd-push" style="color:#fff">jamais</span>
@@ -11601,6 +11605,19 @@ function ghDiagRefresh() {
   s('ghd-local',  localStorage.getItem('zyfix_last_save') || '—');
   s('ghd-remote', window._lastPullTs || '—');
   s('ghd-state',  window._ghSyncing ? (window._ghPulling ? 'pulling…' : 'pushing…') : 'idle');
+  var inp = document.getElementById('ghd-token-input');
+  if (inp && !inp.value) inp.value = localStorage.getItem('zyfix_gh_token') || '';
+}
+function ghDiagSaveToken() {
+  var inp = document.getElementById('ghd-token-input');
+  var val = inp ? inp.value.trim() : '';
+  if (!val) { showToast('⚠️ Token vide, non enregistré'); return; }
+  localStorage.setItem('zyfix_gh_token', val);
+  GH_TOKEN = val;
+  showToast('💾 Token GitHub enregistré');
+  ghDiagRefresh();
+  if (typeof ghStartAutoSync === 'function') ghStartAutoSync();
+  else if (typeof ghPull === 'function') ghPull(true);
 }
 // Rafraîchir le panneau à l'ouverture de la config Agent Vocal
 // ─────────────────────────────────────────────────────────────────────────────
