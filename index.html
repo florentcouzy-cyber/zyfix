@@ -3870,12 +3870,10 @@ function saveClient(){
     sourceNote:document.getElementById('c-source-note').value,
     date:today()
   }, efFields));
-  dbSave(); closeM('m-client');
+  dbSave(); if(typeof ghPush==='function'&&GH_TOKEN) ghPush(true); closeM('m-client');
   resetFields(['c-nom','c-prenom','c-tel','c-email','c-adresse','c-entreprise']);
   refreshAll();
 }
-
-function renderClients(list){
   list = list || DB.clients || [];
   const tb=document.getElementById('tbl-clients');
   const ml=document.getElementById('mlist-clients');
@@ -5801,11 +5799,6 @@ function ghPull(silent){
         if(typeof ghDiagUpdate==='function') ghDiagUpdate('pull', now);
         if(!silent) showToast('🔄 Sync OK !');
         } finally { window._ghPulling = false; }
-      } else if(localTs > remoteTs) {
-        // Local plus récent → push vers GitHub
-        ghPush(true);
-        var now2 = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-        ghUpdateUI('↑ ' + now2);
       } else {
         var now3 = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
         ghUpdateUI('✓ ' + now3);
