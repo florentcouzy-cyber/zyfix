@@ -3508,7 +3508,6 @@ function dbSave(){
     }
   }
   try{ if(window._gdriveToken){ gdrivePush(true); } } catch(ex){}
-  if(typeof ghPush === 'function' && GH_TOKEN && !window._ghPulling) ghPush(true);
 }
 
 // ─── NAVIGATION ──────────────────────────────────
@@ -3681,7 +3680,7 @@ function saveTicket(){
       t.probleme=pb; t.diag=document.getElementById('t-diag').value;
       t.statut=document.getElementById('t-statut').value;
     }
-    dbSave(); closeM('m-ticket'); resetModal('ticket');
+    dbSave(); if(typeof ghPush==='function'&&GH_TOKEN) ghPush(true); closeM('m-ticket'); resetModal('ticket');
     resetFields(['t-marque','t-modele','t-serie','t-os','t-probleme','t-diag','t-rdv-notes']);
     refreshAll(); showToast('✅ Ticket modifié !'); return;
   }
@@ -3855,7 +3854,7 @@ function saveClient(){
       c.sourceNote=document.getElementById('c-source-note').value;
       Object.assign(c, efFields);
     }
-    dbSave(); closeM('m-client'); resetModal('client');
+    dbSave(); if(typeof ghPush==='function'&&GH_TOKEN) ghPush(true); closeM('m-client'); resetModal('client');
     resetFields(['c-nom','c-prenom','c-tel','c-email','c-adresse','c-entreprise']);
     refreshAll(); showToast('✅ Client modifié !'); return;
   }
@@ -4074,7 +4073,7 @@ function saveDevis(){
       d.statut=document.getElementById('d-statut').value;
       d.microEntreprise=isMicro;
     }
-    dbSave(); closeM('m-devis'); resetModal('devis');
+    dbSave(); if(typeof ghPush==='function'&&GH_TOKEN) ghPush(true); closeM('m-devis'); resetModal('devis');
     document.getElementById('d-lignes').value='';
     refreshAll(); showToast('✅ Devis modifié !'); return;
   }
@@ -4179,7 +4178,7 @@ function saveFacture(){
       f.microEntreprise=isMicroF;
       f.statut=document.getElementById('f-statut').value;
     }
-    dbSave(); closeM('m-facture'); resetModal('facture');
+    dbSave(); if(typeof ghPush==='function'&&GH_TOKEN) ghPush(true); closeM('m-facture'); resetModal('facture');
     document.getElementById('f-lignes').value='';
     refreshAll(); showToast('✅ Facture modifiée !'); return;
   }
@@ -4273,7 +4272,7 @@ function saveStock(){
     vente:parseFloat(document.getElementById('s-vente').value)||0,
     seuil:parseInt(document.getElementById('s-seuil').value)||2
   });
-  dbSave(); closeM('m-stock');
+  dbSave(); if(typeof ghPush==='function'&&GH_TOKEN) ghPush(true); closeM('m-stock');
   resetFields(['s-ref','s-nom','s-achat','s-vente']);
   refreshAll();
 }
@@ -5036,7 +5035,7 @@ function saveRdv(){
     motif: document.getElementById('rdv-motif').value||'',
     notes: document.getElementById('rdv-notes').value||''
   });
-  dbSave();
+  dbSave(); if(typeof ghPush==='function'&&GH_TOKEN) ghPush(true);
   closeM('m-rdv');
   document.getElementById('rdv-motif').value='';
   document.getElementById('rdv-notes').value='';
@@ -8041,7 +8040,7 @@ function saveRep() {
     DB.reparations.push(data);
   }
 
-  dbSave();
+  dbSave(); if(typeof ghPush==='function'&&GH_TOKEN) ghPush(true);
   closeM('m-rep');
   renderReparations();
   showToast('✅ Réparation enregistrée !');
