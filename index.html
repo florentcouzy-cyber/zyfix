@@ -1554,6 +1554,23 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
               <button class="btn btn-ghost btn-sm" onclick="avSaveConfigSecret()">🔑 Enregistrer</button>
             </div>
           </div>
+          <!-- ── Panneau diagnostic GitHub Sync ── -->
+          <div id="gh-diag-panel" style="margin-top:8px;padding:8px;background:#0a1520;border:1px solid #1e3a5f;border-radius:6px;font-size:11px;font-family:var(--mono)">
+            <div style="font-weight:600;color:var(--cyan);margin-bottom:6px">🔗 Diagnostic GitHub Sync</div>
+            <div style="display:grid;grid-template-columns:auto 1fr;gap:2px 8px;color:#8899aa">
+              <span>GH_TOKEN :</span><span id="ghd-token" style="color:#fff">—</span>
+              <span>Dernier push :</span><span id="ghd-push" style="color:#fff">jamais</span>
+              <span>Dernier pull :</span><span id="ghd-pull" style="color:#fff">jamais</span>
+              <span>Local saved :</span><span id="ghd-local" style="color:#fff">—</span>
+              <span>Remote saved :</span><span id="ghd-remote" style="color:#fff">—</span>
+              <span>État :</span><span id="ghd-state" style="color:#fff">idle</span>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:8px">
+              <button class="btn btn-ghost btn-sm" onclick="ghSyncNow ? ghSyncNow() : ghPush(false)" style="flex:1">⬆ Push</button>
+              <button class="btn btn-ghost btn-sm" onclick="ghPull(false)" style="flex:1">⬇ Pull</button>
+              <button class="btn btn-ghost btn-sm" onclick="ghDiagRefresh()" style="flex:1">↻ Rafraîchir</button>
+            </div>
+          </div>
           <div id="avc-status" style="font-size:11px;margin-top:4px"></div>
         </div>
       </div>
@@ -5696,6 +5713,7 @@ function ghPush(silent){
       if(data.content){
         var now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
         ghUpdateUI('✓ ' + now);
+        if(typeof ghDiagUpdate==='function') ghDiagUpdate('push', now);
         console.log('[ZyFix Sync] ↑ Push OK', now);
         if(!silent) showToast('✅ Sauvegardé !');
         // Si un push était en attente, le relancer
@@ -5777,6 +5795,7 @@ function ghPull(silent){
         refreshAll();
         var now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
         ghUpdateUI('↓ ' + now);
+        if(typeof ghDiagUpdate==='function') ghDiagUpdate('pull', now);
         if(!silent) showToast('🔄 Sync OK !');
         } finally { window._ghPulling = false; }
       } else if(localTs > remoteTs) {
@@ -10909,6 +10928,7 @@ function avInitConfigFields() {
   f('avc-transfer-num',ELA_TRANSFER_NUM);
   f('avc-webhook-url', ELA_WORKER_URL ? ELA_WORKER_URL + '/webhook' : '— Worker non configuré —');
   f('avc-config-secret', localStorage.getItem('zyfix_config_secret') || '');
+  if (typeof ghDiagRefresh === 'function') ghDiagRefresh();
 }
 
 function avSaveConfigSecret() {
@@ -11566,6 +11586,23 @@ function elaPushRemoteConfig() {
     .then(function(r) { if (r.ok) console.log('[ZyFix] Config poussée sur Worker ✅'); })
     .catch(function(e) { console.warn('[ZyFix] Push config Worker échoué', e); });
 }
+// ── Diagnostic GitHub Sync ────────────────────────────────────────────────
+var _ghDiagLastPush = '', _ghDiagLastPull = '';
+function ghDiagUpdate(type, ts) {
+  if (type === 'push') { _ghDiagLastPush = ts; var el = document.getElementById('ghd-push'); if(el) el.textContent = ts; }
+  if (type === 'pull') { _ghDiagLastPull = ts; var el = document.getElementById('ghd-pull'); if(el) el.textContent = ts; }
+  ghDiagRefresh();
+}
+function ghDiagRefresh() {
+  var s = function(id, val) { var el = document.getElementById(id); if(el) el.textContent = val || '—'; };
+  s('ghd-token',  GH_TOKEN ? '✅ OUI (' + GH_TOKEN.substring(0,6) + '…)' : '❌ NON — token manquant');
+  s('ghd-push',   _ghDiagLastPush || 'jamais');
+  s('ghd-pull',   _ghDiagLastPull || 'jamais');
+  s('ghd-local',  localStorage.getItem('zyfix_last_save') || '—');
+  s('ghd-remote', window._lastPullTs || '—');
+  s('ghd-state',  window._ghSyncing ? (window._ghPulling ? 'pulling…' : 'pushing…') : 'idle');
+}
+// Rafraîchir le panneau à l'ouverture de la config Agent Vocal
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Lancer l'écoute webhook au démarrage
