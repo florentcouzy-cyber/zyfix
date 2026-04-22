@@ -3487,6 +3487,7 @@ function dbSave(){
     }
   }
   try{ if(window._gdriveToken){ gdrivePush(true); } } catch(ex){}
+  if(typeof ghPush === 'function' && GH_TOKEN && !window._ghPulling) ghPush(true);
 }
 
 // ─── NAVIGATION ──────────────────────────────────
@@ -5748,6 +5749,8 @@ function ghPull(silent){
 
       if(remoteTs > localTs || (remoteTs === localTs && remoteStr !== localStr)){
         // GitHub plus récent → mettre à jour local
+        window._ghPulling = true;
+        try {
         var _localAppels = (DB.appels && DB.appels.length) ? DB.appels : null;
         var _localReps   = (DB.reparations && DB.reparations.length) ? DB.reparations : null;
         DB = remote.DB;
@@ -5775,6 +5778,7 @@ function ghPull(silent){
         var now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
         ghUpdateUI('↓ ' + now);
         if(!silent) showToast('🔄 Sync OK !');
+        } finally { window._ghPulling = false; }
       } else if(localTs > remoteTs) {
         // Local plus récent → push vers GitHub
         ghPush(true);
