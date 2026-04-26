@@ -1570,7 +1570,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
               <span>État :</span><span id="ghd-state" style="color:#fff">idle</span>
             </div>
             <div style="display:flex;gap:6px;margin-top:8px">
-              <button class="btn btn-ghost btn-sm" onclick="ghSyncNow ? ghSyncNow() : ghPush(false)" style="flex:1">⬆ Push</button>
+              <button class="btn btn-ghost btn-sm" onclick="ghPush(false)" style="flex:1">⬆ Push</button>
               <button class="btn btn-ghost btn-sm" onclick="ghPull(false)" style="flex:1">⬇ Pull</button>
               <button class="btn btn-ghost btn-sm" onclick="ghDiagRefresh()" style="flex:1">↻ Rafraîchir</button>
             </div>
@@ -3539,6 +3539,10 @@ const ACTIONS = {
 
 function _gotoCore(name){
   // Fermer tous les modaux/overlays ouverts avant de changer de page
+  var agentModal = document.getElementById('m-agent-ia');
+  if(agentModal && agentModal.classList.contains('open')){
+    try{ if(typeof _elaCleanup === 'function') _elaCleanup(); }catch(e){}
+  }
   document.querySelectorAll('.overlay.open').forEach(function(ov){ ov.classList.remove('open'); });
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
@@ -3576,9 +3580,24 @@ function openM(id){
     renderForfaits('f');
   }
 }
-function closeM(id){ document.getElementById(id).classList.remove('open'); }
+function _elaCleanup() {
+  if (window._elaClosing) return;
+  window._elaClosing = true;
+  try {
+    if (typeof elaStopAudioViz === 'function') elaStopAudioViz();
+    if (typeof elaEndCall === 'function' && (window._elaActive || (window._elaConversation))) elaEndCall();
+  } catch(e) {}
+  setTimeout(function(){ window._elaClosing = false; }, 500);
+}
+function closeM(id){
+  if (id === 'm-agent-ia') _elaCleanup();
+  document.getElementById(id).classList.remove('open');
+}
 document.querySelectorAll('.overlay').forEach(o=>{
-  o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); });
+  o.addEventListener('click',e=>{ if(e.target===o){
+    if(o.id === 'm-agent-ia') _elaCleanup();
+    o.classList.remove('open');
+  }});
 });
 
 // ─── HELPERS ─────────────────────────────────────
@@ -3715,7 +3734,7 @@ function saveTicket(){
     _agendaDate = rdvDate;
     showToast('RDV créé le '+rdvDate+(rdvHeure?' à '+rdvHeure:'')+'!');
   }
-  dbSave(); closeM('m-ticket');
+  dbSave(); if(typeof ghPush === 'function' && GH_TOKEN) ghPush(true); closeM('m-ticket');
   resetFields(['t-marque','t-modele','t-serie','t-os','t-probleme','t-diag','t-rdv-notes']);
   document.getElementById('t-rdv-date').value = '';
   refreshAll();
@@ -3786,7 +3805,7 @@ function renderTickets(list){
 }
 
 function setTicketStatus(id,st){
-  const t=DB.tickets.find(x=>x.id===id); if(t){t.statut=st;dbSave();refreshAll();}
+  const t=DB.tickets.find(x=>x.id===id); if(t){t.statut=st;dbSave();if(typeof ghPush === 'function' && GH_TOKEN) ghPush(true);refreshAll();}
 }
 
 function filterTickets(q){
@@ -3870,11 +3889,10 @@ function saveClient(){
     sourceNote:document.getElementById('c-source-note').value,
     date:today()
   }, efFields));
-  dbSave(); closeM('m-client');
+  dbSave(); if(typeof ghPush==='function'&&GH_TOKEN) ghPush(true); closeM('m-client');
   resetFields(['c-nom','c-prenom','c-tel','c-email','c-adresse','c-entreprise']);
   refreshAll();
 }
-
 function renderClients(list){
   list = list || DB.clients || [];
   const tb=document.getElementById('tbl-clients');
@@ -4088,7 +4106,7 @@ function saveDevis(){
     statut:document.getElementById('d-statut').value,
     date:today()
   });
-  dbSave(); closeM('m-devis');
+  dbSave(); if(typeof ghPush === 'function' && GH_TOKEN) ghPush(true); closeM('m-devis');
   document.getElementById('d-lignes').value='';
   refreshAll();
 }
@@ -4157,7 +4175,7 @@ function devisToFacture(dvId){
       statut:'emise', date:today()
     });
     d.statut='accepte';
-    dbSave(); refreshAll();
+    dbSave(); if(typeof ghPush === 'function' && GH_TOKEN) ghPush(true); refreshAll();
     showToast('✅ Facture créée !');
   }, { icon:'&#8594;&#x1F4CB;', okLabel:'Convertir', okColor:'#00d4ff', okTxtColor:'#000' });
 }
@@ -4194,7 +4212,7 @@ function saveFacture(){
     statut:document.getElementById('f-statut').value,
     date:today()
   });
-  dbSave(); closeM('m-facture');
+  dbSave(); if(typeof ghPush === 'function' && GH_TOKEN) ghPush(true); closeM('m-facture');
   document.getElementById('f-lignes').value='';
   refreshAll();
 }
@@ -4337,14 +4355,14 @@ function renderStock(){
 }
 
 function adjQte(id,d){
-  const s=DB.stock.find(x=>x.id===id); if(s){s.qte=Math.max(0,s.qte+d);dbSave();refreshAll();}
+  const s=DB.stock.find(x=>x.id===id); if(s){s.qte=Math.max(0,s.qte+d);dbSave();if(typeof ghPush === 'function' && GH_TOKEN) ghPush(true);refreshAll();}
 }
 
 // ─── DELETE ──────────────────────────────────────
 function del(col,id){
   showConfirm('Supprimer cet élément ?', function(){
     DB[col]=DB[col].filter(x=>x.id!==id);
-    dbSave(); refreshAll();
+    dbSave(); if(typeof ghPush === 'function' && GH_TOKEN) ghPush(true); refreshAll();
   });
 }
 
@@ -4362,7 +4380,7 @@ function delAppel(id) {
     if (a.linkedRep)     DB.reparations = (DB.reparations||[]).filter(function(x){ return x.id !== a.linkedRep; });
     if (a.linkedRdv)     DB.rdv         = (DB.rdv||[]).filter(function(x){ return x.id !== a.linkedRdv; });
     DB.appels = (DB.appels||[]).filter(function(x){ return x.id !== id; });
-    dbSave(); refreshAll();
+    dbSave(); if(typeof ghPush === 'function' && GH_TOKEN) ghPush(true); refreshAll();
     showToast('🗑 Appel et éléments liés supprimés');
   });
 }
@@ -4662,7 +4680,7 @@ function validerSignature() {
     }
   }
 
-  dbSave();
+  dbSave(); if(typeof ghPush === 'function' && GH_TOKEN) ghPush(true);
   closeM('m-sign');
 
   /* Mettre à jour le timestamp affiché */
@@ -5440,7 +5458,7 @@ function validerRdv(id) {
   if (isDone) {
     // Revenir à planifié
     r.statut = 'planifie';
-    dbSave(); refreshAll();
+    dbSave(); if(typeof ghPush === 'function' && GH_TOKEN) ghPush(true); refreshAll();
     showToast('↩ RDV remis en planifié');
   } else {
     // Marquer terminé — chercher la réparation liée
@@ -5450,7 +5468,7 @@ function validerRdv(id) {
     var msg = '✅ Marquer ce RDV comme terminé ?';
     showConfirm(msg, function() {
       r.statut = 'termine';
-      dbSave(); refreshAll();
+      dbSave(); if(typeof ghPush === 'function' && GH_TOKEN) ghPush(true); refreshAll();
       showToast('✅ RDV terminé !');
     }, { okLabel: '✅ Terminer', cancelLabel: 'Annuler' });
   }
@@ -5460,7 +5478,7 @@ function delRdv(id){
   showConfirm('Supprimer ce RDV ?', function(){
     if(!DB.rdv) DB.rdv=[]; if(!DB.reparations) DB.reparations=[]; if(!DB.appels) DB.appels=[];
     DB.rdv = DB.rdv.filter(function(r){ return r.id!==id; });
-    dbSave(); refreshAll();
+    dbSave(); if(typeof ghPush === 'function' && GH_TOKEN) ghPush(true); refreshAll();
   });
 }
 
@@ -5622,7 +5640,7 @@ del = function(col, id){
   if(col === 'rdv'){
     showConfirm('Supprimer ce RDV ?', function(){
       DB.rdv = DB.rdv.filter(function(r){ return r.id!==id; });
-      dbSave(); refreshAll();
+      dbSave(); if(typeof ghPush === 'function' && GH_TOKEN) ghPush(true); refreshAll();
     });
     return;
   }
@@ -5751,8 +5769,9 @@ function ghPull(silent){
   fetch(ghApiUrl() + '?ref=' + GH_BRANCH + '&t=' + Date.now(), { headers: ghHeaders() })
     .then(function(r){
       if(r.status === 404){ 
-        // Fichier n'existe pas encore → push les données locales
-        ghPush(silent);
+        // Fichier distant absent : ne jamais pousser depuis un pull
+        ghUpdateUI('fichier absent');
+        if(!silent) showToast('Fichier GitHub distant introuvable');
         return null;
       }
       return r.json();
@@ -5801,11 +5820,6 @@ function ghPull(silent){
         if(typeof ghDiagUpdate==='function') ghDiagUpdate('pull', now);
         if(!silent) showToast('🔄 Sync OK !');
         } finally { window._ghPulling = false; }
-      } else if(localTs > remoteTs) {
-        // Local plus récent → push vers GitHub
-        ghPush(true);
-        var now2 = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
-        ghUpdateUI('↑ ' + now2);
       } else {
         var now3 = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
         ghUpdateUI('✓ ' + now3);
@@ -7147,7 +7161,7 @@ function marquerPayee(id) {
     function() {
       f.statut    = 'payee';
       f.datePaiement = new Date().toISOString().substring(0, 10);
-      dbSave(); refreshAll();
+      dbSave(); if(typeof ghPush === 'function' && GH_TOKEN) ghPush(true); refreshAll();
       showToast('✅ Facture ' + id + ' marquée payée — CA mis à jour');
     },
     { icon:'✅', okLabel:'Confirmer paiement', okColor:'var(--green)' }
@@ -7163,7 +7177,7 @@ function annulerPaiement(id) {
     function() {
       f.statut       = 'emise';
       f.datePaiement = null;
-      dbSave(); refreshAll();
+      dbSave(); if(typeof ghPush === 'function' && GH_TOKEN) ghPush(true); refreshAll();
       showToast('↩️ Paiement annulé — facture ' + id + ' repassée en "Émise"');
     },
     { icon:'↩️', okLabel:'Annuler le paiement', okColor:'var(--amber)' }
@@ -10126,9 +10140,14 @@ function elaStartCall() {
 
 // ── Terminer la session ────────────────────────────────────────────────────
 function elaEndCall() {
-  if (_elaConversation && typeof _elaConversation.endSession === 'function') {
-    _elaConversation.endSession();
+  try {
+    if (_elaConversation && typeof _elaConversation.endSession === 'function') {
+      _elaConversation.endSession();
+    }
+  } catch(e) {
+    console.warn('[ElaEndCall]', e);
   }
+  _elaConversation = null;
   _elaActive = false;
   elaStopAudioViz();
   elaSetOrb('idle');
@@ -11327,7 +11346,7 @@ function elaCreateFromSession() {
     linkedTicket:tkId, linkedRdv:rdvId, brouillon:false
   });
 
-  dbSave(); refreshAll();
+  dbSave(); if(typeof ghPush === 'function' && GH_TOKEN) ghPush(true); refreshAll();
   closeM('m-agent-ia');
   showToast('✅ '+created.join(' | '));
   setTimeout(function(){ _gotoCore('appels'); }, 300);
@@ -11344,7 +11363,7 @@ function elaTransfert() {
     notes:'📞 TRANSFERT DEMANDÉ — Agent Vocal ElevenLabs\n\n'+elaSessionToText(),
     brouillon:true
   });
-  dbSave(); refreshAll();
+  dbSave(); if(typeof ghPush === 'function' && GH_TOKEN) ghPush(true); refreshAll();
   closeM('m-agent-ia');
   showToast('📞 Transfert enregistré — fiche brouillon créée dans Appels');
   setTimeout(function(){ _gotoCore('appels'); }, 300);
@@ -11360,7 +11379,7 @@ function elaRappel() {
     notes:'📞 DEMANDE DE RAPPEL — Agent Vocal ElevenLabs\n\n'+elaSessionToText(),
     brouillon:true
   });
-  dbSave(); refreshAll();
+  dbSave(); if(typeof ghPush === 'function' && GH_TOKEN) ghPush(true); refreshAll();
   closeM('m-agent-ia');
   showToast('📞 Demande de rappel enregistrée — fiche brouillon créée');
   setTimeout(function(){ _gotoCore('appels'); }, 300);
@@ -11499,6 +11518,7 @@ function elaSetOrb(state) {
 
 // ── Visualiseur audio ──────────────────────────────────────────────────────
 function elaStartAudioViz() {
+  if (_elaAnimFrame) elaStopAudioViz();
   var canvas = document.getElementById('ela-audio-bar');
   if (!canvas) return;
   canvas.style.opacity = '0.8';
@@ -11526,6 +11546,7 @@ function elaStartAudioViz() {
 
 function elaStopAudioViz() {
   if (_elaAnimFrame) cancelAnimationFrame(_elaAnimFrame);
+  _elaAnimFrame = null;
   var canvas = document.getElementById('ela-audio-bar');
   if (canvas) canvas.style.opacity='0';
 }
