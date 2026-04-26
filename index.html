@@ -464,24 +464,31 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
   z-index:500;
   padding-bottom:env(safe-area-inset-bottom,0px);
   height:calc(60px + env(safe-area-inset-bottom,0px));
+  overflow-x:auto;
+  overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
 }
 .bnav-inner{
   display:flex;align-items:stretch;
   height:60px;
+  width:max-content;
+  min-width:100%;
 }
 .bnav-item{
-  flex:1;display:flex;flex-direction:column;
+  flex:0 0 auto;min-width:74px;display:flex;flex-direction:column;
   align-items:center;justify-content:center;
   gap:3px;cursor:pointer;
   color:var(--t3);transition:color .15s;
   position:relative;-webkit-tap-highlight-color:transparent;
   padding:6px 4px 4px;
 }
+.bnav-item:first-child{margin-left:4px;}
+.bnav-item:last-child{margin-right:4px;}
 .bnav-item:active{background:rgba(255,255,255,.04);}
 .bnav-item.active{color:var(--cyan);}
 .bnav-item.active .bico{ opacity:1; }
 .bico{width:18px;height:18px;display:flex;align-items:center;justify-content:center;line-height:1;}
-.blbl{font-family:var(--mono);font-size:9px;letter-spacing:.5px;font-weight:500;}
+.blbl{font-family:var(--mono);font-size:10px;letter-spacing:.2px;font-weight:600;white-space:nowrap;}
 .bcnt{
   position:absolute;top:5px;right:calc(50% - 19px);
   background:var(--cyan);color:#fff;
@@ -1206,7 +1213,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
       <span class="blbl">Agenda</span>
       <span class="bcnt" id="bcnt-rdv" style="display:none">0</span>
     </div>
-    <div class="bnav-item" data-bpage="agent-vocal" onclick="goto('agent-vocal')" style="cursor:pointer">
+    <div class="bnav-item" data-bpage="agent-vocal" style="cursor:pointer">
       <span class="bico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg></span>
       <span class="blbl">Agent Vocal</span>
     </div>
