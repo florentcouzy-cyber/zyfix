@@ -1334,7 +1334,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
         Configurer Agent Vocal
       </button>
     </div>
-    ZyRAMGamer © 2026 — v4-1-6
+    ZyRAMGamer © 2026 — v4-1-7
   </div>
 </aside>
 
@@ -5903,12 +5903,14 @@ async function syncAgentVocal(silent){
   if(btn) btn.textContent = '⏳ Sync en cours...';
 
   try {
+    if(silent) console.log('[ElaAutoSync] poll start');
     var res = await fetch(worker + '/poll');
     var data = await res.json();
 
     if(!data || !Array.isArray(data.events)){
       throw new Error('Réponse /poll invalide');
     }
+    if(silent) console.log('[ElaAutoSync] events reçus', data.events.length);
 
     if(typeof DB !== 'object' || !DB) DB = {};
     if(!Array.isArray(DB.clients)) DB.clients = [];
@@ -5986,11 +5988,18 @@ async function syncAgentVocal(silent){
     }
 
     data.events.forEach(function(ev){
-      if(!ev || !ev.id || imported.has(ev.id)) return;
+      if(!ev || !ev.id) return;
+      if(imported.has(ev.id)){
+        if(silent) console.log('[ElaAutoSync] déjà importé', ev.id);
+        return;
+      }
 
       var p = ev.payload || ev;
       var tool = p.tool || ev.tool || '';
-      if(['creer_rdv','demande_rappel','create_ticket'].indexOf(tool) === -1) return;
+      if(['creer_rdv','demande_rappel','create_ticket'].indexOf(tool) === -1) {
+        if(silent) console.warn('[ElaAutoSync] outil ignoré', tool, ev);
+        return;
+      }
 
       var fullName = [p.prenom, p.nom].filter(Boolean).join(' ').trim() || p.nom || 'Client vocal';
       var phone = p.telephone || 'non précisé';
@@ -6145,6 +6154,7 @@ async function syncAgentVocal(silent){
       ghPush(true);
     }
     if(silent && done > 0) console.log('[ElaAutoSync] import ' + done + ' event(s)');
+    if(silent) console.log('[ElaAutoSync] importés', done);
 
     if(btn) btn.textContent = done ? ('✅ ' + done + ' appel(s) importé(s)') : '✓ Aucun nouvel appel';
     setTimeout(function(){
@@ -6152,6 +6162,7 @@ async function syncAgentVocal(silent){
     }, 2500);
 
   } catch(e){
+    if(silent) console.warn('[ElaAutoSync] erreur', e);
     console.error('syncAgentVocal error', e);
     if(btn) btn.textContent = '⚠️ Erreur sync';
     setTimeout(function(){
