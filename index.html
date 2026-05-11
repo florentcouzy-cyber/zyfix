@@ -1334,7 +1334,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
         Configurer Agent Vocal
       </button>
     </div>
-    ZyRAMGamer © 2026 — v4-1-5
+    ZyRAMGamer © 2026 — v4-1-6
   </div>
 </aside>
 
@@ -5880,6 +5880,7 @@ function syncAgentVocalNow(){
 
 var _elaAgentAutoSyncTimer = null;
 var _elaAgentAutoSyncBusy = false;
+var _elaAgentAutoSyncKickTimer = null;
 
 async function syncAgentVocal(silent){
   var worker = (
@@ -5890,8 +5891,10 @@ async function syncAgentVocal(silent){
   var importedKey = 'zyfix_agent_imported_ids';
 
   if(!worker){
-    console.warn('Worker non configuré');
-    if(!silent) openAgentConfig();
+    if(!silent){
+      console.warn('Worker non configuré');
+      openAgentConfig();
+    }
     return;
   }
 
@@ -6141,6 +6144,7 @@ async function syncAgentVocal(silent){
     if(done > 0 && typeof ghPush === 'function'){
       ghPush(true);
     }
+    if(silent && done > 0) console.log('[ElaAutoSync] import ' + done + ' event(s)');
 
     if(btn) btn.textContent = done ? ('✅ ' + done + ' appel(s) importé(s)') : '✓ Aucun nouvel appel';
     setTimeout(function(){
@@ -6157,7 +6161,14 @@ async function syncAgentVocal(silent){
 }
 
 function elaStartAgentAutoSync(){
+  var worker = (
+    localStorage.getItem('zyfix_ela_worker') ||
+    localStorage.getItem('ELA_WORKER_URL') ||
+    ELA_WORKER_URL || ''
+  ).replace(/\/+$/, '');
+  if(!worker) return;
   if(_elaAgentAutoSyncTimer) clearInterval(_elaAgentAutoSyncTimer);
+  if(_elaAgentAutoSyncKickTimer) clearTimeout(_elaAgentAutoSyncKickTimer);
   var run = function(){
     if(_elaAgentAutoSyncBusy) return;
     _elaAgentAutoSyncBusy = true;
@@ -6165,7 +6176,8 @@ function elaStartAgentAutoSync(){
       _elaAgentAutoSyncBusy = false;
     });
   };
-  setTimeout(run, 5000);
+  console.log('[ElaAutoSync] démarré');
+  _elaAgentAutoSyncKickTimer = setTimeout(run, 5000);
   _elaAgentAutoSyncTimer = setInterval(run, 30000);
 }
 
@@ -11641,6 +11653,7 @@ function elaLoadRemoteConfig() {
       if (!cfg) return;
       elaApplyRemoteConfig(cfg);
       console.log('[ZyFix] Config distante chargée depuis Worker ✅');
+      if(typeof elaStartAgentAutoSync === 'function') elaStartAgentAutoSync();
     })
     .catch(function(e) { console.warn('[ZyFix] Config distante inaccessible (local utilisé)', e); });
 }
@@ -11698,7 +11711,6 @@ function ghDiagSaveToken() {
 
 // Lancer l'écoute webhook au démarrage
 elaRegisterWebhookListener();
-elaStartAgentAutoSync();
 // Appliquer le mode de routage au démarrage
 setTimeout(function(){ avApplyModeUI(AV_MODE); }, 100);
 // Initialiser le module e-Facture
