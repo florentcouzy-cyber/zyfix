@@ -1334,7 +1334,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
         Configurer Agent Vocal
       </button>
     </div>
-    ZyRAMGamer © 2026 — v4-2-0
+    ZyRAMGamer © 2026 — v4-2-1
   </div>
 </aside>
 
@@ -5813,10 +5813,16 @@ function ghPull(silent){
         if(!DB.devis) DB.devis = [];
         if(!DB.factures) DB.factures = [];
         if(!DB.stock) DB.stock = [];
-        if(_localAppels && (!DB.appels || !DB.appels.length)) DB.appels = _localAppels;
-        else if(!DB.appels) DB.appels = [];
-        if(_localReps && (!DB.reparations || !DB.reparations.length)) DB.reparations = _localReps;
-        else if(!DB.reparations) DB.reparations = [];
+        if(!DB.appels) DB.appels = [];
+        if(_localAppels){
+          var _remoteAppelIds = new Set(DB.appels.map(function(a){ return a && a.id; }).filter(Boolean));
+          _localAppels.forEach(function(a){ if(a && a.id && !_remoteAppelIds.has(a.id)) DB.appels.push(a); });
+        }
+        if(!DB.reparations) DB.reparations = [];
+        if(_localReps){
+          var _remoteRepIds = new Set(DB.reparations.map(function(r){ return r && r.id; }).filter(Boolean));
+          _localReps.forEach(function(r){ if(r && r.id && !_remoteRepIds.has(r.id)) DB.reparations.push(r); });
+        }
         CTR = remote.CTR || CTR;
         // Restaurer PILSettings si présent dans le remote
         if (remote.PIL && typeof remote.PIL === 'object') {
