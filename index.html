@@ -1334,7 +1334,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
         Configurer Agent Vocal
       </button>
     </div>
-    ZyRAMGamer © 2026 — v4-1-3
+    ZyRAMGamer © 2026 — v4-1-5
   </div>
 </aside>
 
@@ -5871,14 +5871,17 @@ function syncAgentVocalNow(){
       return;
     }
 
-    syncAgentVocal();
+    syncAgentVocal(false);
   } catch(e){
     console.error('syncAgentVocalNow error', e);
     alert('Erreur sync agent vocal');
   }
 }
 
-async function syncAgentVocal(){
+var _elaAgentAutoSyncTimer = null;
+var _elaAgentAutoSyncBusy = false;
+
+async function syncAgentVocal(silent){
   var worker = (
     localStorage.getItem('zyfix_ela_worker') ||
     localStorage.getItem('ELA_WORKER_URL') ||
@@ -5888,11 +5891,11 @@ async function syncAgentVocal(){
 
   if(!worker){
     console.warn('Worker non configuré');
-    openAgentConfig();
+    if(!silent) openAgentConfig();
     return;
   }
 
-  var btn = document.getElementById('agent-sync-label');
+  var btn = silent ? null : document.getElementById('agent-sync-label');
   var oldText = btn ? btn.textContent : '';
   if(btn) btn.textContent = '⏳ Sync en cours...';
 
@@ -5988,6 +5991,14 @@ async function syncAgentVocal(){
 
       var fullName = [p.prenom, p.nom].filter(Boolean).join(' ').trim() || p.nom || 'Client vocal';
       var phone = p.telephone || 'non précisé';
+      var agentAdresse = p.adresse || p.address || p.client_adresse || p.adresse_client || p.intervention_adresse || p.adresse_intervention || p.adresse_domicile || p.lieu;
+      if(!agentAdresse && typeof p.domicile === 'string') agentAdresse = p.domicile;
+      if(!agentAdresse){
+        var rueAgent = p.rue || p.adresse_rue || '';
+        var cpVilleAgent = [p.code_postal || p.cp || '', p.ville || ''].filter(Boolean).join(' ');
+        agentAdresse = [rueAgent, cpVilleAgent].filter(Boolean).join(', ');
+      }
+      if(agentAdresse && !p.adresse) p.adresse = agentAdresse;
 
       var client = DB.clients.find(function(c){
         return (c.tel || c.telephone || '') === phone;
@@ -6000,11 +6011,14 @@ async function syncAgentVocal(){
           prenom: p.prenom || '',
           telephone: phone,
           tel: phone,
+          adresse: agentAdresse || '',
           type: 'particulier',
           source: 'agent_vocal',
           note: p.resume || ''
         };
         DB.clients.push(client);
+      } else if(agentAdresse && !client.adresse){
+        client.adresse = agentAdresse;
       }
 
       var officialName = [client.prenom, client.nom].filter(Boolean).join(' ').trim() || client.nom || fullName;
@@ -6140,6 +6154,19 @@ async function syncAgentVocal(){
       if(btn) btn.textContent = oldText || '🎙️ Sync Agent Vocal';
     }, 2500);
   }
+}
+
+function elaStartAgentAutoSync(){
+  if(_elaAgentAutoSyncTimer) clearInterval(_elaAgentAutoSyncTimer);
+  var run = function(){
+    if(_elaAgentAutoSyncBusy) return;
+    _elaAgentAutoSyncBusy = true;
+    Promise.resolve(syncAgentVocal(true)).finally(function(){
+      _elaAgentAutoSyncBusy = false;
+    });
+  };
+  setTimeout(run, 5000);
+  _elaAgentAutoSyncTimer = setInterval(run, 30000);
 }
 
 // ── UI ────────────────────────────────────────────
@@ -10209,6 +10236,14 @@ function elaHandleWebhook(payload) {
   console.log('[ElaWebhook]', payload);
   var data = payload.payload || payload.data || payload;
   var tool = payload.tool || payload.type || payload.action || data.tool || data.type || data.action;
+  var adr = data.adresse || data.address || data.client_adresse || data.adresse_client || data.intervention_adresse || data.adresse_intervention || data.adresse_domicile || data.lieu;
+  if (!adr && typeof data.domicile === 'string') adr = data.domicile;
+  if (!adr) {
+    var rue = data.rue || data.adresse_rue || '';
+    var cpVille = [data.code_postal || data.cp || '', data.ville || ''].filter(Boolean).join(' ');
+    adr = [rue, cpVille].filter(Boolean).join(', ');
+  }
+  if (adr && !data.adresse) data.adresse = adr;
   if (data.telephone && !data.tel) data.tel = data.telephone;
   if (data.type_appareil && !data.appareil) data.appareil = data.type_appareil;
   if (data.probleme && !data.panne) data.panne = data.probleme;
@@ -11663,6 +11698,7 @@ function ghDiagSaveToken() {
 
 // Lancer l'écoute webhook au démarrage
 elaRegisterWebhookListener();
+elaStartAgentAutoSync();
 // Appliquer le mode de routage au démarrage
 setTimeout(function(){ avApplyModeUI(AV_MODE); }, 100);
 // Initialiser le module e-Facture
