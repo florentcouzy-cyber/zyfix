@@ -1334,7 +1334,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
         Configurer Agent Vocal
       </button>
     </div>
-    ZyRAMGamer © 2026 — v4-1-9
+    ZyRAMGamer © 2026 — v4-2-0
   </div>
 </aside>
 
@@ -5742,6 +5742,7 @@ function ghPush(silent){
         var now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
         ghUpdateUI('✓ ' + now);
         if(typeof ghDiagUpdate==='function') ghDiagUpdate('push', now);
+        window._ghLastPushOkAt = Date.now();
         console.log('[ZyFix Sync] ↑ Push OK', now);
         if(!silent) showToast('✅ Sauvegardé !');
         // Si un push était en attente, le relancer
@@ -5795,6 +5796,12 @@ function ghPull(silent){
       var localStr  = JSON.stringify(DB);
 
       if(remoteStr !== localStr){
+        var recentPush = window._ghLastPushOkAt && (Date.now() - window._ghLastPushOkAt < 5000);
+        if(_ghSyncing || recentPush){
+          ghUpdateUI('push récent');
+          console.log('[ZyFix Sync] Pull ignoré : push récent ou en cours');
+          return;
+        }
         // GitHub différent → mettre à jour local, sans push automatique
         window._ghPulling = true;
         try {
@@ -5996,7 +6003,7 @@ async function syncAgentVocal(silent){
 
       var p = ev.payload || ev;
       var tool = p.tool || ev.tool || '';
-      if(['creer_rdv','demande_rappel','create_ticket'].indexOf(tool) === -1) {
+      if(['creer_rdv','demande_rappel','create_ticket','transfert_humain'].indexOf(tool) === -1) {
         if(silent) console.warn('[ElaAutoSync] outil ignoré', tool, ev);
         return;
       }
