@@ -1334,7 +1334,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
         Configurer Agent Vocal
       </button>
     </div>
-    ZyRAMGamer © 2026 — v4-1-7
+    ZyRAMGamer © 2026 — v4-1-8
   </div>
 </aside>
 
@@ -11266,6 +11266,10 @@ function avOnPageEnter() {
 // ════════════════════════════════════════════════════════════════════════
 
 function elaRegisterWebhookListener() {
+  if (typeof elaStartAgentAutoSync === 'function') {
+    console.log('[ElaWebhook] poll live désactivé : auto-sync global actif');
+    return;
+  }
   // Polling du Worker Cloudflare KV toutes les 3 secondes
   // UNIQUEMENT quand le modal agent vocal est ouvert (session en cours)
   // syncAgentVocal() gère l'import batch — ce polling ne traite QUE les events live
