@@ -1334,7 +1334,7 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
         Configurer Agent Vocal
       </button>
     </div>
-    ZyRAMGamer © 2026 — v4-1-0
+    ZyRAMGamer © 2026 — v4-1-1
   </div>
 </aside>
 
@@ -10207,8 +10207,14 @@ function elaGetAvailableSlots(nbDays) {
 function elaHandleWebhook(payload) {
   // payload : { tool: 'creer_rdv'|'demande_rappel'|'transfert_humain', data: {...} }
   console.log('[ElaWebhook]', payload);
-  var tool = payload.tool || payload.type;
-  var data = payload.data || payload;
+  var data = payload.payload || payload.data || payload;
+  var tool = payload.tool || payload.type || payload.action || data.tool || data.type || data.action;
+  if (data.telephone && !data.tel) data.tel = data.telephone;
+  if (data.type_appareil && !data.appareil) data.appareil = data.type_appareil;
+  if (data.probleme && !data.panne) data.panne = data.probleme;
+  if (data.date_souhaitee && !data.rdv_date) data.rdv_date = data.date_souhaitee;
+  if (data.heure_souhaitee && !data.rdv_heure) data.rdv_heure = data.heure_souhaitee;
+  if (data.prise_en_charge && !data.pec) data.pec = data.prise_en_charge;
 
   if (tool === 'creer_rdv') {
     elaUpdateSession(data);
@@ -11230,15 +11236,21 @@ function elaRegisterWebhookListener() {
           // Déduplication stricte — ne traiter qu'une seule fois
           if (_elaProcessedIds.has(ev.id)) return;
           _elaProcessedIds.add(ev.id);
-          // Persister immédiatement pour éviter re-traitement après reload
+          // Marquer en cours pour éviter un double traitement pendant ce poll
+          var p = ev.payload || ev.data || ev;
+          var tool = ev.tool || ev.type || ev.action || p.tool || p.type || p.action || '';
+          console.log('[ElaWebhook] Event live reçu:', tool, ev.id);
+          var result = elaHandleWebhook(ev);
+          if (!result || !result.success) {
+            _elaProcessedIds.delete(ev.id);
+            console.warn('[ElaWebhook] Event live non traité:', tool, ev.id, result);
+            return;
+          }
           try {
             var existing = new Set(JSON.parse(localStorage.getItem('zyfix_agent_imported_ids') || '[]'));
             existing.add(ev.id);
             localStorage.setItem('zyfix_agent_imported_ids', JSON.stringify(Array.from(existing)));
           } catch(e){}
-
-          console.log('[ElaWebhook] Event live reçu:', ev.tool, ev.id);
-          elaHandleWebhook(ev);
 
           // ACK au worker pour retirer l'event de la KV
           fetch(workerUrl + '/ack', {
@@ -11663,7 +11675,7 @@ setTimeout(function(){ try{ efInit(); }catch(e){} }, 150);
     var result = _orig(payload);
     try {
       var p = payload.payload || payload.data || payload;
-      var tool = payload.tool || payload.type || p.tool || '';
+      var tool = payload.tool || payload.type || payload.action || p.tool || p.type || p.action || '';
       var fullName = [p.prenom, p.nom].filter(Boolean).join(' ').trim() || p.nom || p.nom_client || 'Client vocal';
       var resume = p.resume || p.panne || p.motif || '';
       var errors = [];
