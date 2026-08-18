@@ -1146,6 +1146,74 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
   display: inline-block;
 }
 
+/* ── Gestion des forfaits ── */
+.forfaits-manager-intro {
+  margin: 0 0 14px;
+  padding: 11px 13px;
+  border: 1px solid rgba(2,132,199,.28);
+  border-radius: 10px;
+  background: rgba(2,132,199,.08);
+  color: var(--t2);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.forfaits-edit-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 48vh;
+  overflow-y: auto;
+  padding-right: 3px;
+}
+.forfait-edit-row {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 130px auto;
+  gap: 8px;
+  align-items: end;
+  padding: 10px;
+  background: var(--s2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+.forfait-edit-field label {
+  display: block;
+  margin: 0 0 4px;
+  color: var(--t3);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.forfait-edit-field input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--s3);
+  border: 1px solid var(--border2);
+  border-radius: 7px;
+  padding: 7px 9px;
+  color: var(--t1);
+  font-family: var(--font);
+  font-size: 12px;
+}
+.forfait-edit-field input:focus { border-color: var(--cyan); outline: none; }
+.forfait-edit-actions { display:flex; gap:6px; align-items:center; }
+.forfait-add-box {
+  display: grid;
+  grid-template-columns: minmax(0,1fr) 150px auto;
+  gap: 8px;
+  align-items: end;
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px dashed var(--border2);
+  border-radius: 10px;
+  background: var(--s3);
+}
+@media(max-width:768px){
+  .forfait-edit-row, .forfait-add-box { grid-template-columns: 1fr; }
+  .forfait-edit-actions { justify-content:flex-end; }
+  .forfaits-edit-list { max-height: 50vh; }
+}
+
 
 /* ── Mini-menu appel rapide ── */
 #tel-quick-menu {
@@ -1700,7 +1768,8 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
     <div class="card">
       <div class="card-head">
         <div class="card-title">📋 Devis</div>
-        <div style="display:flex;gap:8px;align-items:center">
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end">
+          <button class="btn btn-ghost btn-sm" onclick="openM('m-forfaits')">⚙ Modifier les forfaits</button>
           <button id="btn-open-forfait-drawer" onclick="openForfaitDrawer()">⚡ Forfaits</button>
           <button class="btn btn-primary btn-sm" onclick="openM('m-devis')">+ Nouveau devis</button>
         </div>
@@ -2695,6 +2764,35 @@ textarea{resize:vertical;min-height:72px;line-height:1.5;}
     <div class="form-foot">
       <button class="btn btn-ghost" onclick="closeM('m-client');resetModal('client')">Annuler</button>
       <button class="btn btn-primary" id="btn-save-client" onclick="saveClient()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- GESTION DES FORFAITS -->
+<div class="overlay" id="m-forfaits">
+  <div class="modal" style="max-width:760px">
+    <div class="modal-head">
+      <div class="modal-title">⚙ Modifier les forfaits</div>
+      <button class="modal-x" onclick="closeM('m-forfaits')" aria-label="Fermer">✕</button>
+    </div>
+    <div style="padding:16px 20px 4px">
+      <p class="forfaits-manager-intro">Modifiez l’intitulé ou le prix, puis cliquez sur <strong>Enregistrer</strong>. Les changements sont mémorisés sur cet appareil et repris dans les prochains devis.</p>
+      <div id="forfaits-edit-list" class="forfaits-edit-list"></div>
+      <div class="forfait-add-box">
+        <div class="forfait-edit-field">
+          <label for="forfait-new-nom">Nouvel intitulé</label>
+          <input id="forfait-new-nom" type="text" placeholder="Ex. Installation et configuration" autocomplete="off">
+        </div>
+        <div class="forfait-edit-field">
+          <label for="forfait-new-prix">Prix affiché (€)</label>
+          <input id="forfait-new-prix" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00" onkeydown="if(event.key==='Enter'){event.preventDefault();addForfait()}">
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="addForfait()">+ Ajouter</button>
+      </div>
+    </div>
+    <div class="form-foot">
+      <button class="btn btn-ghost btn-sm" onclick="resetForfaitsDefaut()">↺ Valeurs par défaut</button>
+      <button class="btn btn-primary" onclick="closeM('m-forfaits')">Terminer</button>
     </div>
   </div>
 </div>
@@ -4855,32 +4953,45 @@ function editFacture(id) {
   openM('m-facture');
 }
 
-/** Ajoute un nouveau forfait depuis le modal m-forfaits */
+/** Retourne le prix visible d'un forfait, y compris pour les anciennes données. */
+function getForfaitPrix(forfait) {
+  if (!forfait) return 0;
+  var brut = forfait.prixTTC !== undefined ? forfait.prixTTC : forfait.prix;
+  var prix = parseFloat(brut);
+  return isFinite(prix) ? prix : 0;
+}
+
+/** Met à jour toutes les vues qui utilisent la bibliothèque de forfaits. */
+function refreshForfaitCatalogues() {
+  try { renderForfaits('d'); } catch(e) {}
+  try { renderForfaits('f'); } catch(e) {}
+  try { renderDrawerCats(); renderDrawer(); } catch(e) {}
+}
+
+/** Ajoute un nouveau forfait depuis le modal m-forfaits. */
 function addForfait() {
   var nomEl  = document.getElementById('forfait-new-nom');
   var prixEl = document.getElementById('forfait-new-prix');
   if (!nomEl || !prixEl) return;
   var nom  = nomEl.value.trim();
-  var prix = parseFloat(prixEl.value) || 0;
-  if (!nom)  { showToast('Nom du forfait requis !'); return; }
-  if (!prix) { showToast('Prix requis !'); return; }
+  var prix = parseFloat(String(prixEl.value).replace(',', '.'));
+  if (!nom) { showToast('Intitulé du forfait requis !'); nomEl.focus(); return; }
+  if (!isFinite(prix) || prix < 0) { showToast('Saisissez un prix valide !'); prixEl.focus(); return; }
 
-  var newForfait = {
-    id:   'F' + Date.now(),
-    nom:  nom,
-    prix: prix,
-    cat:  'default',
+  FORFAITS.push({
+    id: 'F' + Date.now(),
+    nom: nom,
+    prixTTC: Math.round(prix * 100) / 100,
+    cat: 'Personnalisé',
     desc: ''
-  };
-  if (!window.FORFAITS) window.FORFAITS = [];
-  FORFAITS.push(newForfait);
-  try { localStorage.setItem('zyfix_forfaits', JSON.stringify(FORFAITS)); } catch(e) {}
+  });
+  saveForfaits();
 
   nomEl.value  = '';
   prixEl.value = '';
   renderForfaitsEdit();
-  renderForfaits('d');
-  renderForfaits('f');
+  refreshForfaitCatalogues();
+  nomEl.focus();
   showToast('✅ Forfait « ' + nom + ' » ajouté !');
 }
 
@@ -4906,33 +5017,141 @@ function fabTap() {
   }
 }
 
-/** Affiche la liste des forfaits dans le modal m-forfaits */
+/** Affiche la liste des forfaits avec édition directe du nom et du prix. */
 function renderForfaitsEdit() {
   var container = document.getElementById('forfaits-edit-list');
   if (!container) return;
-  var list = window.FORFAITS || [];
-  if (!list.length) {
+  container.innerHTML = '';
+  if (!FORFAITS.length) {
     container.innerHTML = '<div style="color:var(--t3);font-size:12px;text-align:center;padding:12px">Aucun forfait</div>';
     return;
   }
-  container.innerHTML = list.map(function(f, i) {
-    return '<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--s2);border-radius:8px;border:1px solid var(--border)">'
-      + '<span style="flex:1;font-size:12px;color:var(--t1)">' + (f.nom || '?') + '</span>'
-      + '<span style="font-family:var(--mono);font-size:12px;color:var(--green)">' + ((f.prix||0).toFixed(2)) + ' €</span>'
-      + '<button class="btn btn-danger btn-sm" onclick="deleteForfait(' + i + ')" style="padding:3px 8px;font-size:11px">🗑</button>'
-      + '</div>';
-  }).join('');
+
+  FORFAITS.forEach(function(f, i) {
+    var row = document.createElement('div');
+    row.className = 'forfait-edit-row';
+
+    var nomField = document.createElement('div');
+    nomField.className = 'forfait-edit-field';
+    var nomLabel = document.createElement('label');
+    nomLabel.setAttribute('for', 'forfait-edit-nom-' + i);
+    nomLabel.textContent = 'Intitulé · ' + (f.cat || 'Personnalisé');
+    var nomInput = document.createElement('input');
+    nomInput.id = 'forfait-edit-nom-' + i;
+    nomInput.type = 'text';
+    nomInput.value = f.nom || '';
+    nomInput.setAttribute('aria-label', 'Intitulé du forfait');
+
+    var prixField = document.createElement('div');
+    prixField.className = 'forfait-edit-field';
+    var prixLabel = document.createElement('label');
+    prixLabel.setAttribute('for', 'forfait-edit-prix-' + i);
+    prixLabel.textContent = 'Prix affiché (€)';
+    var prixInput = document.createElement('input');
+    prixInput.id = 'forfait-edit-prix-' + i;
+    prixInput.type = 'number';
+    prixInput.min = '0';
+    prixInput.step = '0.01';
+    prixInput.inputMode = 'decimal';
+    prixInput.value = getForfaitPrix(f).toFixed(2);
+    prixInput.setAttribute('aria-label', 'Prix du forfait');
+
+    var actions = document.createElement('div');
+    actions.className = 'forfait-edit-actions';
+    var saveBtn = document.createElement('button');
+    saveBtn.type = 'button';
+    saveBtn.className = 'btn btn-primary btn-sm';
+    saveBtn.textContent = '💾 Enregistrer';
+    saveBtn.onclick = function() { updateForfait(i); };
+    var deleteBtn = document.createElement('button');
+    deleteBtn.type = 'button';
+    deleteBtn.className = 'btn btn-danger btn-sm';
+    deleteBtn.textContent = '🗑';
+    deleteBtn.title = 'Supprimer ce forfait';
+    deleteBtn.setAttribute('aria-label', 'Supprimer le forfait ' + (f.nom || ''));
+    deleteBtn.onclick = function() { deleteForfait(i); };
+
+    [nomInput, prixInput].forEach(function(input) {
+      input.onkeydown = function(event) {
+        if (event.key === 'Enter') { event.preventDefault(); updateForfait(i); }
+      };
+    });
+
+    nomField.appendChild(nomLabel);
+    nomField.appendChild(nomInput);
+    prixField.appendChild(prixLabel);
+    prixField.appendChild(prixInput);
+    actions.appendChild(saveBtn);
+    actions.appendChild(deleteBtn);
+    row.appendChild(nomField);
+    row.appendChild(prixField);
+    row.appendChild(actions);
+    container.appendChild(row);
+  });
+}
+
+/** Enregistre les modifications d'un forfait. */
+function updateForfait(idx) {
+  var forfait = FORFAITS[idx];
+  var nomEl = document.getElementById('forfait-edit-nom-' + idx);
+  var prixEl = document.getElementById('forfait-edit-prix-' + idx);
+  if (!forfait || !nomEl || !prixEl) return;
+
+  var nom = nomEl.value.trim();
+  var prix = parseFloat(String(prixEl.value).replace(',', '.'));
+  if (!nom) { showToast('L’intitulé ne peut pas être vide.'); nomEl.focus(); return; }
+  if (!isFinite(prix) || prix < 0) { showToast('Saisissez un prix valide.'); prixEl.focus(); return; }
+
+  var ancienNom = forfait.nom || '';
+  forfait.nom = nom;
+  forfait.prixTTC = Math.round(prix * 100) / 100;
+  if (forfait.prix !== undefined) delete forfait.prix;
+  saveForfaits();
+  updateOpenForfaitLines(ancienNom, forfait.nom, forfait.prixTTC);
+  refreshForfaitCatalogues();
+  renderForfaitsEdit();
+  showToast('✅ Forfait « ' + nom + ' » mis à jour');
+}
+
+/** Répercute immédiatement une modification sur le devis/facture encore ouvert. */
+function updateOpenForfaitLines(ancienNom, nouveauNom, nouveauPrix) {
+  var devisChange = false;
+  document.querySelectorAll('#devis-lignes-container .ligne-devis-row[data-type="forfait"]').forEach(function(row) {
+    var descEl = row.querySelector('.ldesc');
+    var prixEl = row.querySelector('.lprix');
+    if (descEl && prixEl && descEl.value.trim() === ancienNom) {
+      descEl.value = nouveauNom;
+      prixEl.value = forfaitPrixLigne(nouveauPrix, 'd').toFixed(2);
+      devisChange = true;
+    }
+  });
+  if (devisChange) syncLignesDevis();
+
+  var factureTA = document.getElementById('f-lignes');
+  if (factureTA && factureTA.value.trim()) {
+    var factureChange = false;
+    var lignes = factureTA.value.split('\n').map(function(ligne) {
+      var morceaux = ligne.split('|');
+      if (morceaux[0].trim() !== ancienNom) return ligne;
+      morceaux[0] = nouveauNom + ' ';
+      morceaux[1] = ' ' + forfaitPrixLigne(nouveauPrix, 'f').toFixed(2);
+      factureChange = true;
+      return morceaux.join('|');
+    });
+    if (factureChange) {
+      factureTA.value = lignes.join('\n');
+      try { fUpdatePreview(); } catch(e) {}
+    }
+  }
 }
 
 /** Supprime un forfait par index */
 function deleteForfait(idx) {
-  if (!window.FORFAITS) return;
   var nom = FORFAITS[idx] ? FORFAITS[idx].nom : '?';
   FORFAITS.splice(idx, 1);
-  try { localStorage.setItem('zyfix_forfaits', JSON.stringify(FORFAITS)); } catch(e) {}
+  saveForfaits();
   renderForfaitsEdit();
-  renderForfaits('d');
-  renderForfaits('f');
+  refreshForfaitCatalogues();
   showToast('🗑 Forfait « ' + nom + ' » supprimé');
 }
 
@@ -6302,7 +6521,7 @@ function renderDrawer() {
         html += '<div class="forfait-card-nom">' + f.nom + '</div>';
         if (f.desc) html += '<div class="forfait-card-desc">' + f.desc + '</div>';
         html += '</div>';
-        var prixDraw = f.prixTTC !== undefined ? f.prixTTC : f.prix;
+        var prixDraw = getForfaitPrix(f);
         html += '<div class="forfait-card-prix">' + prixDraw + ' €</div>';
         html += '</div>';
       });
@@ -6353,14 +6572,15 @@ function updateForfaitPreview() {
   if (!_currentForfait) return;
   var qty = parseInt(document.getElementById('fopt-qty').value) || 1;
   var isMicroFopt = document.getElementById('d-tva-toggle') && document.getElementById('d-tva-toggle').checked;
-  var tva = isMicroFopt ? 0 : 20;
-  var prixTTC = _currentForfait.prixTTC !== undefined ? _currentForfait.prixTTC : (_currentForfait.prix || 0);
-  var prixHT = prixTTC / 1.2;
+  var tvaEl = document.getElementById('d-tva');
+  var tva = isMicroFopt ? 0 : (tvaEl ? (parseFloat(tvaEl.value) || 20) : 20);
+  var prixTTC = getForfaitPrix(_currentForfait);
+  var prixHT = isMicroFopt ? prixTTC : prixTTC / (1 + tva / 100);
 
   // Calcul options HT
   var optsHT = 0;
   FORFAITS_OPTIONS.forEach(function(o, i) {
-    if (_forfaitOptsChecked[i]) optsHT += o.prix / 1.2;
+    if (_forfaitOptsChecked[i]) optsHT += isMicroFopt ? o.prix : o.prix / (1 + tva / 100);
   });
 
   var baseHT = prixHT * qty;
@@ -6378,7 +6598,7 @@ function insertForfaitInDevis() {
   if (!_currentForfait) return;
   var qty = parseInt(document.getElementById('fopt-qty').value) || 1;
   var customDesc = document.getElementById('fopt-custom-desc').value.trim();
-  var prixHT = (_currentForfait.prixTTC || 0) / 1.2;
+  var prixHT = forfaitPrixLigne(getForfaitPrix(_currentForfait), 'd');
   var desc = customDesc || _currentForfait.nom;
   if (qty > 1) desc = qty + 'x ' + desc;
 
@@ -6388,7 +6608,7 @@ function insertForfaitInDevis() {
   // Options sélectionnées
   FORFAITS_OPTIONS.forEach(function(o, i) {
     if (_forfaitOptsChecked[i]) {
-      var opHT = parseFloat((o.prix / 1.2 * qty).toFixed(2));
+      var opHT = parseFloat((forfaitPrixLigne(o.prix, 'd') * qty).toFixed(2));
       var opDesc = o.nom.replace(/\s*\(\+.*?\)/, '');
       lignes.push({ desc: opDesc, prix: opHT });
     }
@@ -6594,7 +6814,9 @@ function resetForfaitsDefaut() {
     FORFAITS = FORFAITS_DEFAULT_LIST();
     saveForfaits();
     renderForfaitsEdit();
-    renderDrawer();
+    resetForfaitsAdded('d');
+    resetForfaitsAdded('f');
+    refreshForfaitCatalogues();
     showToast('✅ Forfaits réinitialisés !');
   }, { icon:'↺', okLabel:'Réinitialiser', okColor:'var(--amber)', okTxtColor:'#000' });
 }
@@ -9342,16 +9564,21 @@ function fillPieceFromSearch(idx) {
 // ════════════════════════════════════════════════════════════════
 
 var FORFAITS = (function() {
-  var stored = JSON.parse(localStorage.getItem('zyfix_forfaits') || 'null');
-  // Forcer reset si version ancienne (prix différents ou catégories obsolètes)
-  if (stored && stored.length > 0) {
+  var raw = localStorage.getItem('zyfix_forfaits');
+  if (raw === null) return FORFAITS_DEFAULT_LIST();
+  var stored = null;
+  try { stored = JSON.parse(raw); } catch(e) { stored = null; }
+  if (!Array.isArray(stored)) return FORFAITS_DEFAULT_LIST();
+
+  // Ne réinitialiser que les toutes anciennes catégories, jamais un prix choisi par l'utilisateur.
+  if (stored.length > 0) {
     var obsolete = ['Intervention à Domicile','Services PC Gamer','Packs Malware'];
-    if (obsolete.indexOf(stored[0].cat) !== -1 || (stored[0].nom === 'Diagnostic rapide' && stored[0].prixTTC < 29)) {
+    if (obsolete.indexOf(stored[0].cat) !== -1) {
       localStorage.removeItem('zyfix_forfaits');
-      stored = null;
+      return FORFAITS_DEFAULT_LIST();
     }
   }
-  return stored || FORFAITS_DEFAULT_LIST();
+  return stored;
 })();
 
 function saveForfaits() {
@@ -9514,7 +9741,7 @@ function renderForfaits(prefix) {
 
       var prix = document.createElement('span');
       prix.style.cssText = 'font-size:12px;font-weight:800;color:#fff;white-space:nowrap;flex-shrink:0;';
-      prix.textContent = (f.prixTTC || f.prix || 0) + ' \u20ac';
+      prix.textContent = getForfaitPrix(f) + ' \u20ac';
 
       row.appendChild(dot);
       row.appendChild(nom);
@@ -9545,7 +9772,7 @@ function renderForfaits(prefix) {
           row.style.textDecoration = 'none';
         } else {
           /* AJOUTER : créer une vraie ligne visible */
-          var pHT = parseFloat(f.prixTTC || f.prix || 0);
+          var pHT = forfaitPrixLigne(getForfaitPrix(f), prefix);
           if (prefix === 'd') {
             addLigneDevis(f.nom, pHT, { type: 'forfait', qte: 1 });
           } else if (prefix === 'f') {
